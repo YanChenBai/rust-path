@@ -152,7 +152,7 @@ export async function runRust(code: string, options: RunOptions = {}): Promise<R
       type: 'init',
       toolchain: {
         baseUrl: new URL(`${import.meta.env.BASE_URL}runtime`, location.origin).href,
-        gzipped: false,
+        gzipped: true,
       },
     });
   }

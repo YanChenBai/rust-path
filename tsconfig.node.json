@@ -2,6 +2,7 @@
 {
   "extends": "@tsconfig/node26/tsconfig.json",
   "include": [
+    "scripts/release*.ts",
     "scripts/prepare-browser.ts",
     "scripts/logger.ts",
     "scripts/verify-course.ts",

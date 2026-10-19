@@ -131,6 +131,8 @@ LSP 握手结束后仍可能需要加载项目和建立索引。服务接收 rus
 
 `scripts/prepare-browser.ts` 生成 `public/runtime/` 与 `public/analyzer/` 等浏览器资源，大型生成资源不提交 Git。来源、固定版本与许可见[第三方说明](../THIRD_PARTY_NOTICES.md)。
 
+工具链使用上游 gzip 资源，由浏览器 worker 解压。未压缩的编译器和标准库超过 Cloudflare Pages 的单文件 25 MiB 限制，因此不会复制到站点；CI 会再次检查构建产物体积。
+
 浏览器 WASM 分析要求 HTTPS（localhost 除外），并需要以下响应头，开发服务已配置：
 
 ```text
@@ -139,3 +141,40 @@ Cross-Origin-Embedder-Policy: require-corp
 ```
 
 完整模式与浏览器回退的能力差异见[学习指南](learning.md#运行模式)。
+
+## 版本与自动发布
+
+前端和 server 共用根 `package.json` 的版本，初始基线为 `0.1.0`。Changesets 同时维护根更新日志和发布说明；根包保持 private，服务也不发布到 crates.io。
+
+修改前端或服务后执行：
+
+```sh
+vp run changeset
+```
+
+选择 `rust-study`，按影响选择 patch、minor 或 major，填写本次变更说明并将生成的 `.changeset/*.md` 一起提交。只升级前端或只修改服务时也会发布同一个新版本。
+
+发布过程如下：
+
+1. PR 执行前端格式、类型、测试和构建检查，同时在 Windows x64、Linux x64、macOS Intel 和 Apple Silicon 上执行 Rust 格式检查、Clippy、测试、release 构建与 `--version` 检查。
+2. 合并到 `master` 后，Changesets 自动维护 Release PR。版本任务同步 `package.json`、`crates/server/Cargo.toml`、`Cargo.lock` 与根 `CHANGELOG.md`，CI 拒绝前后端版本不一致的提交。
+3. 合并 Release PR 后，先将该提交构建的 `dist/` 部署到 Cloudflare Pages，再创建 `v<version>` GitHub Release，上传四个平台的 server 压缩包和 `SHA256SUMS.txt`。Linux 二进制基于 Ubuntu 24.04 构建，运行环境需提供兼容的 glibc。
+4. 已发布的版本会跳过重复发布。失败时可以重新运行 Release 工作流；未完成的 draft Release 会继续上传。Pages 与 GitHub Release 是两个独立服务，若后者失败，Pages 可能已经更新，此时重跑完成同版本发布。
+
+站点的 `/version.json` 返回构建时的版本；server 的 `--version` 返回相同版本。Pages 产物保留 `_headers` 中的跨源隔离配置，并使用 Pages 默认的 SPA 回退。
+
+### 一次性仓库配置
+
+在 GitHub 仓库的 Settings → Secrets and variables → Actions 配置：
+
+| 类型     | 名称                       | 内容                                   |
+| -------- | -------------------------- | -------------------------------------- |
+| Secret   | `CLOUDFLARE_API_TOKEN`     | 目标账户的 Cloudflare Pages Edit token |
+| Secret   | `CLOUDFLARE_ACCOUNT_ID`    | Pages 项目所属账户 ID                  |
+| Variable | `CLOUDFLARE_PAGES_PROJECT` | 已存在的 Pages 项目名称                |
+
+Pages 项目使用 Direct Upload，生产分支设为 `master`；若已有 Git 集成，关闭自动构建，避免与 Actions 重复部署。无需把 Cloudflare token 放入前端环境变量。
+
+GitHub Settings → Actions → General 需要开启 **Allow GitHub Actions to create and approve pull requests**，供 Changesets 维护 Release PR。工作流使用内置 `GITHUB_TOKEN`，无需 npm token；自动生成的 Release PR 可能不会触发新的 PR 检查，合并到 `master` 后的发布仍会先完整运行 CI。
+
+本地可以运行 `vp run check:version` 检查一致性；`vp run version:release` 会消耗 changeset 并修改版本和日志，通常交给 Release PR 执行。自动化配置的源码验证与真实 GitHub / Cloudflare 发布是两件事，首次发布后仍需在 Actions 中确认四个平台和 Pages 部署结果。

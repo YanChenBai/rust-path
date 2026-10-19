@@ -1,4 +1,4 @@
-import { cp, mkdir, writeFile, access, readFile } from 'node:fs/promises';
+import { cp, mkdir, writeFile, access, readFile, rm, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -9,16 +9,25 @@ const root = new URL('../', import.meta.url);
 
 async function prepareBrowser() {
   logger.info('准备浏览器 Rust 编译器与分析资源…');
+  // Pages 单文件限制 25 MiB；工具链由上游 worker 解压，只复制 gzip 文件。
+  await rm(new URL('public/runtime/bin', root), { recursive: true, force: true });
+  await rm(new URL('public/runtime/lib', root), { recursive: true, force: true });
   await mkdir(new URL('public/runtime', root), { recursive: true });
   await cp(
     new URL('node_modules/@live-codes/wasm-rustc/bin', root),
     new URL('public/runtime/bin', root),
-    { recursive: true },
+    {
+      recursive: true,
+      filter: async source => source.endsWith('.gz') || (await stat(source)).isDirectory(),
+    },
   );
   await cp(
     new URL('node_modules/@live-codes/wasm-rustc/lib', root),
     new URL('public/runtime/lib', root),
-    { recursive: true },
+    {
+      recursive: true,
+      filter: async source => source.endsWith('.gz') || (await stat(source)).isDirectory(),
+    },
   );
 
   // 保留上游 worker，仅在 WASI 输出回调处增加流式消息，不修改编译器。

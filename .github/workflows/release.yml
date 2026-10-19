@@ -1,0 +1,133 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  version:
+    name: Release PR and version plan
+    needs: verify
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      ready: ${{ steps.plan.outputs.ready }}
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: '26.12.0'
+          cache: true
+      - run: vp install --frozen-lockfile
+      - uses: changesets/action@v2
+        id: changesets
+        with:
+          version-script: vp run version:release
+          commit-message: 'chore: version frontend and server'
+          pr-title: 'chore: release frontend and server'
+          create-github-releases: false
+          push-git-tags: false
+      - name: Plan unpublished version
+        if: steps.changesets.outputs.has-changesets == 'false'
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          vp exec oxnode scripts/release.ts plan
+          version=$(node -p 'require("./package.json").version')
+          export RELEASE_TAG="v$version"
+          published=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name == env.RELEASE_TAG and .draft == false) | .id')
+          if [ -n "$published" ]; then echo 'ready=false' >> "$GITHUB_OUTPUT"; fi
+
+  pages:
+    name: Deploy frontend to Cloudflare Pages
+    needs: version
+    if: needs.version.outputs.ready == 'true'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: '26.12.0'
+      - uses: actions/download-artifact@v8
+        with:
+          name: pages-dist
+          path: .pages-deploy/dist
+      - name: Validate Pages configuration
+        env:
+          CF_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          test -n "$CF_PROJECT" || { echo 'Set CLOUDFLARE_PAGES_PROJECT repository variable'; exit 1; }
+          test -n "$CF_TOKEN" || { echo 'Set CLOUDFLARE_API_TOKEN repository secret'; exit 1; }
+          test -n "$CF_ACCOUNT" || { echo 'Set CLOUDFLARE_ACCOUNT_ID repository secret'; exit 1; }
+          printf '{"private":true}\n' > .pages-deploy/package.json
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          packageManager: npm
+          workingDirectory: .pages-deploy
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.151.1'
+          command: pages deploy dist --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch=master --commit-hash=${{ github.sha }}
+
+  publish:
+    name: Publish server binaries
+    needs: [version, pages]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: server-*
+          path: artifacts
+          merge-multiple: true
+      - name: Prepare checksums and release notes
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          cd artifacts
+          sha256sum *.zip *.tar.gz > SHA256SUMS.txt
+          cd ..
+          node --input-type=module <<'NODE'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const changelog = readFileSync('CHANGELOG.md', 'utf8');
+          const entry = changelog.split(`## ${process.env.VERSION}\n`)[1]?.split(/^## /m)[0]?.trim();
+          if (!entry) throw new Error('Missing release notes');
+          writeFileSync('release-notes.md', entry + '\n');
+          NODE
+      - name: Upload and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          release=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[] | select(.tag_name == env.RELEASE_TAG) | .id')
+          if [ -z "$release" ]; then
+            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "Rust Path $RELEASE_TAG" --notes-file release-notes.md --draft
+          fi
+          gh release upload "$RELEASE_TAG" artifacts/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false --latest

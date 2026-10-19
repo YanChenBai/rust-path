@@ -5,6 +5,7 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 
 import { courseCatalog } from './plugins/course-catalog';
 import { courseMarkdown } from './plugins/markdown-plugin';
+import { projectVersion } from './scripts/release-version';
 
 const courseVerificationCache = {
   env: [
@@ -52,6 +53,17 @@ const courseVerificationCache = {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: lazyPlugins(() => [
+    {
+      name: 'release-version',
+      generateBundle() {
+        const version = projectVersion(process.cwd());
+        this.emitFile({
+          type: 'asset',
+          fileName: 'version.json',
+          source: `${JSON.stringify({ version })}\n`,
+        });
+      },
+    },
     vue({ include: [/\.vue$/, /\.md$/] }),
     courseCatalog(),
     courseMarkdown(),
@@ -92,6 +104,12 @@ export default defineConfig({
   run: {
     cache: true,
     tasks: {
+      changeset: { command: 'changeset', cache: false },
+      'version:release': {
+        command: 'oxnode scripts/release.ts version && vp fmt package.json CHANGELOG.md',
+        cache: false,
+      },
+      'check:version': { command: 'oxnode scripts/release.ts check', cache: false },
       dev: 'vp dev',
       'dev:server': {
         command: 'cargo run --locked --package rust-path-server --',
