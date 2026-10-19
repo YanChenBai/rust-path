@@ -1,0 +1,1442 @@
+{
+  "traits-project": {
+    "answer": "#[derive(Debug, PartialEq)]\nstruct Minutes(u32);\nimpl TryFrom<u32> for Minutes {\n    type Error = String;\n    fn try_from(n: u32) -> Result<Self, String> {\n        if (1..=180).contains(&n) {\n            Ok(Self(n))\n        } else {\n            Err(String::from(\"range\"))\n        }\n    }\n}\nimpl From<Minutes> for u32 {\n    fn from(n: Minutes) -> Self {\n        n.0\n    }\n}",
+    "tests": "assert_eq!(Minutes::try_from(0),Err(String::from(\"range\")));assert_eq!(Minutes::try_from(181),Err(String::from(\"range\")));assert_eq!(u32::from(Minutes::try_from(180).unwrap()),180);",
+    "explanation": "组合领域类型、转换契约和错误返回。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "smart-choice": {
+    "answer": "Weak 不增加强引用计数",
+    "explanation": "Weak 可以观察对象；upgrade 返回 Option，不能保证对象仍然存活。",
+    "mode": "fold"
+  },
+  "smart-fill": {
+    "answer": "try_borrow_mut",
+    "explanation": "try_borrow_mut 用 Result 表达借用冲突，borrow_mut 在冲突时 panic。",
+    "mode": "fold"
+  },
+  "smart-code": {
+    "answer": "fn try_add(cell: &std::cell::RefCell<i32>, delta: i32) -> bool {\n    let Ok(mut value) = cell.try_borrow_mut() else { return false; };\n    let Some(next) = value.checked_add(delta) else { return false; };\n    *value = next;\n    true\n}",
+    "explanation": "借用失败与算术溢出都不修改原值，守卫退出作用域后释放借用。",
+    "tests": "let value = std::cell::RefCell::new(2);\nassert!(try_add(&value, 3)); assert_eq!(*value.borrow(), 5);\nlet guard = value.borrow(); assert!(!try_add(&value, 1)); drop(guard);\nassert!(try_add(&value, -7)); assert_eq!(*value.borrow(), -2);\nlet limit = std::cell::RefCell::new(i32::MAX);\nassert!(!try_add(&limit, 1)); assert_eq!(*limit.borrow(), i32::MAX);"
+  },
+  "smart-project": {
+    "answer": "use std::cell::{Cell, RefCell};\nuse std::rc::{Rc, Weak};\nstruct Node {\n    name: String,\n    parent: RefCell<Weak<Node>>,\n    children: RefCell<Vec<Rc<Node>>>,\n    drops: Rc<Cell<usize>>,\n}\nimpl Node {\n    fn new(name: &str, drops: Rc<Cell<usize>>) -> Rc<Self> {\n        Rc::new(Self { name: name.into(), parent: RefCell::new(Weak::new()), children: RefCell::new(Vec::new()), drops })\n    }\n    fn attach(parent: &Rc<Self>, child: &Rc<Self>) -> bool {\n        if Rc::ptr_eq(parent, child) || child.parent.borrow().upgrade().is_some() { return false; }\n        let mut ancestor = Some(Rc::clone(parent));\n        while let Some(node) = ancestor {\n            if Rc::ptr_eq(&node, child) { return false; }\n            ancestor = node.parent.borrow().upgrade();\n        }\n        *child.parent.borrow_mut() = Rc::downgrade(parent);\n        parent.children.borrow_mut().push(Rc::clone(child));\n        true\n    }\n}\nimpl Drop for Node {\n    fn drop(&mut self) { self.drops.set(self.drops.get() + 1); }\n}",
+    "explanation": "父到子用 Rc，子到父用 Weak；拒绝重复挂载和成环，Drop 计数验证释放。",
+    "tests": "let drops = Rc::new(Cell::new(0));\nlet root = Node::new(\"根\", Rc::clone(&drops));\nlet child = Node::new(\"叶\", Rc::clone(&drops));\nassert_eq!(child.name, \"叶\"); assert!(Node::attach(&root, &child));\nassert!(!Node::attach(&root, &child)); assert!(!Node::attach(&root, &root));\nassert!(!Node::attach(&child, &root));\nassert_eq!(root.children.borrow().len(), 1);\nlet weak = Rc::downgrade(&root); drop(root);\nassert!(weak.upgrade().is_none()); assert!(child.parent.borrow().upgrade().is_none());\nassert_eq!(drops.get(), 1); drop(child); assert_eq!(drops.get(), 2);"
+  },
+  "stdlib-project": {
+    "answer": "fn classify_rows(rows: &[Option<Result<u32, String>>]) -> (usize, usize, usize) {\n    let (mut valid, mut missing, mut invalid) = (0, 0, 0);\n    for row in rows {\n        match row {\n            Some(Ok(1..=180)) => valid += 1,\n            None => missing += 1,\n            _ => invalid += 1,\n        }\n    }\n    (valid, missing, invalid)\n}",
+    "tests": "let rows=vec![Some(Ok(1)),None,Some(Err(String::from(\"bad\"))),Some(Ok(0)),Some(Ok(181)),Some(Ok(180))];assert_eq!(classify_rows(&rows),(2,1,3));assert_eq!(rows.len(),6);assert_eq!(classify_rows(&[]),(0,0,0));",
+    "explanation": "组合 Option、Result、范围模式与借用观察。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "io-choice": {
+    "answer": "write_all 会尝试写完全部字节",
+    "explanation": "write 允许短写；write_all 会重试直到完成或遇到错误。",
+    "mode": "fold"
+  },
+  "io-fill": {
+    "answer": "Path",
+    "explanation": "Path 是借用路径视图；PathBuf 拥有路径，可通过 join 构造新路径。",
+    "mode": "fold"
+  },
+  "io-code": {
+    "answer": "fn sum_lines<R: std::io::BufRead>(reader: R) -> Result<i64, String> {\n    let mut sum = 0i64;\n    for line in reader.lines() {\n        let line = line.map_err(|e| e.to_string())?;\n        if line.trim().is_empty() { continue; }\n        let n: i64 = line.trim().parse::<i64>().map_err(|e| e.to_string())?;\n        sum = sum.checked_add(n).ok_or(\"总和溢出\")?;\n    }\n    Ok(sum)\n}",
+    "explanation": "泛型 BufRead 让同一逻辑同时支持文件与内存，并传播读取、解析、溢出错误。",
+    "tests": "assert_eq!(sum_lines(std::io::Cursor::new(\"1\\n -2\\n3\\n\")), Ok(2));\nassert_eq!(sum_lines(std::io::Cursor::new(\" \\r\\n\")), Ok(0));\nassert!(sum_lines(std::io::Cursor::new(\"1\\nabc\")).is_err());\nassert!(sum_lines(std::io::Cursor::new(\"9223372036854775807\\n1\")).is_err());"
+  },
+  "io-project": {
+    "answer": "fn summarize_file(input: &std::path::Path, output: &std::path::Path) -> std::io::Result<usize> {\n    use std::io::{BufRead, Write};\n    if input == output { return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, \"输入输出路径相同\")); }\n    let reader = std::io::BufReader::new(std::fs::File::open(input)?);\n    let mut count = 0;\n    for line in reader.lines() { if !line?.trim().is_empty() { count += 1; } }\n    let mut writer = std::io::BufWriter::new(std::fs::File::create(output)?);\n    writeln!(writer, \"lines={count}\")?;\n    writer.flush()?;\n    Ok(count)\n}",
+    "explanation": "先完整读取再创建输出，显式 flush；练习限定两条独立的普通路径，不处理符号链接或硬链接别名。",
+    "tests": "let dir = std::env::temp_dir().join(format!(\"rust-io-{}-{}\", std::process::id(), std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()));\nstd::fs::create_dir(&dir).unwrap();\nlet input = dir.join(\"输入.txt\"); let output = dir.join(\"统计.txt\");\nstd::fs::write(&input, \"甲\\n \\n乙\\r\\n\").unwrap();\nassert_eq!(summarize_file(&input, &output).unwrap(), 2);\nassert_eq!(std::fs::read_to_string(&output).unwrap(), \"lines=2\\n\");\nassert!(summarize_file(&input, &input).is_err());\nstd::fs::write(&input, \"\").unwrap(); assert_eq!(summarize_file(&input, &output).unwrap(), 0);\nassert!(summarize_file(&dir.join(\"missing\"), &output).is_err());\nstd::fs::remove_dir_all(dir).unwrap();"
+  },
+  "cargo-choice": {
+    "answer": "cargo check 不生成最终可执行文件",
+    "explanation": "check 检查代码但通常跳过最终代码生成；build 生成构建产物。",
+    "mode": "fold"
+  },
+  "cargo-fill": {
+    "answer": "Cargo.lock",
+    "explanation": "锁文件记录解析出的精确依赖版本；--locked 要求已有锁文件不被更新。",
+    "mode": "fold"
+  },
+  "cargo-code": {
+    "answer": "mod math {\n    pub fn checked_double(n: u32) -> Option<u32> { n.checked_mul(2) }\n}\npub fn run(n: u32) -> Option<u32> { crate::math::checked_double(n) }",
+    "explanation": "pub 暴露模块成员，crate:: 从当前 crate 根定位；checked_mul 保留溢出信息。",
+    "tests": "assert_eq!(run(0), Some(0)); assert_eq!(run(7), Some(14));\nassert_eq!(run(u32::MAX), None); assert_eq!(run(u32::MAX / 2), Some(u32::MAX - 1));"
+  },
+  "cargo-project": {
+    "answer": "mod config {\n    #[derive(Debug, PartialEq)]\n    pub struct BuildPlan { pub mode: &'static str, pub release: bool, pub locked: bool }\n    pub fn plan(args: &[&str]) -> Result<BuildPlan, String> {\n        let Some(&mode) = args.first() else { return Err(\"缺少命令\".into()); };\n        if ![\"check\", \"build\", \"test\"].contains(&mode) { return Err(\"未知命令\".into()); }\n        let mut result = BuildPlan { mode: match mode { \"check\" => \"check\", \"build\" => \"build\", _ => \"test\" }, release: false, locked: false };\n        for flag in &args[1..] {\n            match *flag { \"--release\" => result.release = true, \"--locked\" => result.locked = true, _ => return Err(\"未知参数\".into()) }\n        }\n        Ok(result)\n    }\n}\nuse config::plan;",
+    "explanation": "这是 Cargo 参数的受限模型，不执行 Cargo。模块、可见性、Result 与参数校验共同构成接口。",
+    "tests": "assert!(plan(&[]).is_err()); assert!(plan(&[\"run\"]).is_err());\nlet p = plan(&[\"build\", \"--release\", \"--locked\"]).unwrap();\nassert_eq!(p.mode, \"build\"); assert!(p.release && p.locked);\nlet p = plan(&[\"check\"]).unwrap(); assert!(!p.release && !p.locked);\nassert_eq!(plan(&[\"test\", \"--locked\", \"--locked\"]).unwrap().mode, \"test\");\nassert!(plan(&[\"test\", \"--workspace\"]).is_err());"
+  },
+  "macros-choice": {
+    "answer": "过程宏在编译期处理 token 流",
+    "explanation": "derive、属性宏与函数式过程宏由过程宏 crate 提供；macro_rules 使用模式匹配展开。",
+    "mode": "fold"
+  },
+  "macros-fill": {
+    "answer": "expr",
+    "explanation": "$value:expr 捕获表达式片段；重复模式可支持逗号分隔参数。",
+    "mode": "fold"
+  },
+  "macros-code": {
+    "answer": "macro_rules! total_i64 {\n    ($($value:expr),* $(,)?) => {{\n        let mut total = 0i64;\n        $(total += i64::from($value);)*\n        total\n    }};\n}",
+    "explanation": "每个表达式只在展开后的累加语句中出现一次；练习保证总和不溢出 i64。",
+    "tests": "assert_eq!(total_i64!(), 0i64); assert_eq!(total_i64!(1, -2, 4,), 3);\nlet mut calls = 0;\nassert_eq!(total_i64!({ calls += 1; 7 }, { calls += 1; 2 }), 9);\nassert_eq!(calls, 2); assert_eq!(total_i64!(i32::MAX, i32::MAX), 4294967294);"
+  },
+  "macros-project": {
+    "answer": "macro_rules! settings {\n    ($($key:expr => $value:expr),* $(,)?) => {{\n        let mut result = std::collections::BTreeMap::<String, i32>::new();\n        $(let key = String::from($key); let value: i32 = $value; result.insert(key, value);)*\n        result\n    }};\n}",
+    "explanation": "宏组合重复匹配、有序集合和所有权；相同键后写覆盖，值表达式恰好执行一次。",
+    "tests": "assert!(settings!().is_empty());\nlet map = settings!(\"b\" => 2, \"a\" => 1, \"b\" => 3,);\nassert_eq!(map.into_iter().collect::<Vec<_>>(), vec![(\"a\".into(), 1), (\"b\".into(), 3)]);\nlet mut calls = 0; let key = String::from(\"中文\");\nlet map = settings!(&key => { calls += 1; 9 });\nassert_eq!(calls, 1); assert_eq!(map[\"中文\"], 9); assert_eq!(key, \"中文\");"
+  },
+  "threads-project": {
+    "answer": "fn stats(values: &[i32]) -> (usize, i64) {\n    fn part(v: &[i32]) -> (usize, i64) {\n        (\n            v.iter().filter(|&&n| n > 0).count(),\n            v.iter().map(|&n| i64::from(n)).sum(),\n        )\n    }\n    std::thread::scope(|s| {\n        let mid = values.len() / 2;\n        let a = s.spawn(move || part(&values[..mid]));\n        let b = s.spawn(move || part(&values[mid..]));\n        let a = a.join().unwrap();\n        let b = b.join().unwrap();\n        (a.0 + b.0, a.1 + b.1)\n    })\n}",
+    "tests": "assert_eq!(stats(&[-2,0,3,4,5]),(3,10));assert_eq!(stats(&[]),(0,0));assert_eq!(stats(&[i32::MAX,i32::MAX]),(2,4294967294));",
+    "explanation": "组合借用、线程返回值与边界计算，避免共享可变状态。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "async-choice": {
+    "answer": "丢弃 JoinHandle 会分离任务",
+    "explanation": "丢弃普通 Future 会停止继续轮询；已 spawn 的任务需要显式 abort 并等待结束。",
+    "mode": "fold"
+  },
+  "async-fill": {
+    "answer": "spawn_blocking",
+    "explanation": "同步阻塞工作应移到阻塞线程池；已经开始的阻塞闭包不能靠 abort 强行停止。",
+    "mode": "fold"
+  },
+  "async-code": {
+    "answer": "async fn doubled(values: Vec<u32>) -> Vec<u64> {\n    let mut jobs = Vec::new();\n    for value in values { jobs.push(tokio::spawn(async move { u64::from(value) * 2 })); }\n    let mut output = Vec::new();\n    for job in jobs { output.push(job.await.expect(\"任务失败\")); }\n    output\n}",
+    "explanation": "在异步函数内部 spawn，通过持有并等待所有句柄保持输入顺序；同步断言入口自行创建运行时。",
+    "tests": "let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();\nruntime.block_on(async {\n    assert_eq!(doubled(vec![]).await, Vec::<u64>::new());\n    assert_eq!(doubled(vec![3,0,2]).await, vec![6,0,4]);\n    assert_eq!(doubled(vec![u32::MAX]).await, vec![8589934590]);\n});"
+  },
+  "async-project": {
+    "answer": "async fn race_or_cancel(cancel: bool) -> Result<u32, &'static str> {\n    let (sender, mut receiver) = tokio::sync::oneshot::channel::<u32>();\n    let mut job = tokio::spawn(async move {\n        let _sender = sender;\n        std::future::pending::<()>().await;\n    });\n    let result = tokio::select! {\n        biased;\n        _ = std::future::ready(()), if cancel => Err(\"cancelled\"),\n        value = &mut receiver => value.map_err(|_| \"closed\"),\n        value = async { tokio::task::yield_now().await; 7u32 } => Ok(value),\n    };\n    job.abort();\n    let error = (&mut job).await.expect_err(\"任务应被取消\");\n    assert!(error.is_cancelled());\n    result\n}",
+    "explanation": "取消分支用 ready 和 biased 确定优先级，不靠睡眠猜调度；显式 abort 并等待后台任务。",
+    "tests": "let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();\nruntime.block_on(async {\n    assert_eq!(race_or_cancel(true).await, Err(\"cancelled\"));\n    assert_eq!(race_or_cancel(false).await, Ok(7));\n    assert_eq!(race_or_cancel(true).await, Err(\"cancelled\"));\n    assert_eq!(race_or_cancel(false).await, Ok(7));\n});"
+  },
+  "network-choice": {
+    "answer": "TCP 是有序字节流，没有消息边界",
+    "explanation": "单次 write 不对应单次 read；应用必须定义定长、分隔符或长度前缀等协议。",
+    "mode": "fold"
+  },
+  "network-fill": {
+    "answer": "Content-Length",
+    "explanation": "HTTP/1.1 的 Content-Length 按正文的字节数计算，不是字符数。",
+    "mode": "fold"
+  },
+  "network-code": {
+    "answer": "\nuse std::io::{self, Read, Write};\nuse std::net::{TcpListener, TcpStream};\nuse std::time::{Duration, Instant};\n\nfn accept_until(listener: &TcpListener) -> io::Result<TcpStream> {\n    listener.set_nonblocking(true)?;\n    let deadline = Instant::now() + Duration::from_secs(3);\n    loop {\n        match listener.accept() {\n            Ok((stream, _)) => return Ok(stream),\n            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {\n                if Instant::now() >= deadline {\n                    return Err(io::Error::new(io::ErrorKind::TimedOut, \"等待连接超时\"));\n                }\n                std::thread::sleep(Duration::from_millis(2));\n            }\n            Err(e) => return Err(e),\n        }\n    }\n}\n\nfn limits(stream: &TcpStream) -> io::Result<()> {\n    stream.set_read_timeout(Some(Duration::from_secs(3)))?;\n    stream.set_write_timeout(Some(Duration::from_secs(3)))\n}\n\nfn tcp_echo(payload: &[u8]) -> io::Result<Vec<u8>> {\n    if payload.len() > 1024 { return Err(io::Error::new(io::ErrorKind::InvalidInput, \"最多 1024 字节\")); }\n    let listener = TcpListener::bind(\"127.0.0.1:0\")?;\n    let address = listener.local_addr()?;\n    let server = std::thread::spawn(move || -> io::Result<()> {\n        let mut stream = accept_until(&listener)?;\n        limits(&stream)?;\n        let mut header = [0u8; 2]; stream.read_exact(&mut header)?;\n        let length = u16::from_be_bytes(header) as usize;\n        if length > 1024 { return Err(io::Error::new(io::ErrorKind::InvalidData, \"帧过大\")); }\n        let mut body = vec![0; length]; stream.read_exact(&mut body)?;\n        stream.write_all(&header)?; stream.write_all(&body)\n    });\n    let response = (|| -> io::Result<Vec<u8>> {\n        let mut stream = TcpStream::connect_timeout(&address, Duration::from_secs(3))?;\n        limits(&stream)?;\n        stream.write_all(&(payload.len() as u16).to_be_bytes())?;\n        stream.write_all(payload)?;\n        let mut header = [0; 2]; stream.read_exact(&mut header)?;\n        let length = u16::from_be_bytes(header) as usize;\n        if length > 1024 { return Err(io::Error::new(io::ErrorKind::InvalidData, \"帧过大\")); }\n        let mut output = vec![0; length]; stream.read_exact(&mut output)?;\n        Ok(output)\n    })();\n    let server_result = server.join().map_err(|_| io::Error::other(\"服务线程失败\"))?;\n    server_result?;\n    response\n}",
+    "explanation": "回环动态端口隔离测试；两字节大端长度前缀定义消息边界，连接、读写和 accept 都有时间上界。",
+    "tests": "assert_eq!(tcp_echo(b\"\").unwrap(), b\"\");\nassert_eq!(tcp_echo(\"你好\".as_bytes()).unwrap(), \"你好\".as_bytes());\nassert_eq!(tcp_echo(&vec![7;1024]).unwrap(), vec![7;1024]);\nassert!(tcp_echo(&vec![0;1025]).is_err());\nfor _ in 0..3 { assert_eq!(tcp_echo(b\"repeat\").unwrap(), b\"repeat\"); }"
+  },
+  "network-project": {
+    "answer": "\nuse std::io::{self, Read, Write};\nuse std::net::{TcpListener, TcpStream};\nuse std::time::{Duration, Instant};\n\nfn accept_until(listener: &TcpListener) -> io::Result<TcpStream> {\n    listener.set_nonblocking(true)?;\n    let deadline = Instant::now() + Duration::from_secs(3);\n    loop {\n        match listener.accept() {\n            Ok((stream, _)) => return Ok(stream),\n            Err(e) if e.kind() == io::ErrorKind::WouldBlock => {\n                if Instant::now() >= deadline {\n                    return Err(io::Error::new(io::ErrorKind::TimedOut, \"等待连接超时\"));\n                }\n                std::thread::sleep(Duration::from_millis(2));\n            }\n            Err(e) => return Err(e),\n        }\n    }\n}\n\nfn limits(stream: &TcpStream) -> io::Result<()> {\n    stream.set_read_timeout(Some(Duration::from_secs(3)))?;\n    stream.set_write_timeout(Some(Duration::from_secs(3)))\n}\n\nfn local_http(body: &str) -> io::Result<String> {\n    if body.len() > 1024 { return Err(io::Error::new(io::ErrorKind::InvalidInput, \"正文过大\")); }\n    let listener = TcpListener::bind(\"127.0.0.1:0\")?;\n    let address = listener.local_addr()?;\n    let body = body.to_owned();\n    let server = std::thread::spawn(move || -> io::Result<()> {\n        let mut stream = accept_until(&listener)?; limits(&stream)?;\n        let mut request = Vec::new();\n        while !request.ends_with(b\"\\r\\n\\r\\n\") {\n            if request.len() >= 4096 { return Err(io::Error::new(io::ErrorKind::InvalidData, \"请求头过大\")); }\n            let mut byte = [0]; stream.read_exact(&mut byte)?; request.push(byte[0]);\n        }\n        let header = format!(\"HTTP/1.1 200 OK\\r\\nContent-Length: {}\\r\\nConnection: close\\r\\n\\r\\n\", body.len());\n        stream.write_all(header.as_bytes())?; stream.write_all(body.as_bytes())\n    });\n    let response = (|| -> io::Result<String> {\n        let mut stream = TcpStream::connect_timeout(&address, Duration::from_secs(3))?;\n        limits(&stream)?;\n        write!(stream, \"GET / HTTP/1.1\\r\\nHost: {address}\\r\\nConnection: close\\r\\n\\r\\n\")?;\n        let mut output = String::new(); stream.take(8192).read_to_string(&mut output)?;\n        Ok(output)\n    })();\n    let server_result = server.join().map_err(|_| io::Error::other(\"服务线程失败\"))?;\n    server_result?;\n    response\n}",
+    "explanation": "这是仅支持单次 GET 的 HTTP/1.1 教学子集，非通用解析器；按字节计算长度并关闭连接。",
+    "tests": "for body in [\"\", \"hello\", \"你好\", \"line\\nnext\"] {\n    let response = local_http(body).unwrap();\n    let (header, actual) = response.split_once(\"\\r\\n\\r\\n\").unwrap();\n    assert!(header.starts_with(\"HTTP/1.1 200 OK\\r\\n\"));\n    assert!(header.lines().any(|line| line == format!(\"Content-Length: {}\", body.len())));\n    assert_eq!(actual, body);\n}\nassert!(local_http(&\"x\".repeat(1025)).is_err());"
+  },
+  "ecosystem-choice": {
+    "answer": "库用 thiserror 定义错误，应用用 anyhow 添加上下文",
+    "explanation": "这是常见分工而非硬性限制；serde 负责数据模型，reqwest 负责 HTTP 客户端。",
+    "mode": "fold"
+  },
+  "ecosystem-fill": {
+    "answer": "try_parse_from",
+    "explanation": "clap 的 try_parse_from 返回错误，适合断言；parse 出错通常会结束进程。",
+    "mode": "fold"
+  },
+  "ecosystem-code": {
+    "answer": "#[derive(serde::Serialize, serde::Deserialize, Debug, PartialEq)]\n#[serde(deny_unknown_fields)]\nstruct Entry { name: String, minutes: u32 }\nfn decode(input: &str) -> anyhow::Result<Entry> {\n    use anyhow::Context;\n    let entry: Entry = serde_json::from_str(input).context(\"JSON 解析失败\")?;\n    anyhow::ensure!(!entry.name.trim().is_empty(), \"名字不能为空\");\n    anyhow::ensure!((1..=180).contains(&entry.minutes), \"分钟越界\");\n    Ok(entry)\n}",
+    "explanation": "派生负责结构校验，业务函数负责领域校验；添加上下文而不丢弃底层错误。",
+    "tests": "let entry = decode(r#\"{\"name\":\"小林\",\"minutes\":25}\"#).unwrap();\nassert_eq!(entry.minutes, 25);\nlet json = serde_json::to_string(&entry).unwrap(); assert_eq!(decode(&json).unwrap(), entry);\nfor bad in [\"{}\", \"not json\", r#\"{\"name\":\" \",\"minutes\":1}\"#, r#\"{\"name\":\"A\",\"minutes\":0}\"#, r#\"{\"name\":\"A\",\"minutes\":181}\"#, r#\"{\"name\":\"A\",\"minutes\":1,\"extra\":2}\"#] { assert!(decode(bad).is_err()); }"
+  },
+  "ecosystem-project": {
+    "answer": "use clap::Parser;\n#[derive(Parser)]\nstruct Args { #[arg(long)] json: String }\n#[derive(serde::Serialize, serde::Deserialize)]\n#[serde(deny_unknown_fields)]\nstruct Record { name: String, minutes: u32 }\n#[derive(Debug, thiserror::Error)]\nenum RecordError {\n    #[error(\"名字不能为空\")] EmptyName,\n    #[error(\"分钟必须为 1..=180\")] InvalidMinutes,\n}\nfn validate(record: &Record) -> Result<(), RecordError> {\n    if record.name.trim().is_empty() { return Err(RecordError::EmptyName); }\n    if !(1..=180).contains(&record.minutes) { return Err(RecordError::InvalidMinutes); }\n    Ok(())\n}\nfn execute(args: &[&str]) -> anyhow::Result<String> {\n    use anyhow::Context;\n    let args = Args::try_parse_from(args).context(\"命令行参数错误\")?;\n    let record: Record = serde_json::from_str(&args.json).context(\"JSON 解析失败\")?;\n    validate(&record)?;\n    let span = tracing::info_span!(\"record\", minutes = record.minutes);\n    let _guard = span.enter();\n    tracing::info!(\"记录校验通过\");\n    serde_json::to_string(&record).context(\"JSON 编码失败\")\n}",
+    "explanation": "混合 CLI、序列化、可匹配领域错误、应用上下文与 tracing 事件；未安装订阅者时事件通常不会显示。",
+    "tests": "let result = execute(&[\"study\", \"--json\", r#\"{\"name\":\"甲\",\"minutes\":25}\"#]).unwrap();\nlet value: serde_json::Value = serde_json::from_str(&result).unwrap();\nassert_eq!(value[\"name\"], \"甲\"); assert_eq!(value[\"minutes\"], 25);\nassert!(execute(&[\"study\"]).is_err()); assert!(execute(&[\"study\", \"--unknown\"]).is_err());\nassert!(execute(&[\"study\", \"--json\", \"{}\"]).is_err());\nlet error = execute(&[\"study\", \"--json\", r#\"{\"name\":\"a\",\"minutes\":0}\"#]).unwrap_err();\nassert!(matches!(error.downcast_ref::<RecordError>(), Some(RecordError::InvalidMinutes)));\nassert!(execute(&[\"study\", \"--json\", r#\"{\"name\":\" \",\"minutes\":1}\"#]).is_err());"
+  },
+  "start-extra-choice-1": {
+    "answer": "Ada:3",
+    "explanation": "捕获 name 得到 Ada，位置占位符接收 day + 1，即 3。",
+    "mode": "exact"
+  },
+  "start-extra-choice-2": {
+    "answer": "[第 3 天]",
+    "explanation": "format! 返回 String 而不输出；只有 println! 向终端打印一行。",
+    "mode": "fold"
+  },
+  "start-extra-fill-1": {
+    "answer": "format",
+    "explanation": "format! 构造拥有所有权的 String，适合保存或返回签到文案。",
+    "mode": "exact"
+  },
+  "start-extra-fill-2": {
+    "answer": "visits",
+    "explanation": "格式字符串的 {visits} 直接捕获当前作用域内的同名变量。",
+    "mode": "exact"
+  },
+  "start-extra-code": {
+    "answer": "fn checkin(name: &str, day: u32) -> String {\n    format!(\"{name}：第 {day} 天\")\n}",
+    "explanation": "format! 返回 String；直接捕获参数，不清理名字中的空格，也不对天数额外加一。",
+    "tests": "assert_eq!(checkin(\"Ada\", 2), \"Ada：第 2 天\");\nassert_eq!(checkin(\"小林\", 0), \"小林：第 0 天\");\nassert_eq!(checkin(\"\", 1), \"：第 1 天\");\nassert_eq!(checkin(\" Ada \", 10), \" Ada ：第 10 天\");\nassert_eq!(checkin(\"🦀\", u32::MAX), \"🦀：第 4294967295 天\");"
+  },
+  "variables-extra-choice-1": {
+    "answer": "1:30",
+    "explanation": "遮蔽允许 String 切片绑定变成 u32 绑定；90 / 60 为 1，90 % 60 为 30。",
+    "mode": "fold"
+  },
+  "variables-extra-choice-2": {
+    "answer": "45\n30",
+    "explanation": "内层 target 是新绑定，内层输出 45；退出代码块后仍使用外层的 30。",
+    "mode": "fold"
+  },
+  "variables-extra-fill-1": {
+    "answer": "%",
+    "explanation": "取余得到除以 60 后剩下的 5 分钟。",
+    "mode": "fold"
+  },
+  "variables-extra-fill-2": {
+    "answer": "mut",
+    "explanation": "minutes += 5 修改原绑定，需要 let mut，但不改变类型。",
+    "mode": "exact"
+  },
+  "variables-extra-code": {
+    "answer": "fn split_seconds(total: u32) -> (u32, u32) {\n    (total / 60, total % 60)\n}",
+    "explanation": "除法得到完整分钟，取余得到不足一分钟的秒数；不先做乘法，因此最大 u32 输入也不会溢出。",
+    "tests": "for (input, expected) in [(0, (0, 0)), (1, (0, 1)), (59, (0, 59)), (60, (1, 0)), (61, (1, 1)), (125, (2, 5)), (u32::MAX, (71582788, 15))] {\n    assert_eq!(split_seconds(input), expected);\n}"
+  },
+  "control-extra-choice-1": {
+    "answer": "12",
+    "explanation": "continue 只跳过第 3 天，累加 1 + 2 + 4 + 5 得到 12。",
+    "mode": "fold"
+  },
+  "control-extra-choice-2": {
+    "answer": "25",
+    "explanation": "30 不在 0..=14 或 15..=29 中，因此进入通配分支得到 25。",
+    "mode": "fold"
+  },
+  "control-extra-fill-1": {
+    "answer": "break",
+    "explanation": "break 结束整个循环；continue 只跳过当前轮，会继续累加 30。",
+    "mode": "exact"
+  },
+  "control-extra-fill-2": {
+    "answer": "..=",
+    "explanation": "1..=3 包含终点 3，循环运行三次。",
+    "mode": "fold"
+  },
+  "control-extra-code": {
+    "answer": "fn streak(minutes: &[u32], target: u32) -> usize {\n    let mut days = 0;\n    for &value in minutes {\n        if value < target {\n            break;\n        }\n        days += 1;\n    }\n    days\n}",
+    "explanation": "只统计从开头连续达标的天数，第一次失败立即 break；不要统计失败之后重新达标的天。",
+    "tests": "assert_eq!(streak(&[], 20), 0);\nassert_eq!(streak(&[30, 20, 5, 40], 20), 2);\nassert_eq!(streak(&[19, 30], 20), 0);\nassert_eq!(streak(&[20, 20, 21], 20), 3);\nassert_eq!(streak(&[0, 1, 0], 0), 3);\nassert_eq!(streak(&[u32::MAX, 0, u32::MAX], u32::MAX), 1);"
+  },
+  "smart-extra-choice-1": {
+    "answer": "1",
+    "explanation": "clone 增加强引用计数到 2，drop(copy) 后降回 1，draft 仍然持有数据。",
+    "mode": "fold"
+  },
+  "smart-extra-choice-2": {
+    "answer": "在 borrow_mut() 处发生运行时 panic",
+    "explanation": "view 的共享借用仍活跃，RefCell 在运行时阻止同时获取独占可变借用。",
+    "mode": "exact"
+  },
+  "smart-extra-fill-1": {
+    "answer": "Rc",
+    "explanation": "Rc 提供单线程引用计数共享所有权；克隆 Rc 不会克隆内部 String。",
+    "mode": "exact"
+  },
+  "smart-extra-fill-2": {
+    "answer": "borrow_mut",
+    "explanation": "borrow_mut 返回可变借用守卫，语句结束后释放守卫；冲突会在运行时报告。",
+    "mode": "exact"
+  },
+  "smart-extra-code": {
+    "answer": "fn append_shared(draft: &std::rc::Rc<std::cell::RefCell<String>>, suffix: &str) -> usize {\n    let mut text = draft.borrow_mut();\n    text.push_str(suffix);\n    text.chars().count()\n}",
+    "explanation": "Rc 克隆共享同一 RefCell，borrow_mut 在局部取得独占访问；函数返回时守卫释放。chars().count() 按 Unicode 标量值计数。",
+    "tests": "let draft = std::rc::Rc::new(std::cell::RefCell::new(String::new()));\nlet backup = std::rc::Rc::clone(&draft);\nassert_eq!(append_shared(&draft, \"\"), 0);\nassert_eq!(append_shared(&draft, \"Rust\"), 4);\nassert_eq!(append_shared(&backup, \"笔记\"), 6);\nassert_eq!(append_shared(&draft, \"🦀\"), 7);\nassert_eq!(backup.borrow().as_str(), \"Rust笔记🦀\");\nassert_eq!(append_shared(&draft, \"\"), 7);\nassert_eq!(draft.borrow().as_str(), \"Rust笔记🦀\");\nassert_eq!(std::rc::Rc::strong_count(&draft), 2);\nassert!(draft.try_borrow_mut().is_ok());"
+  },
+  "io-extra-choice-1": {
+    "answer": "[\"port=80\", \"\"]",
+    "explanation": "BufRead::lines 去掉 CRLF 或 LF；两个换行之间形成一个空行，最终换行后不再额外产生一行。",
+    "mode": "exact"
+  },
+  "io-extra-choice-2": {
+    "answer": "\"a\\nb\\n\"",
+    "explanation": "read_line 将包含换行的内容追加到现有 String；第二次调用前未 clear，所以两行都保留。",
+    "mode": "exact"
+  },
+  "io-extra-fill-1": {
+    "answer": "clear",
+    "explanation": "clear 将 String 长度设为 0，便于复用缓冲区，避免新行追加到旧文本。",
+    "mode": "exact"
+  },
+  "io-extra-fill-2": {
+    "answer": "write_all",
+    "explanation": "write 可能只写入一部分字节，write_all 重复写入直到全部完成或返回错误。",
+    "mode": "exact"
+  },
+  "io-extra-code": {
+    "answer": "fn count_records<R: std::io::BufRead>(reader: R) -> std::io::Result<usize> {\n    let mut count = 0;\n    for line in reader.lines() {\n        let line = line?;\n        let line = line.trim();\n        if !line.is_empty() && !line.starts_with('#') {\n            count += 1;\n        }\n    }\n    Ok(count)\n}",
+    "explanation": "通过 BufRead 泛型同时支持文件和内存输入。逐行读取时先传播 I/O 错误，再清理和筛选文本；错误不能被当作空行跳过。",
+    "tests": "use std::io::{self, Cursor};\nassert_eq!(count_records(Cursor::new(\"\")).unwrap(), 0);\nassert_eq!(count_records(Cursor::new(\" # config\\n \\t\\n\")).unwrap(), 0);\nassert_eq!(count_records(Cursor::new(\"# config\\r\\nport=80\\r\\nname=小林\\n\")).unwrap(), 2);\nassert_eq!(count_records(Cursor::new(\"value=#tag\\n final\")).unwrap(), 2);\nlet invalid_utf8 = count_records(Cursor::new(vec![b'a', b'\\n', 0xff]));\nassert_eq!(invalid_utf8.unwrap_err().kind(), io::ErrorKind::InvalidData);\nstruct Broken;\nimpl io::Read for Broken {\n    fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {\n        Err(io::Error::new(io::ErrorKind::PermissionDenied, \"blocked\"))\n    }\n}\nimpl io::BufRead for Broken {\n    fn fill_buf(&mut self) -> io::Result<&[u8]> {\n        Err(io::Error::new(io::ErrorKind::PermissionDenied, \"blocked\"))\n    }\n    fn consume(&mut self, _: usize) {}\n}\nlet error = count_records(Broken).unwrap_err();\nassert_eq!(error.kind(), io::ErrorKind::PermissionDenied);\nassert_eq!(error.to_string(), \"blocked\");"
+  },
+  "cargo-extra-choice-1": {
+    "answer": "cargo check",
+    "explanation": "cargo check 检查程序，但跳过生成最终可执行文件的步骤；cargo run 还会构建并运行。",
+    "mode": "exact"
+  },
+  "cargo-extra-choice-2": {
+    "answer": "src/config.rs，pub fn port() -> u16 { 8080 }",
+    "explanation": "src/main.rs 的 mod config 在单文件布局下加载 src/config.rs；pub 允许父模块调用该函数。",
+    "mode": "exact"
+  },
+  "cargo-extra-fill-1": {
+    "answer": "mod",
+    "explanation": "mod config; 声明模块，并让编译器寻找相应源码；use 只引入已有路径。",
+    "mode": "exact"
+  },
+  "cargo-extra-fill-2": {
+    "answer": "pub",
+    "explanation": "子模块默认私有的函数不能被父模块调用；pub 明确开放访问。",
+    "mode": "exact"
+  },
+  "cargo-extra-code": {
+    "answer": "mod config {\n    pub fn default_port() -> u16 {\n        8080\n    }\n}\n\nfn selected_port(value: Option<u16>) -> u16 {\n    value.unwrap_or_else(config::default_port)\n}",
+    "explanation": "用内联模块练习路径和可见性，无须创建额外文件。None 调用默认端口函数，Some(0) 也属于显式配置，不能误当作缺失。",
+    "tests": "assert_eq!(config::default_port(), 8080);\nassert_eq!(selected_port(None), 8080);\nassert_eq!(selected_port(Some(0)), 0);\nassert_eq!(selected_port(Some(80)), 80);\nassert_eq!(selected_port(Some(8080)), 8080);\nassert_eq!(selected_port(Some(u16::MAX)), u16::MAX);"
+  },
+  "macros-extra-choice-1": {
+    "answer": "[3]",
+    "explanation": "$value:expr 接收整个 1 + 2 表达式，展开后 format! 格式化其计算结果 3。",
+    "mode": "fold"
+  },
+  "macros-extra-choice-2": {
+    "answer": "(1, 2) 2",
+    "explanation": "宏展开把传入表达式放入两个位置，元组元素从左到右求值，所以副作用发生两次。",
+    "mode": "fold"
+  },
+  "macros-extra-fill-1": {
+    "answer": "expr",
+    "explanation": "expr 匹配表达式，包括字面量、运算和函数调用。",
+    "mode": "exact"
+  },
+  "macros-extra-fill-2": {
+    "answer": "*",
+    "explanation": "* 表示零次或多次重复；+ 至少一次，不能匹配 list!()。",
+    "mode": "fold"
+  },
+  "macros-extra-code": {
+    "answer": "macro_rules! labels {\n    ($($value:expr),* $(,)?) => {{\n        let result: Vec<String> = vec![$(format!(\"{}\", $value)),*];\n        result\n    }};\n}\n\nfn sample_labels() -> Vec<String> {\n    labels!(\"Rust\", 2024)\n}",
+    "explanation": "重复匹配接受零个或多个表达式，$(,)? 接受可选尾逗号。展开时每个表达式仅出现在一个 format! 中；显式 Vec<String> 保证空调用也可推断类型。",
+    "tests": "assert_eq!(sample_labels(), vec![\"Rust\", \"2024\"]);\nassert_eq!(labels!(), Vec::<String>::new());\nassert_eq!(labels!(\"\"), vec![\"\"]);\nassert_eq!(labels!(\"学习\", -1, true,), vec![\"学习\", \"-1\", \"true\"]);\nlet mut calls = 0;\nlet result = labels!({ calls += 1; calls }, { calls += 1; calls });\nassert_eq!(calls, 2);\nassert_eq!(result, vec![\"1\", \"2\"]);\nassert_eq!(labels!(String::from(\"🦀\")), vec![\"🦀\"]);\nlet owned = String::from(\"保留\");\nassert_eq!(labels!(&owned), vec![\"保留\"]);\nassert_eq!(owned, \"保留\");"
+  },
+  "async-extra-choice-1": {
+    "answer": "0",
+    "explanation": "创建 async 块只产生 Future；没有轮询或 await 就 drop，块体不会执行。",
+    "mode": "fold"
+  },
+  "async-extra-choice-2": {
+    "answer": "10",
+    "explanation": "block_on 驱动 async 块完成，两个 await 分别得到 4 和 6，相加为 10；这段代码是顺序等待。",
+    "mode": "fold"
+  },
+  "async-extra-fill-1": {
+    "answer": "await",
+    "explanation": ".await 在 async 上下文中等待 Future，得到输出值后才能加 5。",
+    "mode": "exact"
+  },
+  "async-extra-fill-2": {
+    "answer": "block_on",
+    "explanation": "同步 main 可通过运行时的 block_on 驱动 Future，返回其最终输出。",
+    "mode": "exact"
+  },
+  "async-extra-code": {
+    "answer": "async fn batch_total(inputs: &[&str]) -> Result<u32, String> {\n    async fn parse_record(input: &str) -> Result<u32, String> {\n        input.trim().parse::<u32>().map_err(|_| \"无效记录\".to_string())\n    }\n\n    let mut total = 0u32;\n    for &input in inputs {\n        let value = parse_record(input).await?;\n        total = total.checked_add(value).ok_or_else(|| \"总和溢出\".to_string())?;\n    }\n    Ok(total)\n}",
+    "explanation": "异步解析函数返回 Future，由外层 await 驱动，再用 ? 传播错误。checked_add 将溢出转为业务错误；运行时由调用方统一提供，不在异步函数内部嵌套 block_on。",
+    "tests": "let rt = tokio::runtime::Runtime::new().unwrap();\nassert_eq!(rt.block_on(batch_total(&[])), Ok(0));\nassert_eq!(rt.block_on(batch_total(&[\"20\", \" 5 \"])), Ok(25));\nassert_eq!(rt.block_on(batch_total(&[\"0\", \"+1\", \"0002\"])), Ok(3));\nassert_eq!(rt.block_on(batch_total(&[\"4294967295\", \"0\"])), Ok(u32::MAX));\nassert_eq!(rt.block_on(batch_total(&[\"4294967295\", \"1\"])), Err(\"总和溢出\".into()));\nfor input in [\"\", \" \", \"abc\", \"-1\", \"1.5\", \"4294967296\"] {\n    assert_eq!(rt.block_on(batch_total(&[\"1\", input])), Err(\"无效记录\".into()));\n}\nassert_eq!(rt.block_on(batch_total(&[\"bad\", \"4294967295\", \"1\"])), Err(\"无效记录\".into()));"
+  },
+  "network-extra-choice-1": {
+    "answer": "404",
+    "explanation": "next 取首行，split_whitespace 的第 0 词是版本，第 1 词是状态码。",
+    "mode": "fold"
+  },
+  "network-extra-choice-2": {
+    "answer": "stream.write_all(response)",
+    "explanation": "write_all 写完所有字节或返回错误；write 只保证返回本次写入数量，flush 也不会替代写入。",
+    "mode": "exact"
+  },
+  "network-extra-fill-1": {
+    "answer": "next",
+    "explanation": "next 取得首行的 Option，避免扫描响应头和正文中的其他行。",
+    "mode": "exact"
+  },
+  "network-extra-fill-2": {
+    "answer": "u16",
+    "explanation": "u16 可容纳 100..=599，u8 最大值 255 不够。",
+    "mode": "exact"
+  },
+  "network-extra-code": {
+    "answer": "fn status_code(response: &str) -> Option<u16> {\n    let mut words = response.lines().next()?.split_ascii_whitespace();\n    let version = words.next()?;\n    if !matches!(version, \"HTTP/1.0\" | \"HTTP/1.1\") {\n        return None;\n    }\n    let token = words.next()?;\n    if token.len() != 3 || !token.bytes().all(|b| b.is_ascii_digit()) {\n        return None;\n    }\n    let code = token.parse::<u16>().ok()?;\n    (100..=599).contains(&code).then_some(code)\n}",
+    "explanation": "这是一份明确约定的简化状态行解析器，不是完整 HTTP 校验器。先限定首行与版本，再验证恰好三个 ASCII 数字和状态码范围；纯函数无网络等待问题。",
+    "tests": "assert_eq!(status_code(\"HTTP/1.1 200 OK\\r\\nContent-Length: 0\\r\\n\\r\\n\"), Some(200));\nassert_eq!(status_code(\"HTTP/1.0 404 Not Found\"), Some(404));\nassert_eq!(status_code(\"HTTP/1.1 100\"), Some(100));\nassert_eq!(status_code(\"HTTP/1.1\\t599 Custom\"), Some(599));\nassert_eq!(status_code(\"  HTTP/1.1 204  \"), Some(204));\nassert_eq!(status_code(\"HTTP/1.1 200 OK\\nHTTP/1.1 999 Bad\"), Some(200));\nfor input in [\"\", \" \", \"\\nHTTP/1.1 200 OK\", \"HTTP/1.1\", \"HTTP/2 200 OK\", \"http/1.1 200 OK\", \"HTTP/1.1 099\", \"HTTP/1.1 600\", \"HTTP/1.1 0200\", \"HTTP/1.1 +200\", \"HTTP/1.1 20\", \"HTTP/1.1 2xx\", \"HTTP/1.1 ２００\", \"HTTP/1.1　200\"] {\n    assert_eq!(status_code(input), None, \"input: {input:?}\");\n}"
+  },
+  "ecosystem-extra-choice-1": {
+    "answer": "Some(25)",
+    "explanation": "JSON 数字可通过 as_u64 提取，方法返回 Option<u64>，调试输出保留 Some。",
+    "mode": "exact"
+  },
+  "ecosystem-extra-choice-2": {
+    "answer": "None",
+    "explanation": "JSON 字符串与数字是不同类型；as_u64 不会自动把字符串 \"25\" 解析成整数。",
+    "mode": "exact"
+  },
+  "ecosystem-extra-fill-1": {
+    "answer": "from_str",
+    "explanation": "from_str 根据目标类型反序列化 JSON 文本，并返回 Result。",
+    "mode": "exact"
+  },
+  "ecosystem-extra-fill-2": {
+    "answer": "as_u64",
+    "explanation": "as_u64 尝试提取无符号整数，类型不符或数值无法表示时返回 None。",
+    "mode": "exact"
+  },
+  "ecosystem-extra-code": {
+    "answer": "fn plan_minutes(input: &str) -> Result<u64, String> {\n    let plan: serde_json::Value = serde_json::from_str(input)\n        .map_err(|_| \"无效计划\".to_string())?;\n    let minutes = plan.as_object()\n        .and_then(|object| object.get(\"minutes\"))\n        .and_then(serde_json::Value::as_u64)\n        .filter(|n| (1..=180).contains(n));\n    minutes.ok_or_else(|| \"无效计划\".to_string())\n}",
+    "explanation": "只使用 serde_json::Value，先确认顶层对象，再取字段、验证整数类型和范围。所有解析或业务校验失败映射为统一错误，不需要额外第三方依赖。",
+    "tests": "assert_eq!(plan_minutes(r#\"{\"minutes\":25}\"#), Ok(25));\nassert_eq!(plan_minutes(r#\"{\"minutes\":1,\"name\":\"小林\"}\"#), Ok(1));\nassert_eq!(plan_minutes(\"  {\\\"minutes\\\":180}\\n\"), Ok(180));\nfor input in [\"\", \"bad\", \"null\", \"[]\", \"25\", r#\"{}\"#, r#\"{\"minutes\":0}\"#, r#\"{\"minutes\":181}\"#, r#\"{\"minutes\":-1}\"#, r#\"{\"minutes\":25.0}\"#, r#\"{\"minutes\":\"25\"}\"#, r#\"{\"minutes\":true}\"#, r#\"{\"minutes\":null}\"#, r#\"{\"minutes\":18446744073709551616}\"#, r#\"{\"minutes\":25} trailing\"#] {\n    assert_eq!(plan_minutes(input), Err(\"无效计划\".into()), \"input: {input}\");\n}"
+  },
+  "start-choice": {
+    "answer": "main()",
+    "explanation": "Rust 二进制程序从 main 函数开始执行。",
+    "mode": "call"
+  },
+  "start-fill": {
+    "answer": "println",
+    "explanation": "println! 输出文本并换行；感叹号表示宏调用。",
+    "mode": "fold"
+  },
+  "start-code": {
+    "answer": "fn greeting() -> String { String::from(\"Hello, Rust!\") }",
+    "explanation": "String::from 将字符串字面量转换成拥有所有权的 String。",
+    "tests": "assert_eq!(greeting(), \"Hello, Rust!\");"
+  },
+  "start-project": {
+    "answer": "fn profile(name: &str, days: u32) -> String { format!(\"{name} | Rust 第 {days} 天\") }",
+    "explanation": "format! 产生 String，不会打印到终端。",
+    "tests": "assert_eq!(profile(\"小林\", 1), \"小林 | Rust 第 1 天\"); assert_eq!(profile(\"Ada\", 0), \"Ada | Rust 第 0 天\"); assert_eq!(profile(\"\", 99), \" | Rust 第 99 天\");"
+  },
+  "variables-choice": {
+    "answer": "let mut count = 0;",
+    "explanation": "mut 使绑定可变，普通 let 创建不可变绑定。",
+    "mode": "fold"
+  },
+  "variables-fill": {
+    "answer": "bool",
+    "explanation": "bool 只有 true 与 false 两种值。",
+    "mode": "fold"
+  },
+  "variables-code": {
+    "answer": "fn hours(minutes: u32) -> u32 { minutes / 60 }",
+    "explanation": "整数除法会丢弃小数部分。",
+    "tests": "for (a,b) in [(0,0),(59,0),(60,1),(90,1),(125,2),(600,10)] { assert_eq!(hours(a),b); }"
+  },
+  "variables-project": {
+    "answer": "fn report(days: u32, minutes: u32) -> (u32, u32) { let total = days * minutes; (total / 60, total % 60) }",
+    "explanation": "用除法计算小时，用取余计算剩余分钟。练习输入限定在不会使 u32 溢出的范围。",
+    "tests": "assert_eq!(report(3,45),(2,15)); assert_eq!(report(0,45),(0,0)); assert_eq!(report(7,30),(3,30)); assert_eq!(report(2,60),(2,0));"
+  },
+  "control-choice": {
+    "answer": "1、2、3",
+    "explanation": "左闭右开范围 1..4 不包含上界 4。",
+    "mode": "fold"
+  },
+  "control-fill": {
+    "answer": "_",
+    "explanation": "通配符 _ 匹配所有未处理的情况。",
+    "mode": "fold"
+  },
+  "control-code": {
+    "answer": "fn sum_even(n: u32) -> u32 { (0..=n).filter(|x| x % 2 == 0).sum() }",
+    "explanation": "使用包含终点的范围，并通过 % 2 == 0 判断偶数。",
+    "tests": "for (a,b) in [(0,0),(1,0),(2,2),(9,20),(10,30),(20,110)] { assert_eq!(sum_even(a),b); }"
+  },
+  "control-project": {
+    "answer": "fn weekly_xp(minutes: &[u32]) -> u32 { let mut xp = 0; let mut active = 0; for &n in minutes { if n >= 15 { active += 1; } xp += match n { 0..=14 => 0, 15..=29 => 10, _ => 25 }; } if active >= 5 { xp += 50; } xp }",
+    "explanation": "分别累计每日奖励和有效学习天数，在循环后结算额外奖励。",
+    "tests": "assert_eq!(weekly_xp(&[]),0); assert_eq!(weekly_xp(&[14,15,29,30]),45); assert_eq!(weekly_xp(&[30,20,10,45,15,30,0]),145); assert_eq!(weekly_xp(&[15;5]),100); assert_eq!(weekly_xp(&[30;7]),225);"
+  },
+  "functions-project": {
+    "answer": "fn daily(hours: u32, extra: u32) -> u64 {\n    u64::from(hours) * 60 + u64::from(extra)\n}\nfn plan(days: u32, hours: u32, extra: u32) -> u64 {\n    daily(hours, extra) * u64::from(days)\n}",
+    "tests": "assert_eq!(daily(1,30),90);assert_eq!(plan(3,1,30),270);assert_eq!(plan(0,1,30),0);assert_eq!(plan(2,u32::MAX,0),515396075400);",
+    "explanation": "组合函数、参数、返回值与整数运算，不提前要求分支语法。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "ownership-project": {
+    "answer": "fn archive(text: String) -> (String, usize) {\n    let n = text.len();\n    (text, n)\n}",
+    "tests": "assert_eq!(archive(String::from(\"Rust\")),(String::from(\"Rust\"),4));assert_eq!(archive(String::from(\"你好\")),(String::from(\"你好\"),6));assert_eq!(archive(String::new()),(String::new(),0));",
+    "explanation": "练习明确的消费接口与独立副本。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "models-project": {
+    "answer": "struct Session {\n    name: String,\n    minutes: u32,\n}\nimpl Session {\n    fn new(name: String) -> Self {\n        Self { name, minutes: 0 }\n    }\n    fn add(&mut self, n: u32) {\n        self.minutes = self.minutes.saturating_add(n)\n    }\n    fn summary(&self) -> String {\n        format!(\"{}:{}\", self.name, self.minutes)\n    }\n}",
+    "tests": "let mut s=Session::new(String::from(\"小林\"));assert_eq!(s.summary(),\"小林:0\");s.add(25);assert_eq!(s.summary(),\"小林:25\");s.add(u32::MAX);assert_eq!(s.summary(),format!(\"小林:{}\",u32::MAX));",
+    "explanation": "组合结构体、构造函数、借用方法和文本。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "collections-project": {
+    "answer": "fn word_counts(input: &str) -> Vec<(String, usize)> {\n    let mut out: Vec<(String, usize)> = Vec::new();\n    for word in input.split_whitespace() {\n        if let Some(row) = out.iter_mut().find(|(name, _)| name == word) {\n            row.1 += 1;\n        } else {\n            out.push((word.to_owned(), 1));\n        }\n    }\n    out\n}",
+    "tests": "assert_eq!(word_counts(\"Rust 学习 Rust 学习 新\"),vec![(String::from(\"Rust\"),2),(String::from(\"学习\"),2),(String::from(\"新\"),1)]);assert!(word_counts(\"  \").is_empty());assert_eq!(word_counts(\"a A a\"),vec![(String::from(\"a\"),2),(String::from(\"A\"),1)]);",
+    "explanation": "组合文本、向量与查询，保持明确的展示顺序。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "errors-project": {
+    "answer": "fn import_minutes(input: &str) -> Result<Vec<u32>, String> {\n    let mut out = Vec::new();\n    for line in input.lines() {\n        let line = line.trim();\n        if line.is_empty() {\n            continue;\n        }\n        let n = match line.parse::<u32>() {\n            Ok(n) => n,\n            Err(_) => return Err(String::from(\"invalid\")),\n        };\n        if n == 0 || n > 180 {\n            return Err(String::from(\"range\"));\n        }\n        out.push(n);\n    }\n    Ok(out)\n}",
+    "tests": "assert_eq!(import_minutes(\"25\n\n 30\"),Ok(vec![25,30]));assert!(import_minutes(\"20\nx\").is_err());assert!(import_minutes(\"0\").is_err());assert!(import_minutes(\"181\").is_err());assert_eq!(import_minutes(\"\"),Ok(vec![]));",
+    "explanation": "用显式匹配和错误传播组织全部成功或整体失败。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "borrowing-r2-choice-1": {
+    "answer": "不能进行冲突修改",
+    "explanation": "共享读取仍有效时，冲突的独占访问会被拒绝。",
+    "mode": "fold"
+  },
+  "borrowing-r2-choice-2": {
+    "answer": "n 的值",
+    "explanation": "解引用访问被引用的数据。",
+    "mode": "fold"
+  },
+  "borrowing-r2-choice-3": {
+    "answer": "调用使用了更短的重新借用",
+    "explanation": "子借用结束后，父引用可以继续访问。",
+    "mode": "fold"
+  },
+  "borrowing-r2-fill-1": {
+    "answer": "mut",
+    "explanation": "mut 表达独占访问。",
+    "mode": "fold"
+  },
+  "borrowing-r2-fill-2": {
+    "answer": "*",
+    "explanation": "* 解引用。",
+    "mode": "fold"
+  },
+  "borrowing-r2-fill-3": {
+    "answer": "&",
+    "explanation": "共享借用用 &。",
+    "mode": "fold"
+  },
+  "borrowing-r2-code-1": {
+    "answer": "fn increase(value: &mut i32) {\n    *value += 1;\n}",
+    "tests": "let mut n = 0;\n    increase(&mut n);\n    assert_eq!(n, 1);\n    let mut n = -2;\n    increase(&mut n);\n    assert_eq!(n, -1);",
+    "explanation": "实现 increase(value: &mut i32)，原地增加 1；输入保证不会溢出。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "borrowing-r2-code-2": {
+    "answer": "fn swap_values(a: &mut i32, b: &mut i32) {\n    let old = *a;\n    *a = *b;\n    *b = old;\n}",
+    "tests": "let (mut a, mut b) = (2, 9);\n    swap_values(&mut a, &mut b);\n    assert_eq!((a, b), (9, 2));\n    swap_values(&mut a, &mut b);\n    assert_eq!((a, b), (2, 9));",
+    "explanation": "实现 swap_values(a: &mut i32, b: &mut i32)，交换两个值。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "borrowing-project": {
+    "answer": "fn transfer(from: &mut u32, to: &mut u32, amount: u32) -> bool {\n    if *from < amount {\n        return false;\n    }\n    if let Some(next) = to.checked_add(amount) {\n        *from -= amount;\n        *to = next;\n        true\n    } else {\n        false\n    }\n}",
+    "tests": "let(mut a,mut b)=(20,5);assert!(transfer(&mut a,&mut b,7));assert_eq!((a,b),(13,12));assert!(!transfer(&mut a,&mut b,14));assert_eq!((a,b),(13,12));assert!(transfer(&mut a,&mut b,0));let(mut a,mut b)=(1,u32::MAX);assert!(!transfer(&mut a,&mut b,1));assert_eq!((a,b),(1,u32::MAX));",
+    "explanation": "不复制账户，使用两个独占引用完成一次转账。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "strings-r2-choice-1": {
+    "answer": "UTF-8 字节数",
+    "explanation": "len 统计字节。",
+    "mode": "fold"
+  },
+  "strings-r2-choice-2": {
+    "answer": "返回 None",
+    "explanation": "get 安全检查范围和 UTF-8 边界。",
+    "mode": "fold"
+  },
+  "strings-r2-choice-3": {
+    "answer": "&str",
+    "explanation": "&str 可以借用不同来源的文本。",
+    "mode": "fold"
+  },
+  "strings-r2-fill-1": {
+    "answer": "chars",
+    "explanation": "chars 不是字形分割器。",
+    "mode": "fold"
+  },
+  "strings-r2-fill-2": {
+    "answer": "push_str",
+    "explanation": "push_str 接受 &str。",
+    "mode": "fold"
+  },
+  "strings-r2-fill-3": {
+    "answer": "to_owned",
+    "explanation": "to_owned 创建 String。",
+    "mode": "fold"
+  },
+  "strings-r2-code-1": {
+    "answer": "fn char_count(text: &str) -> usize {\n    text.chars().count()\n}",
+    "tests": "assert_eq!(char_count(\"\"), 0);\n    assert_eq!(char_count(\"你好\"), 2);\n    assert_eq!(char_count(\"A🦀\"), 2);",
+    "explanation": "实现 char_count(text: &str) -> usize，统计 Unicode 标量值。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "strings-r2-code-2": {
+    "answer": "fn prefix(text: &str, count: usize) -> String {\n    text.chars().take(count).collect()\n}",
+    "tests": "assert_eq!(prefix(\"你好Rust\", 2), \"你好\");\n    assert_eq!(prefix(\"🦀a\", 1), \"🦀\");\n    assert_eq!(prefix(\"a\", 8), \"a\");\n    assert_eq!(prefix(\"abc\", 0), \"\");",
+    "explanation": "实现 prefix(text: &str, count: usize) -> String，取前 count 个 Unicode 标量值；不足则全部返回。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "strings-project": {
+    "answer": "fn summarize(input: &str, limit: usize) -> Vec<String> {\n    input\n        .lines()\n        .map(str::trim)\n        .filter(|s| !s.is_empty())\n        .map(|s| s.chars().take(limit).collect())\n        .collect()\n}",
+    "tests": "assert_eq!(summarize(\"  你好世界 \n\n 🦀Rust \",2),vec![\"你好\",\"🦀R\"]);assert!(summarize(\" \n\",3).is_empty());assert_eq!(summarize(\"a\nb\",0),vec![\"\",\"\"]);",
+    "explanation": "把文本清洗、Unicode 计数与集合组合成报告。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "enums-r2-choice-1": {
+    "answer": "可以，各变体可以不同",
+    "explanation": "变体可以表达各自需要的数据。",
+    "mode": "fold"
+  },
+  "enums-r2-choice-2": {
+    "answer": "穷尽所有可能情况",
+    "explanation": "穷尽性避免漏处理状态。",
+    "mode": "fold"
+  },
+  "enums-r2-choice-3": {
+    "answer": "借用内部字符串",
+    "explanation": "借用匹配可保留原值。",
+    "mode": "fold"
+  },
+  "enums-r2-fill-1": {
+    "answer": "Some",
+    "explanation": "Some(T) 携带值。",
+    "mode": "fold"
+  },
+  "enums-r2-fill-2": {
+    "answer": "None",
+    "explanation": "None 不是数字零。",
+    "mode": "fold"
+  },
+  "enums-r2-fill-3": {
+    "answer": "if",
+    "explanation": "if let 处理一个感兴趣的模式。",
+    "mode": "fold"
+  },
+  "enums-r2-code-1": {
+    "answer": "fn state_label(value: Option<u32>) -> String {\n    match value {\n        Some(n) => format!(\"ready:{n}\"),\n        None => String::from(\"pending\"),\n    }\n}",
+    "tests": "assert_eq!(state_label(Some(0)), \"ready:0\");\n    assert_eq!(state_label(Some(8)), \"ready:8\");\n    assert_eq!(state_label(None), \"pending\");",
+    "explanation": "实现 state_label(value: Option<u32>) -> String；Some(n) 返回 ready:n，None 返回 pending。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "enums-r2-code-2": {
+    "answer": "fn nonzero(value: Option<u32>) -> bool {\n    match value {\n        Some(n) => n > 0,\n        None => false,\n    }\n}",
+    "tests": "assert!(nonzero(Some(1)));\n    assert!(!nonzero(Some(0)));\n    assert!(!nonzero(None));",
+    "explanation": "实现 nonzero(value: Option<u32>) -> bool，仅 Some(n) 且 n>0 返回 true。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "enums-project": {
+    "answer": "#[derive(Debug, PartialEq)]\nenum Task {\n    Pending,\n    Running(u32),\n    Done(u32),\n}\nfn advance(task: Task, minutes: u32) -> Task {\n    match task {\n        Task::Pending if minutes == 0 => Task::Pending,\n        Task::Pending => {\n            if minutes >= 60 {\n                Task::Done(minutes)\n            } else {\n                Task::Running(minutes)\n            }\n        }\n        Task::Running(n) => {\n            let total = n.saturating_add(minutes);\n            if total >= 60 {\n                Task::Done(total)\n            } else {\n                Task::Running(total)\n            }\n        }\n        done @ Task::Done(_) => done,\n    }\n}",
+    "tests": "assert_eq!(advance(Task::Pending,0),Task::Pending);assert_eq!(advance(Task::Pending,20),Task::Running(20));assert_eq!(advance(Task::Pending,60),Task::Done(60));assert_eq!(advance(Task::Running(40),20),Task::Done(60));assert_eq!(advance(Task::Done(60),99),Task::Done(60));",
+    "explanation": "用携带数据的枚举代替互相冲突的布尔状态。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "generics-r2-choice-1": {
+    "answer": "Copy 或显式 Clone 约束",
+    "explanation": "泛型体也必须证明操作合法。",
+    "mode": "fold"
+  },
+  "generics-r2-choice-2": {
+    "answer": "不要求",
+    "explanation": "借用不复制内部值。",
+    "mode": "fold"
+  },
+  "generics-r2-choice-3": {
+    "answer": "类型与能力约束",
+    "explanation": "where 让复杂约束更易阅读。",
+    "mode": "fold"
+  },
+  "generics-r2-fill-1": {
+    "answer": "<>",
+    "explanation": "类型参数写在尖括号内。",
+    "mode": "fold"
+  },
+  "generics-r2-fill-2": {
+    "answer": "Ord",
+    "explanation": "Ord 表达全序关系。",
+    "mode": "fold"
+  },
+  "generics-r2-fill-3": {
+    "answer": "clone",
+    "explanation": "Clone 不等于廉价复制保证。",
+    "mode": "fold"
+  },
+  "generics-r2-code-1": {
+    "answer": "fn reverse_pair<T>(pair: (T, T)) -> (T, T) {\n    (pair.1, pair.0)\n}",
+    "tests": "assert_eq!(reverse_pair((1, 2)), (2, 1));\n    assert_eq!(\n        reverse_pair((String::from(\"a\"), String::from(\"b\"))),\n        (String::from(\"b\"), String::from(\"a\"))\n    );",
+    "explanation": "实现 reverse_pair<T>(pair: (T,T)) -> (T,T)，不复制元素。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "generics-r2-code-2": {
+    "answer": "fn in_range<T: Ord>(value: &T, low: &T, high: &T) -> bool {\n    low <= value && value <= high\n}",
+    "tests": "assert!(in_range(&3, &3, &5));\n    assert!(!in_range(&2, &3, &5));\n    assert!(!in_range(&4, &5, &3));\n    assert!(in_range(\n        &String::from(\"b\"),\n        &String::from(\"a\"),\n        &String::from(\"c\")\n    ));",
+    "explanation": "实现 in_range<T: Ord>(value: &T, low: &T, high: &T) -> bool，闭区间，反向区间返回 false。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "generics-project": {
+    "answer": "fn unique<T: PartialEq>(items: Vec<T>) -> Vec<T> {\n    let mut out = Vec::new();\n    for item in items {\n        if !out.contains(&item) {\n            out.push(item);\n        }\n    }\n    out\n}",
+    "tests": "assert_eq!(unique(vec![2,1,2,3,1]),vec![2,1,3]);assert!(unique::<String>(vec![]).is_empty());assert_eq!(unique(vec![String::from(\"甲\"),String::from(\"甲\"),String::from(\"乙\")]),vec![\"甲\",\"乙\"]);",
+    "explanation": "把拥有权移动、集合遍历与泛型边界组合起来。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "lifetimes-r2-choice-1": {
+    "answer": "不会",
+    "explanation": "标注描述约束，不改变析构。",
+    "mode": "fold"
+  },
+  "lifetimes-r2-choice-2": {
+    "answer": "表达字段借用的生命周期参数",
+    "explanation": "字段引用需要合法的来源关系。",
+    "mode": "fold"
+  },
+  "lifetimes-r2-choice-3": {
+    "answer": "不包含较短借用",
+    "explanation": "类型约束与实际存活时长不同。",
+    "mode": "fold"
+  },
+  "lifetimes-r2-fill-1": {
+    "answer": "'",
+    "explanation": "单引号引入生命周期参数。",
+    "mode": "fold"
+  },
+  "lifetimes-r2-fill-2": {
+    "answer": "'a",
+    "explanation": "输出借用来自输入。",
+    "mode": "fold"
+  },
+  "lifetimes-r2-fill-3": {
+    "answer": "'static",
+    "explanation": "静态引用与 T: static 的含义要区分。",
+    "mode": "fold"
+  },
+  "lifetimes-r2-code-1": {
+    "answer": "fn before_space(text: &str) -> &str {\n    match text.find(' ') {\n        Some(i) => &text[..i],\n        None => text,\n    }\n}",
+    "tests": "assert_eq!(before_space(\"你好 Rust\"), \"你好\");\n    assert_eq!(before_space(\" Rust\"), \"\");\n    assert_eq!(before_space(\"abc\"), \"abc\");\n    assert_eq!(before_space(\"\"), \"\");",
+    "explanation": "实现 before_space(text: &str) -> &str，返回第一个 ASCII 空格之前的原切片，无空格返回全部。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "lifetimes-r2-code-2": {
+    "answer": "fn choose<'a>(left: &'a str, right: &'a str, use_left: bool) -> &'a str {\n    if use_left { left } else { right }\n}",
+    "tests": "let a = String::from(\"a\");\n    let b = String::from(\"b\");\n    assert_eq!(choose(&a, &b, true), \"a\");\n    assert_eq!(choose(&a, &b, false), \"b\");",
+    "explanation": "实现 choose<'a>(left: &'a str, right: &'a str, use_left: bool) -> &'a str，按布尔值返回原切片。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "lifetimes-project": {
+    "answer": "fn find_line<'a>(input: &'a str, needle: &str) -> Option<&'a str> {\n    input\n        .lines()\n        .map(str::trim)\n        .find(|line| !line.is_empty() && line.contains(needle))\n}",
+    "tests": "let input=String::from(\"\n hello \n 你好 Rust\n\");let line=find_line(&input,\"Rust\").unwrap();assert_eq!(line,\"你好 Rust\");assert_eq!(find_line(&input,\"\"),Some(\"hello\"));assert_eq!(find_line(&input,\"missing\"),None);let p=line.as_ptr() as usize;let start=input.as_ptr() as usize;assert!(p>=start&&p+line.len()<=start+input.len());",
+    "explanation": "借用原始日志，返回首条包含关键词的非空行。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "iterators-r2-choice-1": {
+    "answer": "没有，等待消费",
+    "explanation": "迭代适配器通常是惰性的。",
+    "mode": "fold"
+  },
+  "iterators-r2-choice-2": {
+    "answer": "不一定，取决于如何使用捕获值",
+    "explanation": "捕获方式与调用能力不同。",
+    "mode": "fold"
+  },
+  "iterators-r2-choice-3": {
+    "answer": "借用遍历与按接收者语义取得元素",
+    "explanation": "拥有集合的 into_iter 通常移动元素。",
+    "mode": "fold"
+  },
+  "iterators-r2-fill-1": {
+    "answer": "FnMut",
+    "explanation": "FnMut 允许可变访问闭包环境。",
+    "mode": "fold"
+  },
+  "iterators-r2-fill-2": {
+    "answer": "collect",
+    "explanation": "目标类型可通过标注推断。",
+    "mode": "fold"
+  },
+  "iterators-r2-fill-3": {
+    "answer": "filter",
+    "explanation": "filter 只保留谓词为 true 的项。",
+    "mode": "fold"
+  },
+  "iterators-r2-code-1": {
+    "answer": "fn positives(values: &[i32]) -> Vec<i64> {\n    values\n        .iter()\n        .filter(|&&n| n > 0)\n        .map(|&n| i64::from(n) * 2)\n        .collect()\n}",
+    "tests": "assert_eq!(positives(&[-1, 0, 2, i32::MAX]), vec![4, 4294967294]);\n    assert!(positives(&[]).is_empty());",
+    "explanation": "实现 positives(values: &[i32]) -> Vec<i64>，保留正数并转为 i64 后乘 2。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "iterators-r2-code-2": {
+    "answer": "fn apply_twice<F: FnMut(i32) -> i32>(value: i32, mut f: F) -> i32 {\n    let first = f(value);\n    f(first)\n}",
+    "tests": "assert_eq!(apply_twice(2, |n| n * 2), 8);\n    let mut calls = 0;\n    assert_eq!(\n        apply_twice(0, |n| {\n            calls += 1;\n            n + calls\n        }),\n        3\n    );\n    assert_eq!(calls, 2);",
+    "explanation": "实现 apply_twice<F: FnMut(i32) -> i32>(value: i32, f: F) -> i32，返回 f(f(value))。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "iterators-project": {
+    "answer": "fn top_minutes(input: &str, limit: usize) -> Vec<u32> {\n    let mut values: Vec<u32> = input\n        .lines()\n        .filter_map(|s| s.trim().parse().ok())\n        .filter(|&n| n > 0)\n        .collect();\n    values.sort_by(|a, b| b.cmp(a));\n    values.truncate(limit);\n    values\n}",
+    "tests": "assert_eq!(top_minutes(\"20\ninvalid\n0\n 30\n30\n-1\",3),vec![30,30,20]);assert!(top_minutes(\"1\",0).is_empty());assert!(top_minutes(\"\",5).is_empty());",
+    "explanation": "把解析、筛选、稳定排序和截取组合起来。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "combinators-r2-choice-1": {
+    "answer": "嵌套 Option",
+    "explanation": "map 不自动展开闭包结果。",
+    "mode": "fold"
+  },
+  "combinators-r2-choice-2": {
+    "answer": "unwrap_or_else",
+    "explanation": "闭包推迟默认值求值。",
+    "mode": "fold"
+  },
+  "combinators-r2-choice-3": {
+    "answer": "Result<Option<T>, E>",
+    "explanation": "transpose 交换两层容器。",
+    "mode": "fold"
+  },
+  "combinators-r2-fill-1": {
+    "answer": "and_then",
+    "explanation": "and_then 避免再嵌套一层。",
+    "mode": "fold"
+  },
+  "combinators-r2-fill-2": {
+    "answer": "map_err",
+    "explanation": "map_err 不修改成功值。",
+    "mode": "fold"
+  },
+  "combinators-r2-fill-3": {
+    "answer": "as_deref",
+    "explanation": "as_deref 保留原所有者。",
+    "mode": "fold"
+  },
+  "combinators-r2-code-1": {
+    "answer": "fn parse_optional(input: Option<&str>) -> Option<u32> {\n    input.and_then(|s| s.trim().parse().ok()).filter(|&n| n > 0)\n}",
+    "tests": "assert_eq!(parse_optional(Some(\" 7 \")), Some(7));\n    assert_eq!(parse_optional(Some(\"0\")), None);\n    assert_eq!(parse_optional(Some(\"bad\")), None);\n    assert_eq!(parse_optional(None), None);",
+    "explanation": "实现 parse_optional(input: Option<&str>) -> Option<u32>，解析正整数，缺失、非法或 0 返回 None。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "combinators-r2-code-2": {
+    "answer": "fn optional_number(input: Option<&str>) -> Result<Option<u32>, String> {\n    input\n        .map(|s| s.parse::<u32>().map_err(|_| String::from(\"invalid\")))\n        .transpose()\n}",
+    "tests": "assert_eq!(optional_number(None), Ok(None));\n    assert_eq!(optional_number(Some(\"0\")), Ok(Some(0)));\n    assert_eq!(optional_number(Some(\"x\")), Err(String::from(\"invalid\")));",
+    "explanation": "实现 optional_number(input: Option<&str>) -> Result<Option<u32>, String>，不 trim；非法文本返回 Err(\"invalid\")。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "combinators-project": {
+    "answer": "fn parse_rows(input: &str) -> Result<Vec<u32>, String> {\n    input\n        .lines()\n        .enumerate()\n        .filter(|(_, s)| !s.trim().is_empty())\n        .map(|(i, s)| {\n            s.trim()\n                .parse::<u32>()\n                .map_err(|_| format!(\"line:{}\", i + 1))\n        })\n        .collect()\n}",
+    "tests": "assert_eq!(parse_rows(\"1\n\n 0\n2\"),Ok(vec![1,0,2]));assert_eq!(parse_rows(\"\n1\nx\ny\"),Err(String::from(\"line:3\")));assert_eq!(parse_rows(\"\"),Ok(vec![]));",
+    "explanation": "结合迭代与错误上下文，保证数据没有被静默丢弃。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "dyn-r2-choice-1": {
+    "answer": "Vec<Box<dyn Trait>>",
+    "explanation": "trait 对象统一行为接口。",
+    "mode": "fold"
+  },
+  "dyn-r2-choice-2": {
+    "answer": "动态分发接口",
+    "explanation": "dyn 不负责分配与共享计数。",
+    "mode": "fold"
+  },
+  "dyn-r2-choice-3": {
+    "answer": "带类型参数的方法",
+    "explanation": "泛型方法无法简单放入统一虚表。",
+    "mode": "fold"
+  },
+  "dyn-r2-fill-1": {
+    "answer": "dyn",
+    "explanation": "dyn 明确动态分发。",
+    "mode": "fold"
+  },
+  "dyn-r2-fill-2": {
+    "answer": "Box",
+    "explanation": "Box 具有独占所有权。",
+    "mode": "fold"
+  },
+  "dyn-r2-fill-3": {
+    "answer": "Sized",
+    "explanation": "Self: Sized 方法不参与对象调用。",
+    "mode": "fold"
+  },
+  "dyn-r2-code-1": {
+    "answer": "trait Value {\n    fn value(&self) -> i32;\n}\nfn total(items: &[&dyn Value]) -> i64 {\n    items.iter().map(|v| i64::from(v.value())).sum()\n}",
+    "tests": "struct Fixed(i32);\n    impl Value for Fixed {\n        fn value(&self) -> i32 {\n            self.0\n        }\n    }\n    assert_eq!(total(&[&Fixed(i32::MAX), &Fixed(i32::MAX)]), 4294967294);\n    assert_eq!(total(&[]), 0);",
+    "explanation": "定义 trait Value { fn value(&self) -> i32; }，实现 total(items: &[&dyn Value]) -> i64，先扩大整数再求和。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "dyn-r2-code-2": {
+    "answer": "trait Named {\n    fn name(&self) -> &str;\n}\nstruct User(String);\nimpl Named for User {\n    fn name(&self) -> &str {\n        &self.0\n    }\n}",
+    "tests": "let user = User(String::from(\"小林\"));\n    let named: &dyn Named = &user;\n    assert_eq!(named.name(), \"小林\");\n    assert_eq!(user.0, \"小林\");",
+    "explanation": "定义 trait Named { fn name(&self) -> &str; }，结构体 User(String)，为 User 实现 Named。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "dyn-project": {
+    "answer": "trait Render {\n    fn render(&self) -> String;\n}\nstruct Text(String);\nstruct Count(u32);\nimpl Render for Text {\n    fn render(&self) -> String {\n        self.0.clone()\n    }\n}\nimpl Render for Count {\n    fn render(&self) -> String {\n        self.0.to_string()\n    }\n}\nfn report(items: &[&dyn Render]) -> String {\n    items.iter().map(|x| x.render()).collect::<Vec<_>>().join(\n        \"\n\",\n    )\n}",
+    "tests": "assert_eq!(report(&[&Text(String::from(\"你好\")),&Count(7)]),\"你好\n7\");assert_eq!(report(&[]),\"\");",
+    "explanation": "把异构对象、借用、trait 与字符串拼接组合起来。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "modules-r2-choice-1": {
+    "answer": "不会",
+    "explanation": "类型与字段可见性独立。",
+    "mode": "fold"
+  },
+  "modules-r2-choice-2": {
+    "answer": "引入路径名字",
+    "explanation": "use 不绕过可见性。",
+    "mode": "fold"
+  },
+  "modules-r2-choice-3": {
+    "answer": "当前 crate",
+    "explanation": "crate 内接口不必成为外部 API。",
+    "mode": "fold"
+  },
+  "modules-r2-fill-1": {
+    "answer": "crate",
+    "explanation": "crate:: 从编译单位根开始。",
+    "mode": "fold"
+  },
+  "modules-r2-fill-2": {
+    "answer": "super",
+    "explanation": "super:: 指父模块。",
+    "mode": "fold"
+  },
+  "modules-r2-fill-3": {
+    "answer": "mod",
+    "explanation": "mod 声明模块。",
+    "mode": "fold"
+  },
+  "modules-r2-code-1": {
+    "answer": "mod domain {\n    pub fn clamp(n: u32) -> u32 {\n        n.min(180)\n    }\n}",
+    "tests": "assert_eq!(domain::clamp(0), 0);\n    assert_eq!(domain::clamp(180), 180);\n    assert_eq!(domain::clamp(u32::MAX), 180);",
+    "explanation": "定义 mod domain，其中 pub fn clamp(n: u32) -> u32 返回 min(n,180)。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "modules-r2-code-2": {
+    "answer": "mod model {\n    pub struct Counter(u32);\n    impl Counter {\n        pub fn new(n: u32) -> Self {\n            Self(n)\n        }\n        pub fn get(&self) -> u32 {\n            self.0\n        }\n    }\n}",
+    "tests": "let c = model::Counter::new(7);\n    assert_eq!(c.get(), 7);\n    assert_eq!(model::Counter::new(0).get(), 0);",
+    "explanation": "定义 mod model，公开结构体 Counter（私有 u32 字段），pub fn new(n:u32)->Self 与 pub fn get(&self)->u32。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "modules-project": {
+    "answer": "mod domain {\n    pub struct Minutes(u32);\n    impl Minutes {\n        pub fn new(n: u32) -> Option<Self> {\n            if (1..=180).contains(&n) {\n                Some(Self(n))\n            } else {\n                None\n            }\n        }\n        pub fn get(&self) -> u32 {\n            self.0\n        }\n    }\n    pub fn parse(input: &str) -> Option<Minutes> {\n        Minutes::new(input.trim().parse().ok()?)\n    }\n}",
+    "tests": "assert_eq!(domain::parse(\" 25 \").unwrap().get(),25);assert!(domain::parse(\"0\").is_none());assert!(domain::parse(\"181\").is_none());assert!(domain::parse(\"bad\").is_none());assert!(domain::Minutes::new(0).is_none());",
+    "explanation": "用模块与私有字段守住校验约束。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "tests-r2-choice-1": {
+    "answer": "59、60、61",
+    "explanation": "边界前后与边界本身都需要覆盖。",
+    "mode": "fold"
+  },
+  "tests-r2-choice-2": {
+    "answer": "公开接口的组合行为",
+    "explanation": "对外行为比实现细节稳定。",
+    "mode": "fold"
+  },
+  "tests-r2-choice-3": {
+    "answer": "互相覆盖、结果不稳定",
+    "explanation": "测试应隔离资源与副作用。",
+    "mode": "fold"
+  },
+  "tests-r2-fill-1": {
+    "answer": "assert_eq",
+    "explanation": "assert_eq! 适合比较预期与实际。",
+    "mode": "fold"
+  },
+  "tests-r2-fill-2": {
+    "answer": "test",
+    "explanation": "测试构建提供 test 条件。",
+    "mode": "fold"
+  },
+  "tests-r2-fill-3": {
+    "answer": "test",
+    "explanation": "run 与 test 入口不同。",
+    "mode": "fold"
+  },
+  "tests-r2-code-1": {
+    "answer": "fn pages(items: u32, size: u32) -> Option<u32> {\n    if size == 0 {\n        None\n    } else {\n        Some(items / size + u32::from(items % size != 0))\n    }\n}",
+    "tests": "assert_eq!(pages(0, 10), Some(0));\n    assert_eq!(pages(10, 10), Some(1));\n    assert_eq!(pages(11, 10), Some(2));\n    assert_eq!(pages(u32::MAX, 2), Some(2147483648));\n    assert_eq!(pages(1, 0), None);",
+    "explanation": "实现 pages(items: u32, size: u32) -> Option<u32>；size=0 返回 None，否则向上取整，不能溢出。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "tests-r2-code-2": {
+    "answer": "fn distance(a: i32, b: i32) -> u64 {\n    (i64::from(a) - i64::from(b)).unsigned_abs()\n}",
+    "tests": "assert_eq!(distance(1, 1), 0);\n    assert_eq!(distance(-3, 4), 7);\n    assert_eq!(distance(i32::MIN, i32::MAX), 4294967295);",
+    "explanation": "实现 distance(a: i32, b: i32) -> u64，计算非负距离，包括 i32 两端。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "tests-project": {
+    "answer": "fn merge_ranges(mut ranges: Vec<(u32, u32)>) -> Vec<(u32, u32)> {\n    ranges.retain(|&(a, b)| a <= b);\n    ranges.sort_unstable();\n    let mut out: Vec<(u32, u32)> = Vec::new();\n    for (a, b) in ranges {\n        if let Some(last) = out.last_mut() {\n            if a <= last.1 {\n                last.1 = last.1.max(b);\n                continue;\n            }\n        }\n        out.push((a, b));\n    }\n    out\n}",
+    "tests": "assert_eq!(merge_ranges(vec![(5,8),(1,3),(2,6),(9,10),(8,8),(7,2)]),vec![(1,8),(9,10)]);assert_eq!(merge_ranges(vec![(0,u32::MAX),(1,2)]),vec![(0,u32::MAX)]);assert!(merge_ranges(vec![]).is_empty());",
+    "explanation": "从反例入手实现稳定、可验证的数据处理。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "shared-r2-choice-1": {
+    "answer": "不会",
+    "explanation": "Arc 只同步引用计数。",
+    "mode": "fold"
+  },
+  "shared-r2-choice-2": {
+    "answer": "守卫被 drop 时",
+    "explanation": "RAII 控制解锁。",
+    "mode": "fold"
+  },
+  "shared-r2-choice-3": {
+    "answer": "两个步骤之间可能被其他线程修改",
+    "explanation": "业务不变量需要同一个临界区。",
+    "mode": "fold"
+  },
+  "shared-r2-fill-1": {
+    "answer": "Arc",
+    "explanation": "Rc 不跨线程共享计数。",
+    "mode": "fold"
+  },
+  "shared-r2-fill-2": {
+    "answer": "Mutex",
+    "explanation": "MutexGuard 提供受保护访问。",
+    "mode": "fold"
+  },
+  "shared-r2-fill-3": {
+    "answer": "Relaxed",
+    "explanation": "Relaxed 保证原子操作，不建立其他访问的同步关系。",
+    "mode": "fold"
+  },
+  "shared-r2-code-1": {
+    "answer": "fn concurrent_count(workers: usize, each: usize) -> usize {\n    use std::sync::{Arc, Mutex};\n    let n = Arc::new(Mutex::new(0));\n    let mut handles = Vec::new();\n    for _ in 0..workers {\n        let n = Arc::clone(&n);\n        handles.push(std::thread::spawn(move || {\n            for _ in 0..each {\n                *n.lock().unwrap() += 1;\n            }\n        }));\n    }\n    for h in handles {\n        h.join().unwrap();\n    }\n    let total = *n.lock().unwrap();\n    total\n}",
+    "tests": "assert_eq!(concurrent_count(4, 200), 800);\n    assert_eq!(concurrent_count(0, 20), 0);\n    assert_eq!(concurrent_count(2, 0), 0);",
+    "explanation": "实现 concurrent_count(workers: usize, each: usize) -> usize，每线程增加 each 次，共享 Arc<Mutex<usize>> 并等待全部线程；输入总数不溢出。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "shared-r2-code-2": {
+    "answer": "fn withdraw(balance: &std::sync::Mutex<u32>, amount: u32) -> bool {\n    let Ok(mut n) = balance.lock() else {\n        return false;\n    };\n    if *n < amount {\n        return false;\n    }\n    *n -= amount;\n    true\n}",
+    "tests": "let b = std::sync::Mutex::new(10);\n    assert!(withdraw(&b, 7));\n    assert!(!withdraw(&b, 4));\n    assert_eq!(*b.lock().unwrap(), 3);\n    assert!(withdraw(&b, 0));",
+    "explanation": "实现 withdraw(balance: &std::sync::Mutex<u32>, amount: u32) -> bool；锁中毒或余额不足时 false，否则扣减并返回 true。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "shared-project": {
+    "answer": "fn sell(stock: u32, requests: Vec<u32>) -> (u32, usize) {\n    use std::sync::{Arc, Mutex};\n    let shared = Arc::new(Mutex::new((stock, 0)));\n    let handles: Vec<_> = requests\n        .into_iter()\n        .map(|n| {\n            let shared = Arc::clone(&shared);\n            std::thread::spawn(move || {\n                let mut s = shared.lock().unwrap();\n                if s.0 >= n {\n                    s.0 -= n;\n                    s.1 += 1;\n                }\n            })\n        })\n        .collect();\n    for h in handles {\n        h.join().unwrap();\n    }\n    let result = *shared.lock().unwrap();\n    result\n}",
+    "tests": "assert_eq!(sell(20,vec![3,4,5]),(8,3));assert_eq!(sell(1,vec![2,3]),(1,0));assert_eq!(sell(0,vec![0,0]),(0,2));assert_eq!(sell(7,vec![]),(7,0));let (left,count)=sell(10,vec![7,7]);assert_eq!((left,count),(3,1));",
+    "explanation": "组合 Arc、Mutex、线程等待与业务不变量。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "shutdown-r2-choice-1": {
+    "answer": "等待容量或返回关闭错误",
+    "explanation": "异步等待让出执行机会。",
+    "mode": "fold"
+  },
+  "shutdown-r2-choice-2": {
+    "answer": "None",
+    "explanation": "通道关闭可以成为正常退出信号。",
+    "mode": "fold"
+  },
+  "shutdown-r2-choice-3": {
+    "answer": "确认任务已退出并完成清理",
+    "explanation": "请求取消与完成退出是两个时刻。",
+    "mode": "fold"
+  },
+  "shutdown-r2-fill-1": {
+    "answer": "JoinHandle",
+    "explanation": "任务的完成状态要被观察。",
+    "mode": "fold"
+  },
+  "shutdown-r2-fill-2": {
+    "answer": "mpsc",
+    "explanation": "mpsc::channel 指定容量。",
+    "mode": "fold"
+  },
+  "shutdown-r2-fill-3": {
+    "answer": "select",
+    "explanation": "select! 需要结合操作的取消安全性。",
+    "mode": "fold"
+  },
+  "shutdown-r2-code-1": {
+    "answer": "async fn drain_sum(values: Vec<u32>) -> u64 {\n    let (tx, mut rx) = tokio::sync::mpsc::channel::<u32>(1);\n    let h = tokio::spawn(async move {\n        let mut n = 0u64;\n        while let Some(v) = rx.recv().await {\n            n += u64::from(v);\n        }\n        n\n    });\n    for n in values {\n        tx.send(n).await.unwrap();\n    }\n    drop(tx);\n    h.await.unwrap()\n}",
+    "tests": "let rt = tokio::runtime::Runtime::new().unwrap();\n    assert_eq!(rt.block_on(drain_sum(vec![2, 3, u32::MAX])), 4294967300);\n    assert_eq!(rt.block_on(drain_sum(vec![])), 0);",
+    "explanation": "实现 async fn drain_sum(values: Vec<u32>) -> u64，使用容量 1 的 tokio mpsc 通道发送并累计，关闭发送端并等待消费者。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "shutdown-r2-code-2": {
+    "answer": "async fn stopped() -> bool {\n    let (tx, rx) = tokio::sync::oneshot::channel();\n    let h = tokio::spawn(async move { rx.await.is_ok() });\n    tx.send(()).unwrap();\n    h.await.unwrap()\n}",
+    "tests": "let rt = tokio::runtime::Runtime::new().unwrap();\n    assert!(rt.block_on(stopped()));",
+    "explanation": "实现 async fn stopped() -> bool，用 tokio oneshot 发信号，等待接收任务返回 true。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "shutdown-project": {
+    "answer": "async fn pipeline(values: Vec<u32>) -> Vec<u64> {\n    let (tx, mut rx) = tokio::sync::mpsc::channel::<u32>(2);\n    let h = tokio::spawn(async move {\n        let mut out = Vec::new();\n        while let Some(n) = rx.recv().await {\n            out.push(u64::from(n) * 2);\n        }\n        out\n    });\n    for n in values {\n        tx.send(n).await.unwrap();\n    }\n    drop(tx);\n    h.await.unwrap()\n}",
+    "tests": "let rt=tokio::runtime::Runtime::new().unwrap();assert_eq!(rt.block_on(pipeline(vec![3,1,u32::MAX])),vec![6,2,8589934590]);assert!(rt.block_on(pipeline(vec![])).is_empty());",
+    "explanation": "组合异步通道、类型转换和顺序处理，建立完整退出边界。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "http-r2-choice-1": {
+    "answer": "已收到响应，但资源未找到",
+    "explanation": "传输完成不等于业务成功。",
+    "mode": "fold"
+  },
+  "http-r2-choice-2": {
+    "answer": "响应体字节数",
+    "explanation": "协议长度以字节计。",
+    "mode": "fold"
+  },
+  "http-r2-choice-3": {
+    "answer": "给等待提供明确上限",
+    "explanation": "超时控制资源等待边界。",
+    "mode": "fold"
+  },
+  "http-r2-fill-1": {
+    "answer": "404",
+    "explanation": "404 表达资源未找到。",
+    "mode": "fold"
+  },
+  "http-r2-fill-2": {
+    "answer": "405",
+    "explanation": "方法与路径错误应区分。",
+    "mode": "fold"
+  },
+  "http-r2-fill-3": {
+    "answer": "error_for_status",
+    "explanation": "网络成功与 HTTP 状态检查分开。",
+    "mode": "fold"
+  },
+  "http-r2-code-1": {
+    "answer": "fn route(method: &str, path: &str) -> (u16, String) {\n    if method != \"GET\" {\n        (405, String::from(\"method\"))\n    } else if path == \"/health\" {\n        (200, String::from(\"ok\"))\n    } else {\n        (404, String::from(\"missing\"))\n    }\n}",
+    "tests": "assert_eq!(route(\"GET\", \"/health\"), (200, String::from(\"ok\")));\n    assert_eq!(route(\"POST\", \"/health\").0, 405);\n    assert_eq!(route(\"GET\", \"/\").0, 404);",
+    "explanation": "实现 route(method: &str, path: &str) -> (u16,String)，非 GET 返回 (405,\"method\")，GET /health 返回 (200,\"ok\")，其他路径 (404,\"missing\")。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "http-r2-code-2": {
+    "answer": "fn json_response(body: &str) -> String {\n    format!(\"HTTP/1.1 200 OK\\r\\nContent-Type: application/json\\r\\nContent-Length: {}\\r\\nConnection: close\\r\\n\\r\\n{}\", body.len(), body)\n}",
+    "tests": "let r = json_response(\"你好\");\nassert!(r.contains(\"Content-Length: 6\\r\\n\"));\nassert!(r.ends_with(\"\\r\\n\\r\\n你好\"));\nassert!(json_response(\"\").contains(\"Content-Length: 0\\r\\n\"));",
+    "explanation": "实现 json_response(body: &str) -> String，生成 HTTP/1.1 200 OK、Content-Type: application/json、Content-Length、Connection: close，使用 CRLF 和一个空行，随后原样 body。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "http-project": {
+    "answer": "fn api(method: &str, path: &str, body: &str) -> (u16, String) {\n    match (method, path) {\n        (\"GET\", \"/health\") => (200, String::from(\"ok\")),\n        (\"POST\", \"/minutes\") => {\n            let n = serde_json::from_str::<serde_json::Value>(body)\n                .ok()\n                .and_then(|v| v.get(\"minutes\").and_then(|n| n.as_u64()));\n            match n {\n                Some(n) if (1..=180).contains(&n) => (201, format!(\"saved:{n}\")),\n                _ => (400, String::from(\"invalid\")),\n            }\n        }\n        (_, \"/health\" | \"/minutes\") => (405, String::from(\"method\")),\n        _ => (404, String::from(\"missing\")),\n    }\n}",
+    "tests": "assert_eq!(api(\"GET\",\"/health\",\"\"),(200,String::from(\"ok\")));assert_eq!(api(\"POST\",\"/minutes\",r#\"{\"minutes\":25}\"#),(201,String::from(\"saved:25\")));for input in [\"bad\",r#\"{\"minutes\":0}\"#,r#\"{\"minutes\":181}\"#,r#\"{\"minutes\":1.5}\"#,r#\"{\"minutes\":\"25\"}\"#]{assert_eq!(api(\"POST\",\"/minutes\",input).0,400);}assert_eq!(api(\"GET\",\"/minutes\",\"\").0,405);assert_eq!(api(\"GET\",\"/missing\",\"\").0,404);",
+    "explanation": "组合路由、序列化、校验与错误状态，独立于传输测试。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "database-r2-choice-1": {
+    "answer": "参数绑定",
+    "explanation": "SQL 结构与数据值分离。",
+    "mode": "fold"
+  },
+  "database-r2-choice-2": {
+    "answer": "整组回滚",
+    "explanation": "事务守住整组业务更新的不变量。",
+    "mode": "fold"
+  },
+  "database-r2-choice-3": {
+    "answer": "不会",
+    "explanation": "内存与文件连接的存储边界不同。",
+    "mode": "fold"
+  },
+  "database-r2-fill-1": {
+    "answer": "commit",
+    "explanation": "未提交事务不应当作成功。",
+    "mode": "fold"
+  },
+  "database-r2-fill-2": {
+    "answer": "UNIQUE",
+    "explanation": "UNIQUE 在数据库层约束重复值。",
+    "mode": "fold"
+  },
+  "database-r2-fill-3": {
+    "answer": "open_in_memory",
+    "explanation": "内存连接适合隔离测试。",
+    "mode": "fold"
+  },
+  "database-r2-code-1": {
+    "answer": "fn insert_name(db: &rusqlite::Connection, name: &str) -> rusqlite::Result<usize> {\n    db.execute(\"INSERT INTO names(value) VALUES (?1)\", [name])\n}",
+    "tests": "let db = rusqlite::Connection::open_in_memory().unwrap();\n    db.execute_batch(\"CREATE TABLE names(value TEXT NOT NULL);\")\n        .unwrap();\n    assert_eq!(insert_name(&db, \"Ada's Rust\").unwrap(), 1);\n    let s: String = db\n        .query_row(\"SELECT value FROM names\", [], |r| r.get(0))\n        .unwrap();\n    assert_eq!(s, \"Ada's Rust\");\n    assert_eq!(insert_name(&db, \"'); DROP TABLE names; --\").unwrap(), 1);",
+    "explanation": "实现 insert_name(db: &rusqlite::Connection, name: &str) -> rusqlite::Result<usize>，参数化写入已存在的 names(value TEXT NOT NULL) 表。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "database-r2-code-2": {
+    "answer": "fn total_minutes(db: &rusqlite::Connection) -> rusqlite::Result<i64> {\n    db.query_row(\"SELECT COALESCE(SUM(minutes),0) FROM logs\", [], |r| {\n        r.get(0)\n    })\n}",
+    "tests": "let db = rusqlite::Connection::open_in_memory().unwrap();\n    db.execute_batch(\"CREATE TABLE logs(minutes INTEGER NOT NULL);\")\n        .unwrap();\n    assert_eq!(total_minutes(&db).unwrap(), 0);\n    db.execute_batch(\"INSERT INTO logs VALUES (25),(30);\")\n        .unwrap();\n    assert_eq!(total_minutes(&db).unwrap(), 55);",
+    "explanation": "实现 total_minutes(db: &rusqlite::Connection) -> rusqlite::Result<i64>，对已存在 logs(minutes INTEGER NOT NULL) 表求和，空表为 0。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "database-project": {
+    "answer": "fn import_batch(\n    db: &mut rusqlite::Connection,\n    values: &[i64],\n) -> Result<usize, String> {\n    let tx = db.transaction().map_err(|e| e.to_string())?;\n    for &n in values {\n        if !(1..=180).contains(&n) {\n            return Err(String::from(\"invalid\"));\n        }\n        tx.execute(\"INSERT INTO logs(minutes) VALUES (?1)\", [n])\n            .map_err(|e| e.to_string())?;\n    }\n    tx.commit().map_err(|e| e.to_string())?;\n    Ok(values.len())\n}",
+    "tests": "let mut db=rusqlite::Connection::open_in_memory().unwrap();db.execute_batch(\"CREATE TABLE logs(minutes INTEGER NOT NULL CHECK(minutes BETWEEN 1 AND 180));\").unwrap();assert_eq!(import_batch(&mut db,&[25,30]),Ok(2));assert!(import_batch(&mut db,&[40,0,50]).is_err());let total:i64=db.query_row(\"SELECT SUM(minutes) FROM logs\",[],|r|r.get(0)).unwrap();assert_eq!(total,55);assert_eq!(import_batch(&mut db,&[]),Ok(0));db.execute_batch(\"DROP TABLE logs;\").unwrap();assert!(import_batch(&mut db,&[20]).is_err());",
+    "explanation": "在真实 SQLite 事务中组合解析后的数据、约束与回滚。 验收同时检查正常输入、边界输入和失败状态，不能只让示例输出看起来正确。"
+  },
+  "ownership-r2-choice-1": {
+    "answer": "移动所有权",
+    "explanation": "String 的管理责任转移给新绑定。",
+    "mode": "fold"
+  },
+  "ownership-r2-choice-2": {
+    "answer": "实现 Copy",
+    "explanation": "Copy 允许隐式复制。",
+    "mode": "fold"
+  },
+  "ownership-r2-choice-3": {
+    "answer": "不是，取决于具体类型",
+    "explanation": "String clone 通常复制内容。",
+    "mode": "fold"
+  },
+  "ownership-r2-fill-1": {
+    "answer": "clone",
+    "explanation": "Clone 是显式能力。",
+    "mode": "fold"
+  },
+  "ownership-r2-fill-2": {
+    "answer": "Copy",
+    "explanation": "Copy 与 Clone 有不同调用语义。",
+    "mode": "fold"
+  },
+  "ownership-r2-fill-3": {
+    "answer": "drop",
+    "explanation": "std::mem::drop 消费输入值。",
+    "mode": "fold"
+  },
+  "ownership-r2-code-1": {
+    "answer": "fn move_text(text: String) -> String {\n    text\n}",
+    "tests": "assert_eq!(move_text(String::from(\"你好\")), \"你好\");\n    assert_eq!(move_text(String::new()), \"\");",
+    "explanation": "实现 move_text(text: String) -> String，直接返回传入的所有者。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "ownership-r2-code-2": {
+    "answer": "fn duplicate(text: String) -> (String, String) {\n    (text.clone(), text)\n}",
+    "tests": "let (mut a, b) = duplicate(String::from(\"a\"));\n    a.push('b');\n    assert_eq!(a, \"ab\");\n    assert_eq!(b, \"a\");\n    let (a, b) = duplicate(String::new());\n    assert!(a.is_empty() && b.is_empty());",
+    "explanation": "实现 duplicate(text: String) -> (String,String)，返回内容相同的两个拥有值。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "models-r2-choice-1": {
+    "answer": "&self",
+    "explanation": "只读借用保留调用者所有权。",
+    "mode": "fold"
+  },
+  "models-r2-choice-2": {
+    "answer": "关联函数",
+    "explanation": "构造函数通过类型路径调用。",
+    "mode": "fold"
+  },
+  "models-r2-choice-3": {
+    "answer": "按值接收，可能消费实例",
+    "explanation": "签名决定拥有权。",
+    "mode": "fold"
+  },
+  "models-r2-fill-1": {
+    "answer": "impl",
+    "explanation": "impl 块组织实现。",
+    "mode": "fold"
+  },
+  "models-r2-fill-2": {
+    "answer": "Self",
+    "explanation": "Self 是当前实现的类型。",
+    "mode": "fold"
+  },
+  "models-r2-fill-3": {
+    "answer": "mut",
+    "explanation": "&mut self 表示独占修改。",
+    "mode": "fold"
+  },
+  "models-r2-code-1": {
+    "answer": "struct Rectangle {\n    width: u32,\n    height: u32,\n}\nimpl Rectangle {\n    fn area(&self) -> u64 {\n        u64::from(self.width) * u64::from(self.height)\n    }\n}",
+    "tests": "let r = Rectangle {\n        width: u32::MAX,\n        height: 2,\n    };\n    assert_eq!(r.area(), 8589934590);\n    assert_eq!(\n        Rectangle {\n            width: 0,\n            height: 4\n        }\n        .area(),\n        0\n    );",
+    "explanation": "定义 struct Rectangle { width:u32, height:u32 }，实现 area(&self)->u64，扩大后乘法。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "models-r2-code-2": {
+    "answer": "struct Counter {\n    value: u32,\n}\nimpl Counter {\n    fn add(&mut self, n: u32) {\n        self.value = self.value.saturating_add(n)\n    }\n}",
+    "tests": "let mut c = Counter { value: 3 };\n    c.add(4);\n    assert_eq!(c.value, 7);\n    c.add(u32::MAX);\n    assert_eq!(c.value, u32::MAX);",
+    "explanation": "定义 Counter { value:u32 }，实现 add(&mut self,n:u32)，溢出时停在 u32::MAX。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "collections-r2-choice-1": {
+    "answer": "不能保证",
+    "explanation": "需要稳定展示应排序或使用有序容器。",
+    "mode": "fold"
+  },
+  "collections-r2-choice-2": {
+    "answer": "容量是可容纳空间，长度是已有元素数",
+    "explanation": "预留容量不会创建元素。",
+    "mode": "fold"
+  },
+  "collections-r2-choice-3": {
+    "answer": "get",
+    "explanation": "get 返回 Option。",
+    "mode": "fold"
+  },
+  "collections-r2-fill-1": {
+    "answer": "push",
+    "explanation": "push 会修改集合长度。",
+    "mode": "fold"
+  },
+  "collections-r2-fill-2": {
+    "answer": "entry",
+    "explanation": "entry 避免重复查找。",
+    "mode": "fold"
+  },
+  "collections-r2-fill-3": {
+    "answer": "BTreeMap",
+    "explanation": "BTreeMap 按键顺序组织。",
+    "mode": "fold"
+  },
+  "collections-r2-code-1": {
+    "answer": "fn totals(values: &[(&str, u32)]) -> std::collections::HashMap<String, u64> {\n    let mut out = std::collections::HashMap::new();\n    for &(name, n) in values {\n        *out.entry(name.to_owned()).or_insert(0) += u64::from(n);\n    }\n    out\n}",
+    "tests": "let r = totals(&[(\"甲\", u32::MAX), (\"甲\", 2), (\"乙\", 0)]);\n    assert_eq!(r[\"甲\"], 4294967297);\n    assert_eq!(r[\"乙\"], 0);\n    assert!(totals(&[]).is_empty());",
+    "explanation": "实现 totals(values: &[(&str,u32)]) -> std::collections::HashMap<String,u64>，按名称汇总，先扩大数值。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "collections-r2-code-2": {
+    "answer": "fn at(values: &[i32], index: usize) -> Option<i32> {\n    values.get(index).copied()\n}",
+    "tests": "assert_eq!(at(&[2, 4], 1), Some(4));\n    assert_eq!(at(&[2, 4], 2), None);\n    assert_eq!(at(&[], 0), None);",
+    "explanation": "实现 at(values:&[i32], index:usize)->Option<i32>，有效返回元素副本，否则 None。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "errors-r2-choice-1": {
+    "answer": "返回 Result 错误",
+    "explanation": "可恢复错误属于接口的一部分。",
+    "mode": "fold"
+  },
+  "errors-r2-choice-2": {
+    "answer": "不同",
+    "explanation": "缺失不是零。",
+    "mode": "fold"
+  },
+  "errors-r2-choice-3": {
+    "answer": "从当前函数提前返回错误",
+    "explanation": "错误传播不等于处理。",
+    "mode": "fold"
+  },
+  "errors-r2-fill-1": {
+    "answer": "Ok",
+    "explanation": "Ok(T) 保存成功值。",
+    "mode": "fold"
+  },
+  "errors-r2-fill-2": {
+    "answer": "Err",
+    "explanation": "Err(E) 保存失败原因。",
+    "mode": "fold"
+  },
+  "errors-r2-fill-3": {
+    "answer": "?",
+    "explanation": "? 要求兼容的函数返回类型。",
+    "mode": "fold"
+  },
+  "errors-r2-code-1": {
+    "answer": "fn divide(a: u32, b: u32) -> Option<u32> {\n    if b == 0 { None } else { Some(a / b) }\n}",
+    "tests": "assert_eq!(divide(7, 2), Some(3));\n    assert_eq!(divide(0, 2), Some(0));\n    assert_eq!(divide(1, 0), None);",
+    "explanation": "实现 divide(a:u32,b:u32)->Option<u32>，除数 0 返回 None，否则整数商。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "errors-r2-code-2": {
+    "answer": "fn parse_limit(input: &str) -> Result<u32, String> {\n    let n = match input.trim().parse::<u32>() {\n        Ok(n) => n,\n        Err(_) => return Err(String::from(\"format\")),\n    };\n    if n == 0 || n > 180 {\n        Err(String::from(\"range\"))\n    } else {\n        Ok(n)\n    }\n}",
+    "tests": "assert_eq!(parse_limit(\" 25 \"), Ok(25));\n    assert_eq!(parse_limit(\"0\"), Err(String::from(\"range\")));\n    assert_eq!(parse_limit(\"181\"), Err(String::from(\"range\")));\n    assert_eq!(parse_limit(\"x\"), Err(String::from(\"format\")));",
+    "explanation": "实现 parse_limit(input:&str)->Result<u32,String>，trim 后解析并限制 1..=180；格式错误为 format，范围错误为 range。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "traits-r2-choice-1": {
+    "answer": "不会，只规定行为",
+    "explanation": "数据与行为契约分开。",
+    "mode": "fold"
+  },
+  "traits-r2-choice-2": {
+    "answer": "TryFrom",
+    "explanation": "TryFrom 返回 Result。",
+    "mode": "fold"
+  },
+  "traits-r2-choice-3": {
+    "answer": "不同业务含义与不变量",
+    "explanation": "同样底层表示可以有不同类型意义。",
+    "mode": "fold"
+  },
+  "traits-r2-fill-1": {
+    "answer": "for",
+    "explanation": "for 指定实现者类型。",
+    "mode": "fold"
+  },
+  "traits-r2-fill-2": {
+    "answer": "From",
+    "explanation": "From 不应隐藏正常失败。",
+    "mode": "fold"
+  },
+  "traits-r2-fill-3": {
+    "answer": "Debug",
+    "explanation": "Debug 面向程序状态观察。",
+    "mode": "fold"
+  },
+  "traits-r2-code-1": {
+    "answer": "trait Score {\n    fn score(&self) -> i32;\n}\nstruct Fixed(i32);\nimpl Score for Fixed {\n    fn score(&self) -> i32 {\n        self.0\n    }\n}",
+    "tests": "assert_eq!(Fixed(7).score(), 7);\n    assert_eq!(Fixed(-2).score(), -2);",
+    "explanation": "定义 trait Score { fn score(&self)->i32; } 和 Fixed(i32)，为 Fixed 实现 Score。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "traits-r2-code-2": {
+    "answer": "fn to_byte(n: u32) -> Result<u8, String> {\n    match u8::try_from(n) {\n        Ok(n) => Ok(n),\n        Err(_) => Err(String::from(\"range\")),\n    }\n}",
+    "tests": "assert_eq!(to_byte(0), Ok(0));\n    assert_eq!(to_byte(255), Ok(255));\n    assert_eq!(to_byte(256), Err(String::from(\"range\")));",
+    "explanation": "实现 to_byte(n:u32)->Result<u8,String>，超出 u8 范围返回 Err(\"range\")。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "stdlib-r2-choice-1": {
+    "answer": "发散，不回到后续成功路径",
+    "explanation": "return 等发散操作保证后续模式已匹配。",
+    "mode": "fold"
+  },
+  "stdlib-r2-choice-2": {
+    "answer": "不会",
+    "explanation": "_ 与 _name 的所有权语义不同。",
+    "mode": "fold"
+  },
+  "stdlib-r2-choice-3": {
+    "answer": "同时绑定整个值并限制内部模式",
+    "explanation": "@ 保留匹配值的名称。",
+    "mode": "fold"
+  },
+  "stdlib-r2-fill-1": {
+    "answer": "if",
+    "explanation": "守卫是额外运行时条件。",
+    "mode": "fold"
+  },
+  "stdlib-r2-fill-2": {
+    "answer": "take",
+    "explanation": "take 是明确状态替换。",
+    "mode": "fold"
+  },
+  "stdlib-r2-fill-3": {
+    "answer": "..",
+    "explanation": ".. 忽略未列出的部分。",
+    "mode": "fold"
+  },
+  "stdlib-r2-code-1": {
+    "answer": "fn classify(value: Option<u32>) -> &'static str {\n    match value {\n        None => \"missing\",\n        Some(0) => \"zero\",\n        Some(1..=180) => \"valid\",\n        _ => \"range\",\n    }\n}",
+    "tests": "assert_eq!(classify(None), \"missing\");\n    assert_eq!(classify(Some(0)), \"zero\");\n    assert_eq!(classify(Some(180)), \"valid\");\n    assert_eq!(classify(Some(181)), \"range\");",
+    "explanation": "实现 classify(value:Option<u32>)->&'static str，None 为 missing，Some(0) 为 zero，1..=180 为 valid，其余 range。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "stdlib-r2-code-2": {
+    "answer": "fn take_nonempty(value: &mut Option<String>) -> Option<String> {\n    match value {\n        Some(s) if !s.is_empty() => value.take(),\n        _ => None,\n    }\n}",
+    "tests": "let mut v = Some(String::from(\"a\"));\n    assert_eq!(take_nonempty(&mut v), Some(String::from(\"a\")));\n    assert!(v.is_none());\n    let mut v = Some(String::new());\n    assert!(take_nonempty(&mut v).is_none());\n    assert_eq!(v, Some(String::new()));",
+    "explanation": "实现 take_nonempty(value:&mut Option<String>)->Option<String>；若 Some 非空则取出并留下 None，否则不改变输入返回 None。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "threads-r2-choice-1": {
+    "answer": "确保线程在作用域返回前结束",
+    "explanation": "受控线程存活范围保证引用有效。",
+    "mode": "fold"
+  },
+  "threads-r2-choice-2": {
+    "answer": "结束",
+    "explanation": "关闭通道是退出协议的一部分。",
+    "mode": "fold"
+  },
+  "threads-r2-choice-3": {
+    "answer": "不会",
+    "explanation": "移动引用不延长被引用对象的存活。",
+    "mode": "fold"
+  },
+  "threads-r2-fill-1": {
+    "answer": "join",
+    "explanation": "join 观察完成及恐慌结果。",
+    "mode": "fold"
+  },
+  "threads-r2-fill-2": {
+    "answer": "spawn",
+    "explanation": "std::thread::spawn 启动线程。",
+    "mode": "fold"
+  },
+  "threads-r2-fill-3": {
+    "answer": "mpsc",
+    "explanation": "std::sync::mpsc 提供通道。",
+    "mode": "fold"
+  },
+  "threads-r2-code-1": {
+    "answer": "fn parallel_sum(values: &[i32]) -> i64 {\n    std::thread::scope(|s| {\n        let mid = values.len() / 2;\n        let a =\n            s.spawn(move || values[..mid].iter().map(|&n| i64::from(n)).sum::<i64>());\n        let b =\n            s.spawn(move || values[mid..].iter().map(|&n| i64::from(n)).sum::<i64>());\n        a.join().unwrap() + b.join().unwrap()\n    })\n}",
+    "tests": "assert_eq!(parallel_sum(&[1, 2, 3]), 6);\n    assert_eq!(parallel_sum(&[]), 0);\n    assert_eq!(parallel_sum(&[i32::MAX, i32::MAX]), 4294967294);",
+    "explanation": "实现 parallel_sum(values:&[i32])->i64，使用 thread::scope 拆为两部分并行求和。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "threads-r2-code-2": {
+    "answer": "fn relay(values: Vec<String>) -> Vec<String> {\n    let (tx, rx) = std::sync::mpsc::channel();\n    let h = std::thread::spawn(move || {\n        for v in values {\n            tx.send(v).unwrap();\n        }\n    });\n    let out = rx.into_iter().collect();\n    h.join().unwrap();\n    out\n}",
+    "tests": "assert_eq!(\n        relay(vec![String::from(\"甲\"), String::from(\"乙\")]),\n        vec![\"甲\", \"乙\"]\n    );\n    assert!(relay(vec![]).is_empty());",
+    "explanation": "实现 relay(values:Vec<String>)->Vec<String>，子线程通过 mpsc 逐个发送拥有值，主线程接收，保留顺序并 join。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "functions-r2-choice-1": {
+    "answer": "通常变成语句，不再作为返回值",
+    "explanation": "尾表达式与语句有区别。",
+    "mode": "fold"
+  },
+  "functions-r2-choice-2": {
+    "answer": "不能，除非通过结果带出",
+    "explanation": "作用域控制名字可见范围。",
+    "mode": "fold"
+  },
+  "functions-r2-choice-3": {
+    "answer": "不决定，调用位置决定",
+    "explanation": "定义函数与执行函数不同。",
+    "mode": "fold"
+  },
+  "functions-r2-fill-1": {
+    "answer": "fn",
+    "explanation": "fn 声明函数。",
+    "mode": "fold"
+  },
+  "functions-r2-fill-2": {
+    "answer": "->",
+    "explanation": "参数后用 -> 标注返回类型。",
+    "mode": "fold"
+  },
+  "functions-r2-fill-3": {
+    "answer": "return",
+    "explanation": "return 可以提前结束当前函数。",
+    "mode": "fold"
+  },
+  "functions-r2-code-1": {
+    "answer": "fn minutes(hours: u32, extra: u32) -> u64 {\n    u64::from(hours) * 60 + u64::from(extra)\n}",
+    "tests": "assert_eq!(minutes(2, 15), 135);\n    assert_eq!(minutes(0, 0), 0);\n    assert_eq!(minutes(u32::MAX, 0), 257698037700);",
+    "explanation": "实现 minutes(hours:u32, extra:u32)->u64，计算小时转分钟后加 extra，先扩大整数避免溢出。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  },
+  "functions-r2-code-2": {
+    "answer": "fn boosted(base: u32, bonus: u32) -> u64 {\n    let total = {\n        let b = u64::from(base);\n        b + u64::from(bonus)\n    };\n    total\n}",
+    "tests": "assert_eq!(boosted(20, 5), 25);\n    assert_eq!(boosted(u32::MAX, 1), 4294967296);\n    assert_eq!(boosted(0, 0), 0);",
+    "explanation": "实现 boosted(base:u32, bonus:u32)->u64，使用内部块计算扩大后的加法并返回结果。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。"
+  }
+}

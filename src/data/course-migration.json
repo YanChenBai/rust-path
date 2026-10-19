@@ -1,0 +1,571 @@
+{
+  "legacyChapters": [
+    {
+      "id": "start",
+      "questions": [
+        {
+          "id": "start-choice"
+        },
+        {
+          "id": "start-extra-choice-1"
+        },
+        {
+          "id": "start-extra-choice-2"
+        },
+        {
+          "id": "start-fill"
+        },
+        {
+          "id": "start-extra-fill-1"
+        },
+        {
+          "id": "start-extra-fill-2"
+        },
+        {
+          "id": "start-code"
+        },
+        {
+          "id": "start-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "variables",
+      "questions": [
+        {
+          "id": "variables-choice"
+        },
+        {
+          "id": "variables-extra-choice-1"
+        },
+        {
+          "id": "variables-extra-choice-2"
+        },
+        {
+          "id": "variables-fill"
+        },
+        {
+          "id": "variables-extra-fill-1"
+        },
+        {
+          "id": "variables-extra-fill-2"
+        },
+        {
+          "id": "variables-code"
+        },
+        {
+          "id": "variables-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "control",
+      "questions": [
+        {
+          "id": "control-choice"
+        },
+        {
+          "id": "control-extra-choice-1"
+        },
+        {
+          "id": "control-extra-choice-2"
+        },
+        {
+          "id": "control-fill"
+        },
+        {
+          "id": "control-extra-fill-1"
+        },
+        {
+          "id": "control-extra-fill-2"
+        },
+        {
+          "id": "control-code"
+        },
+        {
+          "id": "control-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "functions",
+      "questions": [
+        {
+          "id": "functions-choice"
+        },
+        {
+          "id": "functions-extra-choice-1"
+        },
+        {
+          "id": "functions-extra-choice-2"
+        },
+        {
+          "id": "functions-fill"
+        },
+        {
+          "id": "functions-extra-fill-1"
+        },
+        {
+          "id": "functions-extra-fill-2"
+        },
+        {
+          "id": "functions-code"
+        },
+        {
+          "id": "functions-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "ownership",
+      "questions": [
+        {
+          "id": "ownership-choice"
+        },
+        {
+          "id": "ownership-extra-choice-1"
+        },
+        {
+          "id": "ownership-extra-choice-2"
+        },
+        {
+          "id": "ownership-fill"
+        },
+        {
+          "id": "ownership-extra-fill-1"
+        },
+        {
+          "id": "ownership-extra-fill-2"
+        },
+        {
+          "id": "ownership-code"
+        },
+        {
+          "id": "ownership-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "models",
+      "questions": [
+        {
+          "id": "models-choice"
+        },
+        {
+          "id": "models-extra-choice-1"
+        },
+        {
+          "id": "models-extra-choice-2"
+        },
+        {
+          "id": "models-fill"
+        },
+        {
+          "id": "models-extra-fill-1"
+        },
+        {
+          "id": "models-extra-fill-2"
+        },
+        {
+          "id": "models-code"
+        },
+        {
+          "id": "models-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "collections",
+      "questions": [
+        {
+          "id": "collections-choice"
+        },
+        {
+          "id": "collections-extra-choice-1"
+        },
+        {
+          "id": "collections-extra-choice-2"
+        },
+        {
+          "id": "collections-fill"
+        },
+        {
+          "id": "collections-extra-fill-1"
+        },
+        {
+          "id": "collections-extra-fill-2"
+        },
+        {
+          "id": "collections-code"
+        },
+        {
+          "id": "collections-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "errors",
+      "questions": [
+        {
+          "id": "errors-choice"
+        },
+        {
+          "id": "errors-extra-choice-1"
+        },
+        {
+          "id": "errors-extra-choice-2"
+        },
+        {
+          "id": "errors-fill"
+        },
+        {
+          "id": "errors-extra-fill-1"
+        },
+        {
+          "id": "errors-extra-fill-2"
+        },
+        {
+          "id": "errors-code"
+        },
+        {
+          "id": "errors-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "traits",
+      "questions": [
+        {
+          "id": "traits-choice"
+        },
+        {
+          "id": "traits-extra-choice-1"
+        },
+        {
+          "id": "traits-extra-choice-2"
+        },
+        {
+          "id": "traits-fill"
+        },
+        {
+          "id": "traits-extra-fill-1"
+        },
+        {
+          "id": "traits-extra-fill-2"
+        },
+        {
+          "id": "traits-code"
+        },
+        {
+          "id": "traits-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "smart",
+      "questions": [
+        {
+          "id": "smart-choice"
+        },
+        {
+          "id": "smart-extra-choice-1"
+        },
+        {
+          "id": "smart-extra-choice-2"
+        },
+        {
+          "id": "smart-fill"
+        },
+        {
+          "id": "smart-extra-fill-1"
+        },
+        {
+          "id": "smart-extra-fill-2"
+        },
+        {
+          "id": "smart-code"
+        },
+        {
+          "id": "smart-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "stdlib",
+      "questions": [
+        {
+          "id": "stdlib-choice"
+        },
+        {
+          "id": "stdlib-extra-choice-1"
+        },
+        {
+          "id": "stdlib-extra-choice-2"
+        },
+        {
+          "id": "stdlib-fill"
+        },
+        {
+          "id": "stdlib-extra-fill-1"
+        },
+        {
+          "id": "stdlib-extra-fill-2"
+        },
+        {
+          "id": "stdlib-code"
+        },
+        {
+          "id": "stdlib-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "io",
+      "questions": [
+        {
+          "id": "io-choice"
+        },
+        {
+          "id": "io-extra-choice-1"
+        },
+        {
+          "id": "io-extra-choice-2"
+        },
+        {
+          "id": "io-fill"
+        },
+        {
+          "id": "io-extra-fill-1"
+        },
+        {
+          "id": "io-extra-fill-2"
+        },
+        {
+          "id": "io-code"
+        },
+        {
+          "id": "io-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "cargo",
+      "questions": [
+        {
+          "id": "cargo-choice"
+        },
+        {
+          "id": "cargo-extra-choice-1"
+        },
+        {
+          "id": "cargo-extra-choice-2"
+        },
+        {
+          "id": "cargo-fill"
+        },
+        {
+          "id": "cargo-extra-fill-1"
+        },
+        {
+          "id": "cargo-extra-fill-2"
+        },
+        {
+          "id": "cargo-code"
+        },
+        {
+          "id": "cargo-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "macros",
+      "questions": [
+        {
+          "id": "macros-choice"
+        },
+        {
+          "id": "macros-extra-choice-1"
+        },
+        {
+          "id": "macros-extra-choice-2"
+        },
+        {
+          "id": "macros-fill"
+        },
+        {
+          "id": "macros-extra-fill-1"
+        },
+        {
+          "id": "macros-extra-fill-2"
+        },
+        {
+          "id": "macros-code"
+        },
+        {
+          "id": "macros-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "threads",
+      "questions": [
+        {
+          "id": "threads-choice"
+        },
+        {
+          "id": "threads-extra-choice-1"
+        },
+        {
+          "id": "threads-extra-choice-2"
+        },
+        {
+          "id": "threads-fill"
+        },
+        {
+          "id": "threads-extra-fill-1"
+        },
+        {
+          "id": "threads-extra-fill-2"
+        },
+        {
+          "id": "threads-code"
+        },
+        {
+          "id": "threads-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "async",
+      "questions": [
+        {
+          "id": "async-choice"
+        },
+        {
+          "id": "async-extra-choice-1"
+        },
+        {
+          "id": "async-extra-choice-2"
+        },
+        {
+          "id": "async-fill"
+        },
+        {
+          "id": "async-extra-fill-1"
+        },
+        {
+          "id": "async-extra-fill-2"
+        },
+        {
+          "id": "async-code"
+        },
+        {
+          "id": "async-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "questions": [
+        {
+          "id": "network-choice"
+        },
+        {
+          "id": "network-extra-choice-1"
+        },
+        {
+          "id": "network-extra-choice-2"
+        },
+        {
+          "id": "network-fill"
+        },
+        {
+          "id": "network-extra-fill-1"
+        },
+        {
+          "id": "network-extra-fill-2"
+        },
+        {
+          "id": "network-code"
+        },
+        {
+          "id": "network-extra-code"
+        }
+      ]
+    },
+    {
+      "id": "ecosystem",
+      "questions": [
+        {
+          "id": "ecosystem-choice"
+        },
+        {
+          "id": "ecosystem-extra-choice-1"
+        },
+        {
+          "id": "ecosystem-extra-choice-2"
+        },
+        {
+          "id": "ecosystem-fill"
+        },
+        {
+          "id": "ecosystem-extra-fill-1"
+        },
+        {
+          "id": "ecosystem-extra-fill-2"
+        },
+        {
+          "id": "ecosystem-code"
+        },
+        {
+          "id": "ecosystem-extra-code"
+        }
+      ]
+    }
+  ],
+  "advancedLessonIds": [
+    "traits-generics",
+    "traits-lifetimes",
+    "traits-dyn",
+    "smart-box",
+    "smart-sharing",
+    "smart-cells",
+    "stdlib-text",
+    "stdlib-iter-time",
+    "io-streams",
+    "io-path-cli",
+    "cargo-layout",
+    "cargo-build",
+    "macros-rules",
+    "macros-derive",
+    "threads-channel",
+    "threads-locks",
+    "threads-atomic",
+    "async-future",
+    "async-spawn",
+    "async-cancel",
+    "network-tcp",
+    "network-udp",
+    "network-http",
+    "ecosystem-serde",
+    "ecosystem-errors-cli",
+    "ecosystem-reqwest"
+  ],
+  "sources": [
+    {
+      "name": "The Rust Programming Language",
+      "label": "官方知识体系",
+      "url": "https://doc.rust-lang.org/book/"
+    },
+    {
+      "name": "Rust by Example",
+      "label": "可运行示例参考",
+      "url": "https://doc.rust-lang.org/rust-by-example/"
+    },
+    {
+      "name": "Rustlings",
+      "label": "渐进式练习灵感",
+      "url": "https://rustlings.rust-lang.org/"
+    }
+  ]
+}

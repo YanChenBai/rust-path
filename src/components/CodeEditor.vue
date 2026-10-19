@@ -1,0 +1,870 @@
+<script setup lang="ts">
+import {
+  Play,
+  MessageSquareText,
+  RotateCcw,
+  Square,
+  Terminal,
+  Check,
+  LoaderCircle,
+  Columns2,
+  Rows2,
+  FileCog,
+  Maximize2,
+  Minimize2,
+  BookOpen,
+  ArrowLeft,
+  Search,
+  Menu,
+} from 'lucide-vue-next';
+import type * as Monaco from 'monaco-editor/editor/editor.api.js';
+import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
+
+import { useEditorPanels } from '../composables/useEditorPanels';
+import { useFloatingMenu } from '../composables/useFloatingMenu';
+import { progress, recordActivity, storage } from '../progress';
+import { analyze } from '../runtime/analyzer';
+import { commentPresentation, type CommentAwareEditor } from '../runtime/editor-comments';
+import { detectNative, nativeAvailable } from '../runtime/native';
+import { NativeAnalyzer } from '../runtime/native-analyzer';
+import { runRust, runtimeStatus, stopRust, type RunResult } from '../runtime/rust';
+import TerminalView from './TerminalView.vue';
+
+const props = withDefaults(
+  defineProps<{
+    editorId: string;
+    initialCode: string;
+    compact?: boolean;
+    returnable?: boolean;
+    dependencies?: string[];
+    nativeRequired?: boolean;
+  }>(),
+  { compact: false },
+);
+
+const emit = defineEmits<{
+  success: [];
+  change: [code: string];
+  back: [];
+  search: [];
+  navigation: [];
+}>();
+
+const host = ref<HTMLElement>();
+
+const maximized = ref(false);
+
+const liveText = ref(
+  progress.outputs[props.editorId]?.transcript ??
+    [progress.outputs[props.editorId]?.stdout, progress.outputs[props.editorId]?.stderr]
+      .filter(Boolean)
+      .join(''),
+);
+
+let previousOverflow = '';
+
+function escapeEditor(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    if (commandOpen.value) {
+      closeCommandMenu(true);
+      event.stopPropagation();
+      return;
+    }
+
+    maximized.value = false;
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', escapeEditor, true));
+watch(maximized, value => {
+  if (value) {
+    previousOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+  } else {
+    document.documentElement.style.overflow = previousOverflow;
+  }
+
+  requestAnimationFrame(() => editor?.layout());
+});
+const loading = ref(true);
+const busy = ref(false);
+
+const analyzer = ref('语义引擎加载中');
+const result = ref<RunResult | undefined>(progress.outputs[props.editorId]);
+const error = ref('');
+const activeFile = ref<'rust' | 'toml'>('rust');
+
+const {
+  open: commandOpen,
+  anchor: commandRoot,
+  menu: commandMenu,
+  style: commandMenuStyle,
+  keydown: commandKeydown,
+  close: closeCommandMenu,
+} = useFloatingMenu();
+
+const commands = [
+  { mode: 'run' as const, label: '运行程序', hint: 'cargo run' },
+  { mode: 'check' as const, label: '检查代码', hint: 'cargo check' },
+  { mode: 'build' as const, label: '构建项目', hint: 'cargo build' },
+  { mode: 'test' as const, label: '运行测试', hint: 'cargo test' },
+];
+
+const layout = computed({
+  get: () => progress.editorLayouts[props.editorId] ?? 'vertical',
+  set: value => {
+    progress.editorLayouts[props.editorId] = value;
+  },
+});
+
+const {
+  panels,
+  split,
+  sourceStyle,
+  panelStyle,
+  resizePanels,
+  resizeByKeyboard,
+  updateContentHeight,
+  totalHeight,
+  resizeTotalHeight,
+  resizeTotalByKeyboard,
+  resetTotalHeight,
+} = useEditorPanels(props, layout, maximized);
+
+const selectedDependencies = computed(
+  () => progress.editorDependencies[props.editorId] ?? props.dependencies ?? [],
+);
+
+const hideComments = computed({
+  get: () => progress.editorCommentsHidden[props.editorId] ?? false,
+  set: value => {
+    progress.editorCommentsHidden[props.editorId] = value;
+  },
+});
+
+const command = ref<'run' | 'check' | 'build' | 'test'>('run');
+
+const dependencyEntries: Record<string, string> = {
+  tokio: 'tokio = { version = "1", features = ["full"] }',
+  serde: 'serde = { version = "1", features = ["derive"] }',
+  serde_json: 'serde_json = "1"',
+  anyhow: 'anyhow = "1"',
+  thiserror: 'thiserror = "2"',
+  reqwest:
+    'reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }',
+  clap: 'clap = { version = "4", features = ["derive"] }',
+  tracing: 'tracing = "0.1"',
+  rusqlite: 'rusqlite = { version = "0.37", features = ["bundled"] }',
+};
+
+const cargoManifest = computed(
+  () =>
+    `[package]\nname = "rust_path_scratch"\nversion = "0.1.0"\nedition = "2024"\n\n[dependencies]\n${Object.entries(
+      dependencyEntries,
+    )
+      .map(([name, line]) => (selectedDependencies.value.includes(name) ? '' : '# ') + line)
+      .join('\n')}\n\n[profile.release]\nopt-level = 3`,
+);
+
+let cargoModel: Monaco.editor.ITextModel | undefined;
+const dependencyWidgets: Monaco.editor.IContentWidget[] = [];
+let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
+let model: Monaco.editor.ITextModel | undefined;
+let monaco: typeof Monaco | undefined;
+let native: NativeAnalyzer | undefined;
+let diagnosticTimer: ReturnType<typeof setInterval> | undefined;
+let disposed = false;
+let ready = false;
+let updateTimer: ReturnType<typeof setTimeout>;
+const subscriptions: Monaco.IDisposable[] = [];
+
+let commentDecorations: Monaco.editor.IEditorDecorationsCollection | undefined;
+const commentViewSource = {};
+
+function updateCommentView() {
+  if (!editor || !model || !monaco) {
+    return;
+  }
+
+  const view = editor as CommentAwareEditor;
+  commentDecorations ??= editor.createDecorationsCollection();
+
+  if (!hideComments.value || activeFile.value !== 'rust') {
+    view.setHiddenAreas([], commentViewSource);
+    commentDecorations.clear();
+    return;
+  }
+
+  const presentation = commentPresentation(
+    model.getLinesContent(),
+    monaco.editor.tokenize(model.getValue(), 'rust'),
+  );
+
+  view.setHiddenAreas(presentation.hiddenLines, commentViewSource);
+  commentDecorations.set(
+    presentation.inlineComments.map(range => ({
+      range,
+      options: {
+        inlineClassName: 'editor-comment-hidden',
+        inlineClassNameAffectsLetterSpacing: true,
+      },
+    })),
+  );
+}
+
+watch(hideComments, updateCommentView);
+watch(activeFile, () => requestAnimationFrame(updateCommentView));
+
+function call<T>(method: string, ...args: unknown[]): Promise<T> {
+  if (native) {
+    if (method === 'update') {
+      return native.update(model?.getValue() ?? props.initialCode) as Promise<T>;
+    }
+
+    if (method === 'completions') {
+      return native.completions(args[0] as number, args[1] as number) as Promise<T>;
+    }
+
+    if (method === 'hover') {
+      return native.hover(args[0] as number, args[1] as number) as Promise<T>;
+    }
+  }
+
+  return analyze<T>(method, model?.getValue() ?? props.initialCode, ...args);
+}
+
+async function updateAnalysis() {
+  if (!ready || !model || disposed) {
+    return;
+  }
+
+  try {
+    const version = model.getVersionId();
+
+    const data = await call<{ diagnostics: Monaco.editor.IMarkerData[] }>(
+      'update',
+      model.getValue(),
+    );
+
+    if (!disposed && model.getVersionId() === version) {
+      monaco!.editor.setModelMarkers(model, 'rust-analyzer', data.diagnostics ?? []);
+    }
+  } catch {
+    analyzer.value = '语义分析暂不可用';
+  }
+}
+
+async function startAnalyzer() {
+  const hasNative = await detectNative();
+
+  if (!hasNative && !crossOriginIsolated) {
+    analyzer.value = '语义引擎需要跨源隔离响应头';
+    return;
+  }
+
+  try {
+    if (hasNative) {
+      native = new NativeAnalyzer();
+      await native.open(model!.getValue(), selectedDependencies.value);
+
+      if (disposed) {
+        native.close();
+        return;
+      }
+
+      let polling = false;
+      diagnosticTimer = setInterval(async () => {
+        if (polling || disposed || !model) {
+          return;
+        }
+
+        polling = true;
+
+        try {
+          const diagnostics = await native!.diagnostics();
+
+          if (!disposed) {
+            monaco!.editor.setModelMarkers(model, 'rust-analyzer', diagnostics);
+          }
+        } catch {
+          analyzer.value = '实时诊断连接异常';
+        } finally {
+          polling = false;
+        }
+      }, 900);
+    } else {
+      await call('update', model!.getValue());
+    }
+
+    if (disposed) {
+      return;
+    }
+
+    ready = true;
+    analyzer.value = hasNative ? 'rust-analyzer · 实时诊断' : 'rust-analyzer · WASM';
+    await updateAnalysis();
+    subscriptions.push(
+      monaco!.languages.registerCompletionItemProvider('rust', {
+        triggerCharacters: ['.', ':'],
+        async provideCompletionItems(current, position) {
+          if (current !== model || !ready) {
+            return { suggestions: [] };
+          }
+
+          try {
+            await call('update', current.getValue());
+
+            const suggestions = await call<Monaco.languages.CompletionItem[] | null>(
+              'completions',
+              position.lineNumber,
+              position.column,
+            );
+
+            return { suggestions: suggestions ?? [] };
+          } catch {
+            return { suggestions: [] };
+          }
+        },
+      }),
+    );
+    subscriptions.push(
+      monaco!.languages.registerHoverProvider('rust', {
+        async provideHover(current, position) {
+          if (current !== model || !ready) {
+            return null;
+          }
+
+          try {
+            return await call<Monaco.languages.Hover | null>(
+              'hover',
+              position.lineNumber,
+              position.column,
+            );
+          } catch {
+            return null;
+          }
+        },
+      }),
+    );
+  } catch {
+    analyzer.value = '语义引擎加载失败，运行仍可用';
+  }
+}
+
+onMounted(async () => {
+  try {
+    const [api, workerModule] = await Promise.all([
+      import('monaco-editor/editor/editor.api.js'),
+      import('monaco-editor/editor/editor.worker.js?worker'),
+    ]);
+
+    if (disposed) {
+      return;
+    }
+
+    monaco = api;
+    self.MonacoEnvironment = { getWorker: () => new workerModule.default() };
+    await Promise.all([
+      import('monaco-editor/languages/definitions/rust/register.js'),
+      import('monaco-editor/editor/contrib/hover/browser/hoverContribution.js'),
+      import('monaco-editor/editor/contrib/suggest/browser/suggestController.js'),
+      import('monaco-editor/editor/contrib/parameterHints/browser/parameterHints.js'),
+      import('monaco-editor/editor/contrib/gotoError/browser/gotoError.js'),
+    ]);
+
+    // 先等 Rust 分词器就绪，再应用保存的注释视图，避免刷新后漏掉首次隐藏。
+    const rustLanguage = await import('monaco-editor/languages/definitions/rust/rust.js');
+    monaco.languages.setMonarchTokensProvider('rust', rustLanguage.language);
+    monaco.languages.setLanguageConfiguration('rust', rustLanguage.conf);
+
+    if (disposed) {
+      return;
+    }
+
+    monaco.editor.defineTheme('rust-path', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: 'D49EED' },
+        { token: 'string', foreground: 'AFCE97' },
+        { token: 'number', foreground: 'E6B47E' },
+        { token: 'comment', foreground: '657267' },
+      ],
+      colors: {
+        'editor.background': '#111111',
+        'editorLineNumber.foreground': '#515158',
+        'editor.lineHighlightBackground': '#1b1b1f',
+        'editor.selectionBackground': '#383838',
+        'editorCursor.foreground': '#eeeeee',
+        'editorIndentGuide.background1': '#26262c',
+      },
+    });
+
+    if (!monaco.languages.getLanguages().some(language => language.id === 'toml')) {
+      monaco.languages.register({ id: 'toml' });
+      monaco.languages.setMonarchTokensProvider('toml', {
+        tokenizer: {
+          root: [
+            [/#.*/, 'comment'],
+            [/\[[^\]]+\]/, 'type'],
+            [/[A-Za-z_][\w-]*(?=\s*=)/, 'key'],
+            [/"([^"\\]|\\.)*"/, 'string'],
+            [/\b(true|false)\b/, 'keyword'],
+            [/\b\d+(\.\d+)?\b/, 'number'],
+            [/[{}[\]=,]/, 'delimiter'],
+          ],
+        },
+      });
+    }
+
+    cargoModel = monaco.editor.createModel(cargoManifest.value, 'toml');
+    model = monaco.editor.createModel(progress.drafts[props.editorId] ?? props.initialCode, 'rust');
+    editor = monaco.editor.create(host.value!, {
+      model,
+      theme: 'rust-path',
+      fontSize: 14,
+      fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
+      lineHeight: 25,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      padding: { top: 10, bottom: 10 },
+      automaticLayout: true,
+      tabSize: 4,
+      renderLineHighlight: 'none',
+      overviewRulerLanes: 0,
+      scrollbar: { verticalScrollbarSize: 5 },
+      folding: false,
+      lineNumbersMinChars: 3,
+      lineDecorationsWidth: 8,
+      glyphMargin: false,
+      wordWrap: 'on',
+      accessibilitySupport: 'on',
+      ariaLabel: '可编辑的 Rust 代码',
+      fixedOverflowWidgets: true,
+    });
+    subscriptions.push(
+      editor.onDidContentSizeChange(event => {
+        updateContentHeight(event.contentHeight + (activeFile.value === 'toml' ? 39 : 0));
+      }),
+      model.onDidChangeContent(() => {
+        updateCommentView();
+        const code = model!.getValue();
+        progress.drafts[props.editorId] = code;
+        emit('change', code);
+        clearTimeout(updateTimer);
+        updateTimer = setTimeout(() => void updateAnalysis(), 500);
+      }),
+    );
+    updateContentHeight(editor.getContentHeight());
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => void run());
+    updateCommentView();
+    loading.value = false;
+    void startAnalyzer();
+  } catch (err) {
+    loading.value = false;
+    error.value = err instanceof Error ? err.message : '编辑器加载失败';
+  }
+});
+
+watch(
+  () => progress.drafts[props.editorId],
+  code => {
+    if (typeof code === 'string' && model && model.getValue() !== code) {
+      model.setValue(code);
+    }
+  },
+);
+
+async function run() {
+  if (!model || busy.value) {
+    return;
+  }
+
+  busy.value = true;
+  error.value = '';
+  result.value = undefined;
+  liveText.value = '';
+
+  try {
+    result.value = await runRust(model.getValue(), {
+      dependencies: selectedDependencies.value,
+      nativeRequired: props.nativeRequired,
+      mode: command.value,
+      onOutput: (_channel, text) => {
+        liveText.value = (liveText.value + text).slice(-128000);
+      },
+    });
+    result.value.transcript =
+      liveText.value || [result.value.stdout, result.value.stderr].filter(Boolean).join('');
+    liveText.value = result.value.transcript;
+    progress.outputs[props.editorId] = result.value;
+
+    if (result.value.success && command.value === 'run') {
+      if (!progress.ran.includes(props.editorId)) {
+        progress.ran.push(props.editorId);
+      }
+
+      recordActivity();
+      emit('success');
+    }
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : '执行失败';
+  } finally {
+    busy.value = false;
+  }
+}
+
+function reset() {
+  if (confirm('恢复初始示例？当前编辑器的修改将被替换。')) {
+    model?.setValue(props.initialCode);
+  }
+}
+
+function getCode() {
+  return model?.getValue() ?? progress.drafts[props.editorId] ?? props.initialCode;
+}
+
+function clearDependencyWidgets() {
+  if (editor) {
+    for (const widget of dependencyWidgets) {
+      editor.removeContentWidget(widget);
+    }
+  }
+
+  dependencyWidgets.length = 0;
+}
+
+function showDependencyWidgets() {
+  clearDependencyWidgets();
+
+  if (activeFile.value !== 'toml' || !editor || !cargoModel || !monaco) {
+    return;
+  }
+
+  Object.keys(dependencyEntries).forEach((name, index) => {
+    const node = document.createElement('label');
+    node.className = 'cargo-dependency-widget';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = selectedDependencies.value.includes(name);
+    input.setAttribute('aria-label', `启用 ${name} 依赖`);
+    node.style.width = '16px';
+    node.style.minWidth = '16px';
+    node.style.whiteSpace = 'nowrap';
+    input.addEventListener('change', () => {
+      const next = new Set(selectedDependencies.value);
+
+      if (input.checked) {
+        next.add(name);
+      } else {
+        next.delete(name);
+      }
+
+      progress.editorDependencies[props.editorId] = [...next];
+    });
+    node.append(input);
+
+    const widget: Monaco.editor.IContentWidget = {
+      getId: () => `dependency-${props.editorId}-${name}`,
+      getDomNode: () => node,
+      getPosition: () => ({
+        position: { lineNumber: index + 7, column: cargoModel!.getLineMaxColumn(index + 7) },
+        preference: [monaco!.editor.ContentWidgetPositionPreference.EXACT],
+      }),
+    };
+
+    dependencyWidgets.push(widget);
+    editor!.addContentWidget(widget);
+  });
+}
+
+watch(activeFile, () => {
+  clearDependencyWidgets();
+  editor?.setModel(activeFile.value === 'rust' ? model! : cargoModel!);
+  editor?.updateOptions({ readOnly: activeFile.value === 'toml' });
+  showDependencyWidgets();
+  requestAnimationFrame(() => editor?.layout());
+});
+watch(cargoManifest, () => {
+  cargoModel?.setValue(cargoManifest.value);
+  showDependencyWidgets();
+});
+let reconnectSequence = 0;
+watch(
+  selectedDependencies,
+  async () => {
+    if (!native || disposed || !model) {
+      return;
+    }
+
+    const sequence = ++reconnectSequence;
+    ready = false;
+    analyzer.value = '正在更新依赖索引…';
+    native.close();
+    const next = new NativeAnalyzer();
+
+    try {
+      await next.open(model.getValue(), selectedDependencies.value);
+
+      if (disposed || sequence !== reconnectSequence) {
+        next.close();
+        return;
+      }
+
+      native = next;
+      ready = true;
+      analyzer.value = 'rust-analyzer · 实时诊断';
+    } catch {
+      analyzer.value = '依赖索引更新失败，请重开编辑器';
+    }
+  },
+  { deep: true },
+);
+watch(layout, () => requestAnimationFrame(() => editor?.layout()));
+
+defineExpose({
+  getCode,
+  getDependencies: () => [...selectedDependencies.value],
+  setCode: (code: string) => model?.setValue(code),
+});
+onBeforeUnmount(() => {
+  disposed = true;
+
+  window.removeEventListener('keydown', escapeEditor, true);
+
+  if (maximized.value) {
+    document.documentElement.style.overflow = previousOverflow;
+  }
+
+  clearInterval(diagnosticTimer);
+  native?.close();
+  clearTimeout(updateTimer);
+  subscriptions.forEach(item => item.dispose());
+  editor?.dispose();
+  model?.dispose();
+  cargoModel?.dispose();
+});
+</script>
+<template>
+  <Teleport to="body" :disabled="!maximized"
+    ><div
+      class="code-editor"
+      :class="{
+        'layout-horizontal': layout === 'horizontal',
+        'editor-maximized': maximized,
+        'editor-compact': compact,
+      }"
+    >
+      <div class="editor-toolbar">
+        <button v-if="returnable" class="editor-back" aria-label="返回阅读" @click="emit('back')">
+          <ArrowLeft :size="15" /><span>返回阅读</span>
+        </button>
+        <button
+          v-if="editorId === 'playground'"
+          class="icon-button mobile-menu"
+          aria-label="打开课程导航"
+          @click="emit('navigation')"
+        >
+          <Menu :size="18" />
+        </button>
+        <div class="editor-files" role="tablist" aria-label="工程文件">
+          <button
+            class="file-tab"
+            role="tab"
+            :aria-selected="activeFile === 'rust'"
+            :class="{ active: activeFile === 'rust' }"
+            @click="activeFile = 'rust'"
+          >
+            main.rs</button
+          ><button
+            class="file-tab"
+            role="tab"
+            :aria-selected="activeFile === 'toml'"
+            :class="{ active: activeFile === 'toml' }"
+            @click="activeFile = 'toml'"
+          >
+            <FileCog :size="14" />Cargo.toml
+          </button>
+        </div>
+        <div class="editor-actions">
+          <button
+            v-if="editorId === 'playground'"
+            class="icon-button"
+            aria-label="搜索知识点"
+            title="搜索知识点"
+            @click="emit('search')"
+          >
+            <Search :size="16" />
+          </button>
+          <button
+            v-if="editorId === 'playground'"
+            class="icon-button"
+            :aria-label="progress.focusMode ? '退出专注模式' : '进入专注模式'"
+            :title="progress.focusMode ? '退出专注模式' : '专注模式'"
+            @click="progress.focusMode = !progress.focusMode"
+          >
+            <BookOpen :size="16" /></button
+          ><span
+            class="editor-saved"
+            :class="{ 'save-error': storage.error }"
+            :title="storage.error || '保存在当前浏览器'"
+            ><Check v-if="!storage.error" :size="12" />{{
+              storage.error
+                ? '保存异常'
+                : storage.savedAt
+                  ? '已保存 ' + storage.savedAt
+                  : '已本地保存'
+            }}</span
+          >
+          <button
+            class="icon-button"
+            :class="{ 'comments-hidden': hideComments }"
+            :disabled="activeFile !== 'rust' || loading"
+            :aria-label="hideComments ? '显示注释' : '隐藏注释'"
+            :aria-pressed="hideComments"
+            :title="hideComments ? '显示注释 · 原始代码始终保留' : '隐藏注释，独立思考'"
+            @click="hideComments = !hideComments"
+          >
+            <MessageSquareText :size="16" />
+          </button>
+          <button
+            class="icon-button layout-toggle"
+            :aria-label="layout === 'vertical' ? '切换为左右布局' : '切换为上下布局'"
+            :title="layout === 'vertical' ? '左右布局' : '上下布局'"
+            @click="layout = layout === 'vertical' ? 'horizontal' : 'vertical'"
+          >
+            <Columns2 v-if="layout === 'vertical'" :size="17" /><Rows2 v-else :size="17" /></button
+          ><button
+            class="icon-button"
+            :title="maximized ? '退出网页全屏（Esc）' : '网页全屏'"
+            :aria-label="maximized ? '退出网页全屏' : '进入网页全屏'"
+            @click="maximized = !maximized"
+          >
+            <Minimize2 v-if="maximized" :size="17" /><Maximize2 v-else :size="17" /></button
+          ><button
+            class="icon-button"
+            title="恢复初始示例"
+            aria-label="恢复初始示例"
+            @click="reset"
+          >
+            <RotateCcw :size="16" /></button
+          ><button
+            v-if="busy"
+            class="icon-button"
+            title="停止执行"
+            aria-label="停止执行"
+            @click="stopRust"
+          >
+            <Square :size="15" />
+          </button>
+          <div v-else ref="commandRoot" class="command-control" @keydown.esc="commandOpen = false">
+            <button
+              class="icon-button command-trigger"
+              :disabled="loading"
+              aria-label="运行与构建命令"
+              aria-haspopup="menu"
+              :aria-expanded="commandOpen"
+              :title="'执行命令 · 上次 cargo ' + command + '（Ctrl + Enter）'"
+              @click="commandOpen = !commandOpen"
+            >
+              <Play :size="16" />
+            </button>
+            <Teleport to="body"
+              ><Transition name="popover"
+                ><div
+                  v-if="commandOpen"
+                  ref="commandMenu"
+                  class="command-menu floating-command-menu"
+                  :style="commandMenuStyle"
+                  role="menu"
+                  aria-label="选择并执行命令"
+                  @keydown="commandKeydown"
+                >
+                  <button
+                    v-for="item in commands.filter(item => nativeAvailable || item.mode === 'run')"
+                    :key="item.mode"
+                    role="menuitem"
+                    @click="
+                      command = item.mode;
+                      commandOpen = false;
+                      run();
+                    "
+                  >
+                    <div>
+                      <span>{{ item.label }}</span
+                      ><code>{{ item.hint }}</code>
+                    </div>
+                    <Check v-if="command === item.mode" :size="14" />
+                  </button>
+                  <p>Ctrl + Enter 重复运行</p>
+                </div></Transition
+              ></Teleport
+            >
+          </div>
+        </div>
+      </div>
+      <div ref="panels" class="editor-panels" :style="panelStyle">
+        <div class="editor-source" :style="sourceStyle">
+          <div v-if="loading" class="editor-loading">
+            <LoaderCircle class="spin" :size="18" />正在准备编辑器…
+          </div>
+          <div v-if="activeFile === 'toml'" class="manifest-hint">
+            行尾勾选依赖，配置与语义索引自动更新。
+          </div>
+          <div ref="host" class="monaco-host" :class="{ compact }" />
+        </div>
+        <div
+          class="editor-divider"
+          role="separator"
+          tabindex="0"
+          :aria-orientation="layout === 'horizontal' ? 'vertical' : 'horizontal'"
+          :aria-valuenow="Math.round(split * 100)"
+          aria-valuemin="15"
+          aria-valuemax="85"
+          aria-label="调整编辑器与终端大小"
+          @pointerdown="resizePanels"
+          @keydown="resizeByKeyboard"
+        />
+        <div class="terminal-pane">
+          <div class="terminal-header">
+            <span><Terminal :size="15" />终端</span>
+            <span class="terminal-state" role="status">
+              <template v-if="busy"><LoaderCircle class="spin" :size="13" />执行中</template>
+              <template v-else-if="result"
+                ><Check v-if="result.success" :size="13" /><span>{{
+                  result.success ? '已完成' : '执行失败'
+                }}</span
+                ><span class="terminal-duration"
+                  >{{ (result.elapsed / 1000).toFixed(2) }}s</span
+                ></template
+              >
+              <span v-else>等待运行</span>
+            </span>
+          </div>
+          <TerminalView
+            :text="liveText"
+            :busy="busy"
+            :status="nativeAvailable ? 'Cargo 正在执行…' : runtimeStatus"
+            :error="error"
+            :command="nativeAvailable ? 'cargo ' + command : 'rust-miri main.rs'"
+            :result="result"
+          />
+        </div>
+      </div>
+      <div
+        v-if="editorId !== 'playground' && !maximized"
+        class="editor-height-handle"
+        role="separator"
+        tabindex="0"
+        aria-orientation="horizontal"
+        aria-label="调整编辑器整体高度"
+        :aria-valuenow="totalHeight"
+        aria-valuemin="260"
+        aria-valuemax="12000"
+        title="拖拽调整整体高度 · 双击恢复内容高度"
+        @pointerdown="resizeTotalHeight"
+        @keydown="resizeTotalByKeyboard"
+        @dblclick="resetTotalHeight"
+      /></div
+  ></Teleport>
+</template>
