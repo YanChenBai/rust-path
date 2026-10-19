@@ -4,14 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
-    "build": "run-p type-check \"build-only {@}\" --",
-    "preview": "vp preview",
-    "build-only": "vp build",
-    "type-check": "vue-tsc --build",
-    "prepare": "vp config && node scripts/prepare-runtime.mjs",
-    "prepare:runtime": "node scripts/prepare-runtime.mjs",
-    "verify:course": "node scripts/verify-course.mjs"
+    "prepare": "vp config && vp run prepare:runtime"
   },
   "dependencies": {
     "@live-codes/rust-wasm": "^0.3.0",

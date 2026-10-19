@@ -1,4 +1,4 @@
-import { fileURLToPath, URL } from 'node:url';
+import { resolve } from 'node:path';
 
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
@@ -6,8 +6,8 @@ import { nitro } from 'nitro/vite';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
-import { courseCatalog } from './scripts/course-catalog';
-import { courseMarkdown } from './scripts/markdown-plugin';
+import { courseCatalog } from './plugins/course-catalog';
+import { courseMarkdown } from './plugins/markdown-plugin';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -35,8 +35,49 @@ export default defineConfig({
   },
 
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    tsconfigPaths: true,
+  },
+
+  nitro: {
+    serverDir: './server',
+    preset: 'node-server',
+  },
+
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+    clearMocks: true,
+    restoreMocks: true,
+    unstubGlobals: true,
+  },
+
+  run: {
+    cache: true,
+    tasks: {
+      dev: 'vp dev',
+      start: {
+        command: `node --enable-source-maps scripts/start.mjs`,
+        dependsOn: ['build'],
+        cache: false,
+      },
+      build: {
+        command: 'vp build',
+        cache: {
+          input: [{ auto: true }, '!node_modules/.nitro/**', '!.output/**'],
+          output: [{ auto: true }, '!node_modules/.nitro/**'],
+        },
+        dependsOn: ['typecheck'],
+      },
+      typecheck: {
+        command: 'vue-tsc --build',
+        cache: {
+          input: [{ auto: true }, '!**/*.tsbuildinfo'],
+          output: [{ auto: true }, '!**/*.tsbuildinfo'],
+        },
+      },
+      preview: 'vp preview',
+      'prepare:runtime': 'node scripts/prepare-runtime.mjs',
+      'verify:course': 'node scripts/verify-course.mjs',
     },
   },
 
