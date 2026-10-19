@@ -3002,10 +3002,20 @@ body {
   z-index: 5;
 }
 .sidebar {
-  transition: width 0.22s;
+  transition:
+    width 180ms ease-out,
+    transform 180ms ease-out;
 }
 .main-shell {
-  transition: margin-left 0.22s;
+  transition: margin-left 180ms ease-out;
+}
+.sidebar-scrim.nav-scrim-enter-active,
+.sidebar-scrim.nav-scrim-leave-active {
+  transition: opacity 160ms ease-out;
+}
+.nav-scrim-enter-from,
+.nav-scrim-leave-to {
+  opacity: 0;
 }
 .sidebar-collapsed .sidebar {
   width: 78px;
@@ -3965,18 +3975,20 @@ h1 {
 .sidebar-scroll-track:hover > div {
   background: #777;
 }
-.focus-mode .sidebar {
-  transform: translateX(-100%);
-}
-.focus-mode .main-shell {
-  margin-left: 0;
-}
-.focus-mode .content-layout:not(.full-width) {
-  max-width: 1020px;
-  padding-top: 50px;
-}
-.focus-mode .breadcrumbs {
-  color: #888;
+@media (min-width: 641px) {
+  .focus-mode .sidebar {
+    transform: translateX(-100%);
+  }
+  .focus-mode .main-shell {
+    margin-left: 0;
+  }
+  .focus-mode .content-layout:not(.full-width) {
+    max-width: 1020px;
+    padding-top: 50px;
+  }
+  .focus-mode .breadcrumbs {
+    color: #888;
+  }
 }
 .sidebar-collapsed .sidebar {
   width: 76px;
@@ -6415,8 +6427,7 @@ h1 {
 }
 @media (max-width: 640px) {
   .topbar-leading .focus-button {
-    padding: 6px;
-    min-width: 28px;
+    display: none;
   }
   .topbar {
     padding-left: 7px;

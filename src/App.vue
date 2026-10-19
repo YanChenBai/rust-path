@@ -50,7 +50,9 @@ const {
       'focus-mode': progress.focusMode,
     }"
   >
-    <button v-if="sidebar" class="sidebar-scrim" aria-label="关闭导航" @click="sidebar = false" />
+    <Transition name="nav-scrim">
+      <button v-if="sidebar" class="sidebar-scrim" aria-label="关闭导航" @click="sidebar = false" />
+    </Transition>
     <CourseSidebar
       :open="sidebar"
       :current-chapter-id="chapter.id"
