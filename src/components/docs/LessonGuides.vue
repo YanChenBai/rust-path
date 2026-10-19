@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { lessonGuides } from '../../data/explanations';
+import { lessonGuides } from '../../runtime/course';
 import ContentDocument from './ContentDocument.vue';
 defineProps<{ lessonId: string }>();
 </script>

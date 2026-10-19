@@ -5,6 +5,10 @@ title: 确认使用约束
 type: question
 chapterId: threads
 order: 5
+assessment:
+  answer: mpsc
+  explanation: std::sync::mpsc 提供通道。
+  mode: fold
 ---
 
 标准库多生产者单消费者通道模块叫什么？

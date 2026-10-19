@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: tests
 order: 1
+assessment:
+  answer: 公开接口的组合行为
+  explanation: 对外行为比实现细节稳定。
+  mode: fold
 ---
 
 集成测试主要应验证什么？

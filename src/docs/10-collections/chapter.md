@@ -6,6 +6,7 @@ dependencies: []
 icon: '10'
 stage: 数据与所有权
 type: chapter
+revisedLegacy: true
 ---
 
 Vec、HashMap 与集合选型

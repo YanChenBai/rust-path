@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: models
 order: 2
+assessment:
+  answer: 按值接收，可能消费实例
+  explanation: 签名决定拥有权。
+  mode: fold
 ---
 
 接收 self 的方法意味着什么？

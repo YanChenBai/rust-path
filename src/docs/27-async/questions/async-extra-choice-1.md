@@ -10,16 +10,18 @@ options:
 type: question
 chapterId: async
 order: 1
+assessment:
+  answer: '0'
+  explanation: 创建 async 块只产生 Future；没有轮询或 await 就 drop，块体不会执行。
+  mode: fold
 ---
 
-```rust
-use std::cell::Cell;
-let count = Cell::new(0);
-let job = async { count.set(5); };
+```rust source=27-async/snippets/async-extra-choice-1-snippet-1.rs
+
 ```
 
 drop(job);
 
-```rust
-println!("{}", count.get()); 输出什么？
+```rust source=27-async/snippets/async-extra-choice-1-snippet-2.rs
+
 ```

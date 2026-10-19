@@ -22,19 +22,8 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=format
-fn main() {
-    // 先准备数据，再用占位符展示；格式化通常只借用这些值。
+```rust playground id=format source=01-start/src/bin/format.rs
 
-    // 保存本次示例使用的名称文本，后面用于构造输出或比较。
-    let name = "Rust 探索者";
-
-    // 记录学习目标的天数，供格式化输出读取。
-    let days = 7;
-    // 从小目标开始
-    println!("你好，{name}！");
-    println!("我的目标：连续学习 {} 天。", days);
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

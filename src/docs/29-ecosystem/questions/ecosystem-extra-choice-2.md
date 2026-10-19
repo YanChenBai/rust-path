@@ -10,9 +10,12 @@ options:
 type: question
 chapterId: ecosystem
 order: 2
+assessment:
+  answer: None
+  explanation: JSON 字符串与数字是不同类型；as_u64 不会自动把字符串 "25" 解析成整数。
+  mode: exact
 ---
 
-```rust
-let plan = serde_json::json!({"minutes": "25"});
-println!("{:?}", plan["minutes"].as_u64()); 输出什么？
+```rust source=29-ecosystem/snippets/ecosystem-extra-choice-2-snippet-1.rs
+
 ```

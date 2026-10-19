@@ -10,17 +10,18 @@ options:
 type: question
 chapterId: smart
 order: 2
+assessment:
+  answer: 在 borrow_mut() 处发生运行时 panic
+  explanation: view 的共享借用仍活跃，RefCell 在运行时阻止同时获取独占可变借用。
+  mode: exact
 ---
 
-```rust
-use std::cell::RefCell;
-let draft = RefCell::new(String::from("A"));
-let view = draft.borrow();
-let mut edit = draft.borrow_mut();
+```rust source=24-smart/snippets/smart-extra-choice-2-snippet-1.rs
+
 ```
 
 edit.push_str("B");
 
-```rust
-println!("{view}"); 会怎样？
+```rust source=24-smart/snippets/smart-extra-choice-2-snippet-2.rs
+
 ```

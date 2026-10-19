@@ -12,7 +12,7 @@ order: 1
 
 From&lt;T&gt; 表达有明确语义且不会失败的转换，TryFrom&lt;T&gt; 用 `Result` 表达可能失败。与随意 as 转换相比，TryFrom 能让超范围输入显式失败。实现 From 后通常得到相应 Into 用法，实现 TryFrom 后通常可使用 TryInto。
 
-newtype 用一个本地类型包装已有值，为相同底层表示增加业务含义，例如 Minutes(`u32`) 与 Bytes(`u32`) 不应随便互换。构造处验证范围，后续代码就能依赖已成立的不变量。字段可见性与模块配合，能避免外部绕过验证。
+newtype 用一个本地类型包装已有值，为相同底层表示增加业务含义，例如 `Minutes(u32)` 与 `Bytes(u32)` 不应随便互换。构造处验证范围，后续代码就能依赖已成立的不变量。字段可见性与模块配合，能避免外部绕过验证。
 
 AsRef 适合廉价获得某种借用视图，不承担通用解析或校验。不要把 From 实现为会 panic 的字符串解析；这会隐藏失败可能。示例对标准整数做受检转换，再给自定义时长实现 TryFrom，明确区分表示范围与业务范围。
 
@@ -24,25 +24,8 @@ AsRef 适合廉价获得某种借用视图，不承担通用解析或校验。�
 
 ## 亲手试一试
 
-```rust playground id=trait-conversions
-struct Minutes(u32);
-impl TryFrom<u32> for Minutes {
-    type Error = &'static str;
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        if value <= 180 {
-            Ok(Self(value))
-        } else {
-            Err("range")
-        }
-    }
-}
+```rust playground id=trait-conversions source=12-traits/src/bin/trait-conversions.rs
 
-fn main() {
-    // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-    assert_eq!(Minutes::try_from(25).unwrap().0, 25);
-    assert!(Minutes::try_from(181).is_err());
-    assert!(u8::try_from(256u32).is_err());
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

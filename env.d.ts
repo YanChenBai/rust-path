@@ -1,9 +1,20 @@
 /// <reference types="vite/client" />
 declare module 'virtual:course-catalog' {
   import type { buildDocuments } from '@/runtime/course-documents';
-  const documents: ReturnType<typeof buildDocuments>;
+  const documents: Omit<ReturnType<typeof buildDocuments>, 'assessmentDefinitions'>;
 
   export default documents;
+}
+declare module 'virtual:course-code/*' {
+  const code: string;
+
+  export default code;
+}
+declare module 'virtual:course-assessments' {
+  import type { AssessmentDefinition } from '@/runtime/assessment-definitions';
+  const definitions: Record<string, AssessmentDefinition>;
+
+  export default definitions;
 }
 declare module '*.md' {
   import type { DefineComponent } from 'vue';

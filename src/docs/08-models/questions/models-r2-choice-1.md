@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: models
 order: 0
+assessment:
+  answer: '&self'
+  explanation: 只读借用保留调用者所有权。
+  mode: fold
 ---
 
 只读取实例的方法通常接收什么？

@@ -10,16 +10,18 @@ options:
 type: question
 chapterId: smart
 order: 1
+assessment:
+  answer: '1'
+  explanation: clone 增加强引用计数到 2，drop(copy) 后降回 1，draft 仍然持有数据。
+  mode: fold
 ---
 
-```rust
-use std::rc::Rc;
-let draft = Rc::new(String::from("初稿"));
-let copy = Rc::clone(&draft);
+```rust source=24-smart/snippets/smart-extra-choice-1-snippet-1.rs
+
 ```
 
-drop(`copy`);
+`drop(copy);`
 
-```rust
-println!("{}", Rc::strong_count(&draft)); 输出什么？
+```rust source=24-smart/snippets/smart-extra-choice-1-snippet-2.rs
+
 ```

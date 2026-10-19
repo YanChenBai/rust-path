@@ -10,10 +10,12 @@ options:
 type: question
 chapterId: io
 order: 1
+assessment:
+  answer: '["port=80", ""]'
+  explanation: BufRead::lines 去掉 CRLF 或 LF；两个换行之间形成一个空行，最终换行后不再额外产生一行。
+  mode: exact
 ---
 
-```rust
-use std::io::{BufRead, Cursor};
-let lines: Vec<_> = Cursor::new("port=80\r\n\n").lines().collect::<Result<_, _>>().unwrap();
-println!("{lines:?}"); 输出什么？
+```rust source=21-io/snippets/io-extra-choice-1-snippet-1.rs
+
 ```

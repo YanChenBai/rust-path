@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: shutdown
 order: 0
+assessment:
+  answer: 等待容量或返回关闭错误
+  explanation: 异步等待让出执行机会。
+  mode: fold
 ---
 
-有界队列已满，send().`await` 通常怎样？
+有界队列已满，`send().await` 通常怎样？

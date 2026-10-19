@@ -1,83 +1,74 @@
 <script setup lang="ts">
-import { MessageSquareText } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { MessageSquareText, SquarePen, X } from 'lucide-vue-next';
+import { computed, watch } from 'vue';
 
+import { useFloatingMenu } from '../../composables/useFloatingMenu';
 import type { TextAnnotation } from '../../runtime/text-annotations';
 import MarkdownNote from './MarkdownNote.vue';
 
-const props = defineProps<{ annotation: TextAnnotation }>();
-const emit = defineEmits<{ open: [] }>();
-const visible = ref(false);
-const style = ref({ left: '0px', top: '0px' });
+const props = defineProps<{ annotation: TextAnnotation; expanded: boolean }>();
+const emit = defineEmits<{ edit: []; 'update:expanded': [value: boolean] }>();
+const { open, anchor, menu, style, close } = useFloatingMenu({ align: 'start', offset: 36 });
 
 const preview = computed(() =>
   props.annotation.body
     .replace(/[#*_`>\n]/g, ' ')
     .trim()
-    .slice(0, 16),
+    .slice(0, 20),
 );
 
-let timer: ReturnType<typeof setTimeout> | undefined;
-
-function show(event: Event) {
-  clearTimeout(timer);
-  const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
-  style.value = {
-    left: `${Math.max(8, Math.min(bounds.left, innerWidth - 336))}px`,
-    top: `${Math.max(8, Math.min(bounds.bottom + 6, innerHeight - 300))}px`,
-  };
-  visible.value = true;
-}
-
-function hide() {
-  timer = setTimeout(() => {
-    visible.value = false;
-  }, 120);
-}
-
-function keepOpen() {
-  clearTimeout(timer);
-}
-
-onBeforeUnmount(() => clearTimeout(timer));
+watch(
+  () => props.expanded,
+  value => {
+    open.value = value;
+  },
+  { immediate: true },
+);
+watch(open, value => emit('update:expanded', value));
 </script>
+
 <template>
-  <button
-    class="annotation-capsule"
-    :aria-label="'查看注释：' + preview"
-    :aria-describedby="visible ? 'annotation-tooltip-' + annotation.id : undefined"
-    @keydown.esc="visible = false"
-    @mouseenter="show"
-    @mouseleave="hide"
-    @focus="show"
-    @blur="hide"
-    @click="
-      visible = false;
-      emit('open');
-    "
-  >
-    <MessageSquareText :size="12" /><span>{{ preview }}</span>
-  </button>
-  <Teleport to="body"
-    ><Transition name="popover"
-      ><aside
-        v-if="visible"
-        :id="'annotation-tooltip-' + annotation.id"
-        class="annotation-tooltip"
+  <span ref="anchor" class="annotation-control">
+    <button
+      class="annotation-capsule"
+      :class="{ active: expanded }"
+      :aria-label="'查看注释：' + preview"
+      :aria-expanded="expanded"
+      :aria-controls="'annotation-detail-' + annotation.id"
+      @keydown.esc="close(true)"
+      @click="open = !open"
+    >
+      <MessageSquareText :size="14" /><span>{{ preview }}</span>
+    </button>
+  </span>
+  <Teleport to="body">
+    <Transition name="annotation-popover">
+      <aside
+        v-if="open"
+        :id="'annotation-detail-' + annotation.id"
+        ref="menu"
+        class="annotation-dropdown"
         :style="style"
-        role="tooltip"
-        @mouseenter="keepOpen"
-        @mouseleave="hide"
+        aria-label="注释内容"
+        @keydown.esc.stop="close(true)"
       >
-        <MarkdownNote :text="annotation.body" /><button
+        <header>
+          <strong>文字注释</strong
+          ><button class="icon-button" aria-label="收起注释" @click="close(true)">
+            <X :size="16" />
+          </button>
+        </header>
+        <MarkdownNote :text="annotation.body" />
+        <button
+          class="annotation-edit"
           @click="
-            visible = false;
-            emit('open');
+            emit('edit');
+            close();
           "
         >
-          查看 / 修改
+          <SquarePen :size="14" />修改注释
         </button>
-      </aside></Transition
-    ></Teleport
-  >
+      </aside>
+    </Transition>
+  </Teleport>
 </template>

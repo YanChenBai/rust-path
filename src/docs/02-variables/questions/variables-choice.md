@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: variables
 order: 0
+assessment:
+  answer: let mut count = 0;
+  explanation: mut 使绑定可变，普通 let 创建不可变绑定。
+  mode: fold
 ---
 
 哪个声明允许随后执行 count += 1？

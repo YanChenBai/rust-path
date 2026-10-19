@@ -18,6 +18,6 @@ Resources are restored from the fixed commit `41cc4e4956017b0172c9cdd0b282c492b2
 
 The underlying analyzer is the historical rust-analyzer WASM demo (https://github.com/rust-analyzer/rust-analyzer-wasm). Rust-analyzer is MIT OR Apache-2.0. The adapter in `public/analyzer/worker.js` and the Vue integration are authored for this project. These artifacts provide an experimental subset of modern rust-analyzer features and require a cross-origin isolated page.
 
-Downloaded/generated resources are ignored in Git. `scripts/prepare-runtime.mjs` restores them for same-origin static hosting. The app does not send learner code to these projects or a remote execution API.
+Downloaded/generated resources are ignored in Git. `scripts/prepare-runtime.ts` restores them for same-origin static hosting. The app does not send learner code to these projects or a remote execution API.
 
 Monaco Editor: MIT. Vue: MIT. Tailwind CSS: MIT. motion-v: MIT. Lucide icons: ISC. Consult each installed package for full license texts.

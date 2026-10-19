@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: shutdown
 order: 2
+assessment:
+  answer: 确认任务已退出并完成清理
+  explanation: 请求取消与完成退出是两个时刻。
+  mode: fold
 ---
 
 发出取消信号后为何还需要等待任务？

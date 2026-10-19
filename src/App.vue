@@ -48,24 +48,35 @@ const {
     />
     <div class="main-shell">
       <header v-if="progress.page !== 'playground'" class="topbar">
-        <div class="breadcrumbs">
+        <div class="topbar-leading">
           <button
-            class="mobile-menu icon-button"
-            aria-label="打开课程导航"
-            @click="sidebar = !sidebar"
+            class="icon-button focus-button"
+            :aria-label="progress.focusMode ? '退出专注模式' : '进入专注模式'"
+            :aria-pressed="progress.focusMode"
+            :title="progress.focusMode ? '退出专注模式' : '专注模式'"
+            @click="progress.focusMode = !progress.focusMode"
           >
-            <Menu :size="20" /></button
-          ><span class="desktop-breadcrumb">学习空间</span><ChevronRight :size="13" /><span
-            v-if="progress.page === 'learn'"
-            >{{ chapter.title }}</span
-          ><span v-else>{{
-            { path: '学习路线', playground: '代码实验室', progress: '学习足迹' }[progress.page]
-          }}</span
-          ><template v-if="progress.page === 'learn'"
-            ><ChevronRight :size="13" /><strong>{{
-              section === 'lesson' ? lesson.title : section === 'quiz' ? '章节挑战' : '专项实操'
-            }}</strong></template
-          >
+            <BookOpen :size="17" />
+          </button>
+          <div class="breadcrumbs">
+            <button
+              class="mobile-menu icon-button"
+              aria-label="打开课程导航"
+              @click="sidebar = !sidebar"
+            >
+              <Menu :size="20" /></button
+            ><span class="desktop-breadcrumb">学习空间</span><ChevronRight :size="13" /><span
+              v-if="progress.page === 'learn'"
+              >{{ chapter.title }}</span
+            ><span v-else>{{
+              { path: '学习路线', playground: '代码实验室', progress: '学习足迹' }[progress.page]
+            }}</span
+            ><template v-if="progress.page === 'learn'"
+              ><ChevronRight :size="13" /><strong>{{
+                section === 'lesson' ? lesson.title : section === 'quiz' ? '章节挑战' : '专项实操'
+              }}</strong></template
+            >
+          </div>
         </div>
         <div class="topbar-right">
           <button
@@ -75,15 +86,6 @@ const {
             @click="showSearch = true"
           >
             <Search :size="17" />
-          </button>
-          <button
-            class="icon-button focus-button"
-            :aria-label="progress.focusMode ? '退出专注模式' : '进入专注模式'"
-            :aria-pressed="progress.focusMode"
-            :title="progress.focusMode ? '退出专注模式' : '专注模式'"
-            @click="progress.focusMode = !progress.focusMode"
-          >
-            <BookOpen :size="17" />
           </button>
           <span class="saved-state" :title="storage.error || '学习记录保存在当前浏览器中'"
             ><HardDrive :size="13" /><span>{{ storage.error ? '保存异常' : '已本地保存' }}</span

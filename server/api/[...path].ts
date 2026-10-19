@@ -3,6 +3,7 @@ import { defineHandler, readBody } from 'nitro/h3';
 import { handleNative } from '../rust.mjs';
 import { executionStream } from '../stream';
 
+// oxlint-disable-next-line complexity
 export default defineHandler(async event => {
   const url = new URL(event.req.url);
 

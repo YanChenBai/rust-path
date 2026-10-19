@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: tests
 order: 0
+assessment:
+  answer: 59、60、61
+  explanation: 边界前后与边界本身都需要覆盖。
+  mode: fold
 ---
 
 以下哪组最适合检查阈值 60 的分支？

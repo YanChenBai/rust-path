@@ -1,7 +1,7 @@
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 
-import { chapters } from '../data/course';
 import { progress, chapterCompletion as chapterPercent } from '../progress';
+import { chapters } from '../runtime/course';
 
 export function useCourseSidebar() {
   const expandedChapters = ref(

@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: cargo
 order: 0
+assessment:
+  answer: cargo check 不生成最终可执行文件
+  explanation: check 检查代码但通常跳过最终代码生成；build 生成构建产物。
+  mode: fold
 ---
 
 关于 Cargo 检查与构建，哪项正确？

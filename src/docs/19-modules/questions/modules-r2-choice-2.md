@@ -10,8 +10,12 @@ options:
 type: question
 chapterId: modules
 order: 1
+assessment:
+  answer: 引入路径名字
+  explanation: use 不绕过可见性。
+  mode: fold
 ---
 
-```rust
-use 的主要用途是什么？
+```rust source=19-modules/snippets/modules-r2-choice-2-snippet-1.rs
+
 ```

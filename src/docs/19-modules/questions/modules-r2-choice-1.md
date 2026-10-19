@@ -10,8 +10,12 @@ options:
 type: question
 chapterId: modules
 order: 0
+assessment:
+  answer: 不会
+  explanation: 类型与字段可见性独立。
+  mode: fold
 ---
 
-```rust
-pub struct 会自动公开字段吗？
+```rust source=19-modules/snippets/modules-r2-choice-1-snippet-1.rs
+
 ```

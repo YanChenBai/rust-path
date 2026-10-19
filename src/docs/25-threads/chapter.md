@@ -7,6 +7,7 @@ icon: '25'
 nativeRequired: true
 stage: 资源与并发
 type: chapter
+revisedLegacy: true
 ---
 
 并发任务的生命周期边界也可以由作用域表达。

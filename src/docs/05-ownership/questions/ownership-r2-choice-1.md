@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: ownership
 order: 0
+assessment:
+  answer: 移动所有权
+  explanation: String 的管理责任转移给新绑定。
+  mode: fold
 ---
 
 把 `String` 按值赋给新绑定通常发生什么？

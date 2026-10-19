@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: borrowing
 order: 0
+assessment:
+  answer: 不能进行冲突修改
+  explanation: 共享读取仍有效时，冲突的独占访问会被拒绝。
+  mode: fold
 ---
 
 共享引用后面还要读取同一数据，此时能否修改它？

@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: io
 order: 0
+assessment:
+  answer: write_all 会尝试写完全部字节
+  explanation: write 允许短写；write_all 会重试直到完成或遇到错误。
+  mode: fold
 ---
 
 关于 Write，下列哪项正确？

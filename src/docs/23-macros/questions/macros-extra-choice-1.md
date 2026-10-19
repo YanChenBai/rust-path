@@ -10,10 +10,14 @@ options:
 type: question
 chapterId: macros
 order: 1
+assessment:
+  answer: '[3]'
+  explanation: $value:expr 接收整个 1 + 2 表达式，展开后 format! 格式化其计算结果 3。
+  mode: fold
 ---
 
-macro_rules! tag { ($value:expr) =&gt; { `format!`("[{}]", $value) }; }
+`macro_rules! tag { ($value:expr) => { format!("[{}]", $value) }; }`
 
-```rust
-println!("{}", tag!(1 + 2)); 输出什么？
+```rust source=23-macros/snippets/macros-extra-choice-1-snippet-1.rs
+
 ```

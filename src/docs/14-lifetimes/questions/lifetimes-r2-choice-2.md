@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: lifetimes
 order: 1
+assessment:
+  answer: 表达字段借用的生命周期参数
+  explanation: 字段引用需要合法的来源关系。
+  mode: fold
 ---
 
 含 `&str` 字段的结构体通常需要什么？

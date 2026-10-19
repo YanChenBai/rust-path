@@ -2,8 +2,14 @@
 import { ArrowUpRight, ArrowRight, Check, Compass, GraduationCap } from 'lucide-vue-next';
 import { motion } from 'motion-v';
 
-import { chapters, allLessons, sources } from '../../data/course';
-import { progress, chapterCompletion as chapterPercent } from '../../progress';
+import {
+  progress,
+  chapterCompletion as chapterPercent,
+  percentage,
+  completedSteps,
+  totalSteps,
+} from '../../progress';
+import { chapters, allLessons, sources } from '../../runtime/course';
 const emit = defineEmits<{ navigate: [id: string]; resume: [] }>();
 const navigate = (id: string) => emit('navigate', id);
 const page = () => emit('resume');
@@ -24,10 +30,28 @@ const page = () => emit('resume');
         <button class="primary-button" @click="page()">
           {{ progress.completed.length ? '继续我的旅程' : '开始我的旅程' }}<ArrowRight :size="16" />
         </button>
+        <div class="global-learning-progress">
+          <span class="global-progress-label"
+            >每一步，都算数。<strong>{{ percentage }}%</strong></span
+          >
+          <div
+            class="global-progress-track"
+            role="progressbar"
+            aria-label="整体学习进度"
+            :aria-valuenow="percentage"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <span :style="{ width: `${percentage}%` }" />
+          </div>
+          <span class="global-progress-count"
+            >{{ completedSteps }} / {{ totalSteps }} 个学习里程碑</span
+          >
+        </div>
       </div>
       <div class="path-art">
         <span class="orbit orbit-one" /><span class="orbit orbit-two" /><span class="art-code"
-          >{ r }</span
+          >{ R }</span
         ><span class="art-label">learn by doing.</span>
       </div>
     </div>

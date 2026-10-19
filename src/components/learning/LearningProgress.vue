@@ -15,7 +15,6 @@ import { motion } from 'motion-v';
 import { ref } from 'vue';
 
 import { useLearningStats } from '../../composables/useLearningStats';
-import { chapters, allLessons } from '../../data/course';
 import {
   progress,
   xp,
@@ -26,6 +25,7 @@ import {
   totalSteps,
   exportProgress,
 } from '../../progress';
+import { chapters, allLessons } from '../../runtime/course';
 const { achievements, lessonCount, questionCount, chapterPercent } = useLearningStats();
 const importInput = ref<HTMLInputElement>();
 const emit = defineEmits<{ navigate: [id: string]; import: [event: Event] }>();

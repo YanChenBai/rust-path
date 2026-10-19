@@ -1,9 +1,28 @@
 import { describe, expect, it } from 'vite-plus/test';
 
-import { chapters } from '../data/course';
+import { chapters } from '../runtime/course';
 import { buildDocuments, parseDocument } from './course-documents';
 
 describe('Markdown 教材', () => {
+  it('正文和验收读取同一份外部 Rust 源码，缺失引用会报错', () => {
+    const source = '01-demo/src/bin/demo.rs';
+    const code = 'fn main() { println!("demo"); }';
+    const markdown = `---\ntype: lesson\n---\n\`\`\`rust playground id=demo source=${source}\n\n\`\`\``;
+    expect(parseDocument(markdown, { [source]: code }).blocks).toEqual([
+      { info: 'rust playground id=demo', code, source },
+    ]);
+    expect(() => parseDocument(markdown)).toThrow('源码不存在');
+    expect(() =>
+      parseDocument(markdown.replace('\n\n```', '\nfn main() {}\n```'), { [source]: code }),
+    ).toThrow('重复定义');
+  });
+  it('Windows 换行不会进入围栏语言标识或初始代码', () => {
+    const document = parseDocument(
+      '---\r\ntype: question\r\n---\r\n```rust starter\r\nfn main() {}\r\n```\r\n',
+    );
+
+    expect(document.blocks).toEqual([{ info: 'rust starter', code: 'fn main() {}' }]);
+  });
   it('拒绝缺少或无效的教材元信息', () => {
     expect(() => parseDocument('# 普通文档')).toThrow('frontmatter');
     expect(() => parseDocument('---\nnull\n---\n正文')).toThrow('type');
@@ -32,7 +51,9 @@ describe('Markdown 教材', () => {
 
   it('缺少可运行知识点时明确报错，不静默生成残缺课程', () => {
     expect(() =>
-      buildDocuments({ 'demo.md': '---\ntype: lesson\nid: demo\n---\n## 测试\n正文' }),
+      buildDocuments({
+        '01-demo/lessons/demo.md': '---\ntype: lesson\nid: demo\n---\n## 测试\n正文',
+      }),
     ).toThrow('缺少 playground');
   });
 

@@ -18,7 +18,7 @@ import {
   Menu,
 } from 'lucide-vue-next';
 import type * as Monaco from 'monaco-editor/editor/editor.api.js';
-import { onMounted, onBeforeUnmount, ref, watch, computed } from 'vue';
+import { onMounted, onBeforeUnmount, nextTick, ref, watch, computed } from 'vue';
 
 import { useEditorPanels } from '../composables/useEditorPanels';
 import { useFloatingMenu } from '../composables/useFloatingMenu';
@@ -53,6 +53,10 @@ const emit = defineEmits<{
 const host = ref<HTMLElement>();
 
 const maximized = ref(false);
+const editorElement = ref<HTMLElement>();
+const placeholderHeight = ref(0);
+let fullscreenAnimation: Animation | undefined;
+let fullscreenRevision = 0;
 
 const liveText = ref(
   progress.outputs[props.editorId]?.transcript ??
@@ -76,16 +80,57 @@ function escapeEditor(event: KeyboardEvent) {
 }
 
 onMounted(() => window.addEventListener('keydown', escapeEditor, true));
-watch(maximized, value => {
+watch(maximized, async value => {
+  const revision = ++fullscreenRevision;
+  const before = editorElement.value?.getBoundingClientRect();
+  fullscreenAnimation?.cancel();
+
   if (value) {
+    placeholderHeight.value = before?.height ?? 0;
     previousOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
   } else {
     document.documentElement.style.overflow = previousOverflow;
   }
 
-  requestAnimationFrame(() => editor?.layout());
+  await nextTick();
+
+  if (disposed || revision !== fullscreenRevision) {
+    return;
+  }
+
+  editor?.layout();
+  animateFullscreen(before, value);
 });
+
+function animateFullscreen(before: DOMRect | undefined, value: boolean) {
+  const element = editorElement.value;
+  const after = element?.getBoundingClientRect();
+
+  if (
+    !element ||
+    !before ||
+    !after?.width ||
+    !after.height ||
+    matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return;
+  }
+
+  // Teleport 保留编辑器实例，用前后位置过渡，避免重建后丢失光标和撤销历史。
+  fullscreenAnimation = element.animate(
+    [
+      {
+        transform: `translate(${before.left - after.left}px, ${before.top - after.top}px) scale(${before.width / after.width}, ${before.height / after.height})`,
+        borderRadius: value ? '8px' : '0px',
+        zIndex: '1000',
+      },
+      { transform: 'none', borderRadius: value ? '0px' : '8px', zIndex: '1000' },
+    ],
+    { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+  );
+}
+
 const loading = ref(true);
 const busy = ref(false);
 
@@ -255,7 +300,7 @@ async function updateAnalysis() {
 }
 
 async function startAnalyzer() {
-  const hasNative = await detectNative();
+  let hasNative = await detectNative();
 
   if (!hasNative && !crossOriginIsolated) {
     analyzer.value = '语义引擎需要跨源隔离响应头';
@@ -265,33 +310,50 @@ async function startAnalyzer() {
   try {
     if (hasNative) {
       native = new NativeAnalyzer();
-      await native.open(model!.getValue(), selectedDependencies.value);
+
+      try {
+        await native.open(model!.getValue(), selectedDependencies.value);
+      } catch (error) {
+        native.close();
+        native = undefined;
+
+        if (!crossOriginIsolated) {
+          throw error;
+        }
+
+        // Cargo 可运行不代表 rust-analyzer 已安装，语义服务单独回退。
+        hasNative = false;
+        await call('update', model!.getValue());
+      }
 
       if (disposed) {
-        native.close();
+        native?.close();
         return;
       }
 
       let polling = false;
-      diagnosticTimer = setInterval(async () => {
-        if (polling || disposed || !model) {
-          return;
-        }
 
-        polling = true;
-
-        try {
-          const diagnostics = await native!.diagnostics();
-
-          if (!disposed) {
-            monaco!.editor.setModelMarkers(model, 'rust-analyzer', diagnostics);
+      if (hasNative) {
+        diagnosticTimer = setInterval(async () => {
+          if (polling || disposed || !model) {
+            return;
           }
-        } catch {
-          analyzer.value = '实时诊断连接异常';
-        } finally {
-          polling = false;
-        }
-      }, 900);
+
+          polling = true;
+
+          try {
+            const diagnostics = await native!.diagnostics();
+
+            if (!disposed) {
+              monaco!.editor.setModelMarkers(model, 'rust-analyzer', diagnostics);
+            }
+          } catch {
+            analyzer.value = '实时诊断连接异常';
+          } finally {
+            polling = false;
+          }
+        }, 900);
+      }
     } else {
       await call('update', model!.getValue());
     }
@@ -335,6 +397,7 @@ async function startAnalyzer() {
           }
 
           try {
+            await call('update', current.getValue());
             return await call<Monaco.languages.Hover | null>(
               'hover',
               position.lineNumber,
@@ -439,6 +502,9 @@ onMounted(async () => {
       glyphMargin: false,
       wordWrap: 'on',
       accessibilitySupport: 'on',
+      quickSuggestions: { other: true, comments: false, strings: false },
+      suggestOnTriggerCharacters: true,
+      hover: { enabled: 'on' },
       ariaLabel: '可编辑的 Rust 代码',
       fixedOverflowWidgets: true,
     });
@@ -629,6 +695,7 @@ defineExpose({
 });
 onBeforeUnmount(() => {
   disposed = true;
+  fullscreenAnimation?.cancel();
 
   window.removeEventListener('keydown', escapeEditor, true);
 
@@ -646,8 +713,15 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
+  <div
+    v-if="maximized"
+    class="editor-fullscreen-placeholder"
+    :style="{ height: placeholderHeight + 'px' }"
+    aria-hidden="true"
+  />
   <Teleport to="body" :disabled="!maximized"
     ><div
+      ref="editorElement"
       class="code-editor"
       :class="{
         'layout-horizontal': layout === 'horizontal',

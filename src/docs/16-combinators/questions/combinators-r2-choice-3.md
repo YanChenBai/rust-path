@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: combinators
 order: 2
+assessment:
+  answer: Result<Option<T>, E>
+  explanation: transpose 交换两层容器。
+  mode: fold
 ---
 
-`Option`&lt;`Result`&lt;T,E&gt;&gt;::transpose 返回什么？
+`Option<Result<T,E>>::transpose` 返回什么？

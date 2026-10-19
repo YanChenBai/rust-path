@@ -2,6 +2,12 @@
 {
   "extends": "@tsconfig/node24/tsconfig.json",
   "include": [
+    "scripts/prepare-runtime.ts",
+    "scripts/logger.ts",
+    "scripts/native-runtime.ts",
+    "scripts/native-runtime.test.ts",
+    "scripts/verify-course.ts",
+    "scripts/course-verification/**/*.ts",
     "vite.config.*",
     "vitest.config.*",
     "cypress.config.*",

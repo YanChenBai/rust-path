@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: combinators
 order: 0
+assessment:
+  answer: 嵌套 Option
+  explanation: map 不自动展开闭包结果。
+  mode: fold
 ---
 
-map 的闭包返回 `Option`&lt;U&gt; 时会得到什么？
+map 的闭包返回 `Option<U>` 时会得到什么？

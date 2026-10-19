@@ -6,6 +6,7 @@ dependencies: []
 icon: '12'
 stage: 可靠的抽象
 type: chapter
+revisedLegacy: true
 ---
 
 trait 规定行为，实现为具体类型提供行为。

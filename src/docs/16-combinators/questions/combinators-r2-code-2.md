@@ -5,16 +5,14 @@ title: 保留缺失与错误
 type: question
 chapterId: combinators
 order: 7
+assessment:
+  explanation: '实现 optional_number(input: Option<&str>) -> Result<Option<u32>, String>，不 trim；非法文本返回 Err("invalid")。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。'
+  answerSource: 16-combinators/src/bin/combinators-r2-code-2.rs?region=answer
+  testsSource: 16-combinators/src/bin/combinators-r2-code-2.rs?region=tests
 ---
 
-实现 optional_number(input: `Option`&lt;`&str`&gt;) -&gt; `Result`&lt;`Option`&lt;`u32`&gt;, `String`&gt;，不 trim；非法文本返回 `Err`("invalid")。
+实现 `optional_number(input: Option<&str>) -> Result<Option<u32>, String>`，不 trim；非法文本返回 `Err("invalid")`。
 
-```rust starter
-fn optional_number(input: Option<&str>) -> Result<Option<u32>, String> {
-    todo!()
-}
+```rust starter source=16-combinators/starters/combinators-r2-code-2-starter.rs
 
-fn main() {
-    // 先完成上方函数，再提交边界测试。
-}
 ```

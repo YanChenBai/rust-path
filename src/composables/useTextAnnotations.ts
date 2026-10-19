@@ -34,6 +34,20 @@ export function useTextAnnotations(root: () => HTMLElement | undefined, lessonId
   const selectionStyle = ref({ left: '0px', top: '0px' });
   const markers = shallowRef<{ annotation: TextAnnotation; element: HTMLElement }[]>([]);
   const annotations = computed(() => progress.annotations[lessonId()] ?? []);
+  const selectedId = ref<string>();
+  let ranges = new Map<string, Range>();
+
+  function highlight() {
+    if (typeof Highlight === 'undefined') {
+      return;
+    }
+
+    CSS.highlights.set('annotations', new Highlight(...ranges.values()));
+    const selected = selectedId.value && ranges.get(selectedId.value);
+    CSS.highlights.set('annotation-selected', new Highlight(...(selected ? [selected] : [])));
+  }
+
+  watch(selectedId, highlight);
   let observer: MutationObserver | undefined;
   let scheduled = 0;
 
@@ -139,6 +153,26 @@ export function useTextAnnotations(root: () => HTMLElement | undefined, lessonId
       next.push({ annotation, element });
     }
 
+    // 插入胶囊会拆分文本节点，因此基于最终节点重新建立高亮范围。
+    const index = textIndex(container);
+    ranges = new Map();
+
+    for (const { annotation, match } of located) {
+      const first =
+        match && index.nodes.find(item => item.start <= match.start && item.end > match.start);
+
+      const last =
+        match && index.nodes.find(item => item.start < match.end && item.end >= match.end);
+
+      if (match && first && last) {
+        const range = document.createRange();
+        range.setStart(first.node, match.start - first.start);
+        range.setEnd(last.node, match.end - last.start);
+        ranges.set(annotation.id, range);
+      }
+    }
+
+    highlight();
     markers.value = next;
     observer?.observe(container, { childList: true, subtree: true, characterData: true });
   }
@@ -176,6 +210,8 @@ export function useTextAnnotations(root: () => HTMLElement | undefined, lessonId
     window.addEventListener('resize', placeSelection);
   });
   onBeforeUnmount(() => {
+    CSS.highlights?.delete('annotations');
+    CSS.highlights?.delete('annotation-selected');
     observer?.disconnect();
     cancelAnimationFrame(scheduled);
     document.removeEventListener('selectionchange', captureSelection);
@@ -186,5 +222,5 @@ export function useTextAnnotations(root: () => HTMLElement | undefined, lessonId
       .forEach(element => element.remove());
   });
 
-  return { selection, selectionStyle, markers };
+  return { selection, selectionStyle, markers, selectedId };
 }

@@ -10,8 +10,12 @@ options:
 type: question
 chapterId: control
 order: 0
+assessment:
+  answer: 1、2、3
+  explanation: 左闭右开范围 1..4 不包含上界 4。
+  mode: fold
 ---
 
-```rust
-for n in 1..4 会遍历哪些数字？
+```rust source=04-control/snippets/control-choice-snippet-1.rs
+
 ```

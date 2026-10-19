@@ -380,7 +380,7 @@ describe('学习进度', () => {
   });
   it('章节完成率使用实际题目数量，8 题全部通过且项目完成时恰好 100%', async () => {
     const { progress, chapterCompletion } = await import('./progress');
-    const { chapters } = await import('./data/course');
+    const { chapters } = await import('./runtime/course');
     const chapter = chapters[0]!;
     progress.completed = chapter.lessons.map(lesson => lesson.id);
     progress.passed = chapter.questions.map(question => question.id);

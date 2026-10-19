@@ -1,8 +1,8 @@
 import { computed, reactive, watch } from 'vue';
 
-import { allLessons, chapters, legacyChapters } from './data/course';
-import { revisedLegacyIds } from './data/curriculum';
-import { lessonGuides } from './data/explanations';
+import { allLessons, chapters, legacyChapters } from './runtime/course';
+import { revisedLegacyIds } from './runtime/course';
+import { lessonGuides } from './runtime/course';
 import type { RunResult } from './runtime/rust';
 import type { TextAnnotation } from './runtime/text-annotations';
 

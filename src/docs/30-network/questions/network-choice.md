@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: network
 order: 0
+assessment:
+  answer: TCP 是有序字节流，没有消息边界
+  explanation: 单次 write 不对应单次 read；应用必须定义定长、分隔符或长度前缀等协议。
+  mode: fold
 ---
 
 关于 TCP，哪项正确？

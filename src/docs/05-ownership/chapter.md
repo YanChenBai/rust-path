@@ -6,6 +6,7 @@ dependencies: []
 icon: '05'
 stage: 数据与所有权
 type: chapter
+revisedLegacy: true
 ---
 
 赋值是否保留原绑定，取决于类型的所有权语义。

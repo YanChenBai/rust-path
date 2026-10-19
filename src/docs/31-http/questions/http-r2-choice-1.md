@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: http
 order: 0
+assessment:
+  answer: 已收到响应，但资源未找到
+  explanation: 传输完成不等于业务成功。
+  mode: fold
 ---
 
 HTTP 收到 404，说明什么？

@@ -15,8 +15,8 @@ import { motion, useReducedMotion } from 'motion-v';
 import { computed, ref } from 'vue';
 
 import { useCurrentLesson } from '../../composables/useCurrentLesson';
-import { chapters, allLessons } from '../../data/course';
 import { progress } from '../../progress';
+import { chapters, allLessons } from '../../runtime/course';
 import ChapterQuiz from '../ChapterQuiz.vue';
 import ContentDocument from '../docs/ContentDocument.vue';
 import StudyNotes from './StudyNotes.vue';
@@ -173,5 +173,10 @@ const notify = (message: string) => emit('reward', message);
         </button></div
     ></template>
   </motion.div>
-  <StudyNotes :chapter="chapter" :lesson-id="lesson.id" :content="reading" />
+  <StudyNotes
+    :chapter="chapter"
+    :lesson-id="lesson.id"
+    :content="section === 'lesson' ? reading : undefined"
+    @navigate="navigate"
+  />
 </template>

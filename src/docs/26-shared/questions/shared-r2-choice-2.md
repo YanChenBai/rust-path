@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: shared
 order: 1
+assessment:
+  answer: 守卫被 drop 时
+  explanation: RAII 控制解锁。
+  mode: fold
 ---
 
 锁守卫什么时候释放互斥访问？

@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: functions
 order: 2
+assessment:
+  answer: 不决定，调用位置决定
+  explanation: 定义函数与执行函数不同。
+  mode: fold
 ---
 
 多个函数定义的上下位置决定调用顺序吗？

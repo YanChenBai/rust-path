@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: errors
 order: 1
+assessment:
+  answer: 不同
+  explanation: 缺失不是零。
+  mode: fold
 ---
 
-`Option` 的 `None` 与 `Some`(0) 相同吗？
+`Option` 的 `None` 与 `Some(0)` 相同吗？

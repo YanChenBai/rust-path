@@ -5,6 +5,10 @@ title: 补全核心语法
 type: question
 chapterId: errors
 order: 3
+assessment:
+  answer: Ok
+  explanation: Ok(T) 保存成功值。
+  mode: fold
 ---
 
 `Result` 的成功变体名是什么？

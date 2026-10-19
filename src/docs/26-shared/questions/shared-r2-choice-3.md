@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: shared
 order: 2
+assessment:
+  answer: 两个步骤之间可能被其他线程修改
+  explanation: 业务不变量需要同一个临界区。
+  mode: fold
 ---
 
 读取余额与扣款分别加锁有什么风险？

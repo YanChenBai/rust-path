@@ -5,16 +5,14 @@ title: 状态标签
 type: question
 chapterId: enums
 order: 6
+assessment:
+  explanation: '实现 state_label(value: Option<u32>) -> String；Some(n) 返回 ready:n，None 返回 pending。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。'
+  answerSource: 09-enums/src/bin/enums-r2-code-1.rs?region=answer
+  testsSource: 09-enums/src/bin/enums-r2-code-1.rs?region=tests
 ---
 
-实现 state_label(value: `Option`&lt;`u32`&gt;) -&gt; `String`；`Some`(n) 返回 ready:n，`None` 返回 pending。
+实现 `state_label(value: Option<u32>) -> String`；`Some(n)` 返回 ready:n，`None` 返回 pending。
 
-```rust starter
-fn state_label(value: Option<u32>) -> String {
-    todo!()
-}
+```rust starter source=09-enums/starters/enums-r2-code-1-starter.rs
 
-fn main() {
-    // 先完成上方函数，再提交边界测试。
-}
 ```

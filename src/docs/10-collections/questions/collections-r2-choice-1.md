@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: collections
 order: 0
+assessment:
+  answer: 不能保证
+  explanation: 需要稳定展示应排序或使用有序容器。
+  mode: fold
 ---
 
 `HashMap` 的遍历顺序能作为固定展示顺序吗？

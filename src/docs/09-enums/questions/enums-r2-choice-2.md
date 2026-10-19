@@ -10,8 +10,12 @@ options:
 type: question
 chapterId: enums
 order: 1
+assessment:
+  answer: 穷尽所有可能情况
+  explanation: 穷尽性避免漏处理状态。
+  mode: fold
 ---
 
-```rust
-match 默认要求什么？
+```rust source=09-enums/snippets/enums-r2-choice-2-snippet-1.rs
+
 ```

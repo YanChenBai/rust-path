@@ -10,12 +10,14 @@ options:
 type: question
 chapterId: async
 order: 2
+assessment:
+  answer: '10'
+  explanation: block_on 驱动 async 块完成，两个 await 分别得到 4 和 6，相加为 10；这段代码是顺序等待。
+  mode: fold
 ---
 
-`async` `fn` double(n: `u32`) -&gt; `u32` { n * 2 }
+`async fn double(n: u32) -> u32 { n * 2 }`
 
-```rust
-let rt = tokio::runtime::Runtime::new().unwrap();
-let total = rt.block_on(async { double(2).await + double(3).await });
-println!("{total}"); 输出什么？
+```rust source=27-async/snippets/async-extra-choice-2-snippet-1.rs
+
 ```

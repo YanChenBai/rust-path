@@ -1,7 +1,7 @@
 import { computed } from 'vue';
 
-import { chapters, allLessons } from '../data/course';
 import { progress } from '../progress';
+import { chapters, allLessons } from '../runtime/course';
 
 export function useCurrentLesson() {
   const chapter = computed(() =>

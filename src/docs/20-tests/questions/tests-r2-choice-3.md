@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: tests
 order: 2
+assessment:
+  answer: 互相覆盖、结果不稳定
+  explanation: 测试应隔离资源与副作用。
+  mode: fold
 ---
 
 并行测试共享固定临时文件名可能导致什么？

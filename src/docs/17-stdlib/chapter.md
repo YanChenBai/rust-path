@@ -6,6 +6,7 @@ dependencies: []
 icon: '17'
 stage: 可靠的抽象
 type: chapter
+revisedLegacy: true
 ---
 
 模式描述结构，守卫再判断运行时条件。

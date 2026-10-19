@@ -7,11 +7,12 @@ nativeRequired: true
 type: lesson
 chapterId: io
 order: 0
+advanced: true
 ---
 
 ## 读取可以失败，写入也可能只完成一部分。
 
-Read 和 Write 描述字节流接口，不限定底层一定是文件。BufRead 在读取之上提供缓冲与按行处理能力；BufReader 减少频繁的小块系统读取。lines 返回每行的 `Result`&lt;`String`&gt;，行结束符被去掉，但读取错误仍需传播，不能只处理解析错误。对大文件逐行计算可以限制峰值内存，而 read_to_string 会一次持有全部内容。
+Read 和 Write 描述字节流接口，不限定底层一定是文件。BufRead 在读取之上提供缓冲与按行处理能力；BufReader 减少频繁的小块系统读取。lines 返回每行的 `Result<String>`，行结束符被去掉，但读取错误仍需传播，不能只处理解析错误。对大文件逐行计算可以限制峰值内存，而 read_to_string 会一次持有全部内容。
 
 write 允许只写出部分字节，write_all 才会尝试把整个切片写完。BufWriter 先把数据暂存在内存，flush 把缓冲内容交给下层；只依赖 Drop 不能方便地获知最终写入错误。flush 不等于磁盘掉电持久化，需要持久性时还要理解 `File::sync_all` 与文件系统保证，不能把成功返回解释为所有环境下绝不丢失。
 
@@ -25,47 +26,8 @@ write 允许只写出部分字节，write_all 才会尝试把整个切片写完�
 
 ## 亲手试一试
 
-```rust playground id=io-streams
-use std::io::{self, BufRead, Cursor, Write};
+```rust playground id=io-streams source=21-io/src/bin/io-streams.rs
 
-// 逐行读取并累计，遇到读取或解析错误时通过 Result 返回原因。
-fn sum<R: BufRead>(reader: R) -> io::Result<i64> {
-    // 累计本次处理结果，后续断言会检查最终数值。
-    let mut total = 0i64;
-    for line in reader.lines() {
-        // 读取当前一行，再分别处理读取失败、空白与解析失败。
-        let line = line?;
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        // 保存当前解析或运算得到的数值，后续继续执行业务规则。
-        let n = line
-            .trim()
-            .parse::<i64>()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        total = total
-            .checked_add(n)
-            .ok_or_else(|| io::Error::other("总和溢出"))?;
-    }
-    Ok(total)
-}
-
-fn main() -> io::Result<()> {
-    // 累计本次处理结果，后续断言会检查最终数值。
-    let total = sum(Cursor::new("12\n\n-2\n"))?;
-
-    // 保存处理生成的输出，避免把中间结果与最终展示混在一起。
-    let mut output = io::BufWriter::new(Vec::new());
-    writeln!(output, "sum={total}")?;
-
-    // 把缓冲数据明确写到底层，再继续读取或返回成功。
-    output.flush()?;
-
-    // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-    assert_eq!(output.get_ref(), b"sum=10\n");
-    Ok(())
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

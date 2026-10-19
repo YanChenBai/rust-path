@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { X, ArrowUpRight, BookOpen, Zap, Flag, ExternalLink } from 'lucide-vue-next';
+import { X, ArrowUpRight, BookOpen, Zap, Flag, ExternalLink, HardDrive } from 'lucide-vue-next';
 
 import { useCourseSearch } from '../../composables/useCourseSearch';
-import { sources } from '../../data/course';
+import { sources } from '../../runtime/course';
 const showSearch = defineModel<boolean>('searchOpen', { required: true });
 const showHelp = defineModel<boolean>('helpOpen', { required: true });
 const { search, searchResults } = useCourseSearch();

@@ -5,6 +5,10 @@ title: 补全核心语法
 type: question
 chapterId: ownership
 order: 3
+assessment:
+  answer: clone
+  explanation: Clone 是显式能力。
+  mode: fold
 ---
 
 显式创建类型定义的副本通常调用什么方法？

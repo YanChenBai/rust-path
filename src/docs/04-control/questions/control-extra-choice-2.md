@@ -10,8 +10,12 @@ options:
 type: question
 chapterId: control
 order: 2
+assessment:
+  answer: '25'
+  explanation: 30 不在 0..=14 或 15..=29 中，因此进入通配分支得到 25。
+  mode: fold
 ---
 
-```rust
-let minutes = 30; let xp = match minutes { 0..=14 => 0, 15..=29 => 10, _ => 25 }; println!("{xp}"); 输出什么？
+```rust source=04-control/snippets/control-extra-choice-2-snippet-1.rs
+
 ```

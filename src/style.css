@@ -5660,8 +5660,17 @@ h1 {
 }
 .editor-divider,
 .layout-horizontal .editor-divider {
+  flex-basis: 1px;
   border: 0;
-  background: transparent;
+  background: #303030;
+}
+.editor-divider::before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
+}
+.layout-horizontal .editor-divider::before {
+  inset: 0 -4px;
 }
 .editor-divider::after {
   left: 0;
@@ -5724,7 +5733,7 @@ h1 {
   height: 2px;
   background: #555;
   left: calc(50% - 16px);
-  bottom: 0;
+  bottom: 4px;
   border-radius: 1px;
 }
 .editor-height-handle:hover::after,
@@ -5774,34 +5783,6 @@ h1 {
 .study-notes-trigger:hover {
   color: #fff;
   border-color: #666;
-}
-.study-notes-menu {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  right: 0;
-  width: 180px;
-  padding: 5px;
-  background: #202020;
-  border: 1px solid #444;
-  border-radius: 8px;
-  box-shadow: 0 8px 30px #0007;
-}
-.study-notes-menu button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  text-align: left;
-  padding: 11px;
-  font-size: 14px;
-  border-radius: 4px;
-}
-.study-notes-menu button:hover {
-  background: #303030;
-}
-.study-notes-menu button span {
-  margin-left: auto;
-  color: #888;
 }
 .notes-backdrop {
   z-index: 2100;
@@ -5862,10 +5843,12 @@ h1 {
   display: block;
   width: 100%;
   min-height: 340px;
-  resize: vertical;
-  border: 0;
+  resize: none;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 12px;
   outline: 0;
-  background: transparent;
+  background: #111;
   color: #ddd;
   font-family: 'Cascadia Code', Consolas, monospace;
   font-size: 15px;
@@ -5979,22 +5962,32 @@ h1 {
   font-size: 14px;
 }
 .annotation-anchor {
+  position: relative;
   display: inline;
   user-select: none;
+}
+.annotation-control {
+  position: absolute;
+  right: 0;
+  bottom: calc(1em + 8px);
+  z-index: 8;
+  display: inline-flex;
+  width: max-content;
+  max-width: min(200px, calc(100vw - 32px));
 }
 .markdown-document .annotation-capsule {
   display: inline-flex;
   vertical-align: baseline;
   align-items: center;
   gap: 5px;
-  max-width: 160px;
-  margin: 0 5px;
-  padding: 2px 8px;
-  border: 1px solid #4c4c4c;
-  border-radius: 20px;
-  color: #bcbcbc;
-  background: #202020;
-  font-size: 11px;
+  max-width: 200px;
+  margin: 0;
+  padding: 5px 11px;
+  border: 1px solid #666;
+  border-radius: 5px;
+  color: #eee;
+  background: #303030;
+  font-size: 14px;
   line-height: 1.5;
   letter-spacing: 0;
 }
@@ -6019,26 +6012,6 @@ h1 {
   border-radius: 6px;
   font-size: 13px;
   box-shadow: 0 5px 20px #0008;
-}
-.annotation-tooltip {
-  position: fixed;
-  z-index: 2200;
-  width: min(320px, calc(100vw - 16px));
-  max-height: 280px;
-  overflow: auto;
-  padding: 16px;
-  border: 1px solid #484848;
-  background: #202020;
-  border-radius: 7px;
-  box-shadow: 0 8px 30px #0008;
-}
-.annotation-tooltip .markdown-note {
-  font-size: 14px;
-}
-.annotation-tooltip > button {
-  margin-top: 12px;
-  color: #999;
-  font-size: 12px;
 }
 @media (max-width: 560px) {
   .study-notes-floating {
@@ -6175,5 +6148,307 @@ h1 {
   }
   .editor-back > span {
     display: inline;
+  }
+}
+
+/* 正文高亮使用 Range，不拆解 Vue 管理的文本结构。 */
+::highlight(annotations) {
+  background: #ffffff20;
+  color: inherit;
+}
+::highlight(annotation-selected) {
+  background: #4c4c4c;
+  color: #f2f2f2;
+}
+.chapter-notes {
+  margin-top: 32px;
+  padding: 24px 0 120px;
+  border-top: 1px solid #333;
+}
+.chapter-note-editor .notes-markdown-input {
+  min-height: 280px;
+  padding: 18px 20px 48px;
+}
+.chapter-note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.chapter-note-actions > span {
+  margin-right: auto;
+  color: #888;
+  font-size: 12px;
+}
+.chapter-notes > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.chapter-notes h2 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 18px;
+}
+.chapter-notes header p {
+  margin: 8px 0 0;
+  color: #999;
+  font-size: 13px;
+}
+.study-notes-trigger {
+  color: #eee;
+  border-color: #666;
+  background: #282828;
+}
+.study-notes-trigger b {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #ffffff15;
+}
+.study-annotations-menu,
+.annotation-dropdown {
+  position: fixed;
+  z-index: 2001;
+  width: min(380px, calc(100vw - 24px));
+  overflow: auto;
+  padding: 16px;
+  background: #202020;
+  border: 1px solid #484848;
+  border-radius: 8px;
+  box-shadow: 0 10px 32px #0008;
+}
+.study-annotations-menu > header,
+.annotation-dropdown > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.study-annotations-menu > header strong,
+.annotation-dropdown > header strong {
+  font-size: 14px;
+  color: #eee;
+}
+.chapter-annotation-entry {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #3b3b3b;
+}
+.annotation-list-item {
+  border: 0;
+  padding: 12px 0;
+}
+.annotation-list-item blockquote {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.annotation-list-item > span {
+  display: block;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.annotation-list-item:hover small {
+  color: #eee;
+}
+.annotation-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  color: #ddd;
+  font-size: 13px;
+}
+.annotation-edit:hover {
+  color: #eee;
+}
+.annotation-dropdown .markdown-note {
+  font-size: 14px;
+}
+.annotation-dropdown .annotation-edit {
+  margin-top: 12px;
+}
+.markdown-document .annotation-capsule.active {
+  background: #505050;
+  border-color: #bbb;
+  color: #fff;
+  box-shadow: 0 0 0 2px #ffffff26;
+}
+.annotation-anchor {
+  scroll-margin: 100px;
+}
+.notes-input-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #aaa;
+  font-size: 13px;
+}
+.notes-markdown-input:focus {
+  border-color: #aaa;
+}
+.notes-editor-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 26px;
+  border-top: 1px solid #333;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.notes-editor-footer > span {
+  margin-left: auto;
+  color: #888;
+  font-size: 12px;
+}
+.study-notes-dialog .notes-modal-body {
+  min-height: 0;
+}
+@media (max-width: 560px) {
+  .notes-editor-footer {
+    padding: 14px 18px;
+  }
+  .notes-editor-footer > span {
+    display: none;
+  }
+  .notes-editor-footer .secondary-button {
+    margin-left: auto;
+  }
+}
+.topbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.topbar-leading .focus-button {
+  flex-shrink: 0;
+}
+.topbar-leading .breadcrumbs {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.topbar-leading .breadcrumbs > svg {
+  flex-shrink: 0;
+}
+.topbar-leading .breadcrumbs > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-right {
+  flex-shrink: 0;
+}
+.global-learning-progress {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 420px);
+  margin-top: 28px;
+  text-align: left;
+}
+.global-progress-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #aaa;
+  font-size: 11px;
+}
+.global-progress-label strong {
+  color: #eee;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.global-progress-track {
+  display: block;
+  height: 4px;
+  background: #303030;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.global-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #737373, #b5b5b5, #eee);
+  transition: width 300ms ease;
+}
+.global-progress-count {
+  color: #888;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.code-editor {
+  transform-origin: top left;
+}
+.editor-fullscreen-placeholder {
+  flex-shrink: 0;
+}
+@media (max-width: 1100px) {
+  .topbar-leading {
+    gap: 8px;
+  }
+  .topbar {
+    gap: 12px;
+  }
+}
+@media (max-width: 640px) {
+  .topbar-leading .focus-button {
+    padding: 6px;
+    min-width: 28px;
+  }
+  .topbar-leading .breadcrumbs > span:not(:last-child) {
+    display: none;
+  }
+  .topbar-leading .breadcrumbs > strong {
+    max-width: 90px;
+  }
+  .topbar-leading .breadcrumbs > svg {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .global-progress-track > span {
+    transition: none;
+  }
+}
+.annotation-popover-enter-active,
+.annotation-popover-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: top center;
+}
+.annotation-popover-enter-from,
+.annotation-popover-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+.markdown-document .annotation-capsule {
+  transition:
+    opacity 140ms ease,
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+@media (hover: hover) {
+  .markdown-document .annotation-capsule:hover:not(:focus-visible) {
+    opacity: 0.4;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .annotation-popover-enter-active,
+  .annotation-popover-leave-active,
+  .markdown-document .annotation-capsule {
+    transition: none;
+  }
+  .annotation-popover-enter-from,
+  .annotation-popover-leave-to {
+    transform: none;
   }
 }

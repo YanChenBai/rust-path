@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: iterators
 order: 0
+assessment:
+  answer: 没有，等待消费
+  explanation: 迭代适配器通常是惰性的。
+  mode: fold
 ---
 
 仅构建 map 迭代器时，闭包通常执行了吗？

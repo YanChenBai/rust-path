@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: generics
 order: 1
+assessment:
+  answer: 不要求
+  explanation: 借用不复制内部值。
+  mode: fold
 ---
 
-返回 &T 是否必然要求 T: `Clone`？
+返回 &T 是否必然要求 `T: Clone`？

@@ -5,16 +5,14 @@ title: 转移文本
 type: question
 chapterId: ownership
 order: 6
+assessment:
+  explanation: '实现 move_text(text: String) -> String，直接返回传入的所有者。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。'
+  answerSource: 05-ownership/src/bin/ownership-r2-code-1.rs?region=answer
+  testsSource: 05-ownership/src/bin/ownership-r2-code-1.rs?region=tests
 ---
 
-实现 move_text(text: `String`) -&gt; `String`，直接返回传入的所有者。
+实现 `move_text(text: String) -> String`，直接返回传入的所有者。
 
-```rust starter
-fn move_text(text: String) -> String {
-    todo!()
-}
+```rust starter source=05-ownership/starters/ownership-r2-code-1-starter.rs
 
-fn main() {
-    // 先完成上方函数，再提交边界测试。
-}
 ```

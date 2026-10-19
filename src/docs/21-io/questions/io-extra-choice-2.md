@@ -10,17 +10,19 @@ options:
 type: question
 chapterId: io
 order: 2
+assessment:
+  answer: '"a\nb\n"'
+  explanation: read_line 将包含换行的内容追加到现有 String；第二次调用前未 clear，所以两行都保留。
+  mode: exact
 ---
 
-```rust
-use std::io::{BufRead, Cursor};
-let mut source = Cursor::new("a\nb\n");
-let mut line = String::new();
+```rust source=21-io/snippets/io-extra-choice-2-snippet-1.rs
+
 ```
 
-source.read_line(&`mut` line).unwrap();
-source.read_line(&`mut` line).unwrap();
+`source.read_line(&mut line).unwrap();`
+`source.read_line(&mut line).unwrap();`
 
-```rust
-println!("{line:?}"); 输出什么？
+```rust source=21-io/snippets/io-extra-choice-2-snippet-2.rs
+
 ```

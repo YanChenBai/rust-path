@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: errors
 order: 2
+assessment:
+  answer: 从当前函数提前返回错误
+  explanation: 错误传播不等于处理。
+  mode: fold
 ---
 
 ? 在 `Err` 时主要做什么？

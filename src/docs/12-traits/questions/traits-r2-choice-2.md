@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: traits
 order: 1
+assessment:
+  answer: TryFrom
+  explanation: TryFrom 返回 Result。
+  mode: fold
 ---
 
 可能失败的转换应优先表达为哪种 `trait`？

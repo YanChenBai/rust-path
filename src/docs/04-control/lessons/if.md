@@ -22,26 +22,8 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=if
-fn main() {
-    // 只有满足条件的分支会执行；分支表达式需要返回兼容的类型。
+```rust playground id=if source=04-control/src/bin/if.rs
 
-    // 保存当前分数，接下来的条件据此选择分支。
-    let score = 85;
-
-    // 保存本次消息内容或分支选出的提示。
-    let message = if score >= 90 {
-        "太棒了，继续挑战！"
-    } else if score >= 60 {
-        "顺利通过，继续前进。"
-    } else {
-        "再试一次，你可以的。"
-    };
-
-    // 输出当前值以便观察；打印本身不等于创建一份拥有的字符串副本。
-    println!("得分：{score}");
-    println!("{message}");
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

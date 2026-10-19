@@ -1,0 +1,17 @@
+[
+  {
+    "name": "The Rust Programming Language",
+    "label": "官方知识体系",
+    "url": "https://doc.rust-lang.org/book/"
+  },
+  {
+    "name": "Rust by Example",
+    "label": "可运行示例参考",
+    "url": "https://doc.rust-lang.org/rust-by-example/"
+  },
+  {
+    "name": "Rustlings",
+    "label": "渐进式练习灵感",
+    "url": "https://rustlings.rust-lang.org/"
+  }
+]

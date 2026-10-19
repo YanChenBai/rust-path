@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: strings
 order: 2
+assessment:
+  answer: '&str'
+  explanation: '&str 可以借用不同来源的文本。'
+  mode: fold
 ---
 
 只读文本函数通常优先接收什么？

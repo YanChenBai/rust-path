@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: http
 order: 1
+assessment:
+  answer: 响应体字节数
+  explanation: 协议长度以字节计。
+  mode: fold
 ---
 
 Content-Length 应统计什么？

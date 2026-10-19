@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: strings
 order: 0
+assessment:
+  answer: UTF-8 字节数
+  explanation: len 统计字节。
+  mode: fold
 ---
 
 `String::len()` 返回什么？

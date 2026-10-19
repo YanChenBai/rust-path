@@ -12,8 +12,8 @@ import {
 } from 'lucide-vue-next';
 
 import { useCourseSidebar } from '../../composables/useCourseSidebar';
-import { chapters, type Chapter } from '../../data/course';
 import { progress, percentage, completedSteps, totalSteps } from '../../progress';
+import { chapters, type Chapter } from '../../runtime/course';
 defineProps<{ open: boolean; currentChapterId: string }>();
 
 const emit = defineEmits<{

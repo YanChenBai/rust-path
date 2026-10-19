@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: database
 order: 2
+assessment:
+  answer: 不会
+  explanation: 内存与文件连接的存储边界不同。
+  mode: fold
 ---
 
 内存 SQLite 是否自动跨进程持久化？

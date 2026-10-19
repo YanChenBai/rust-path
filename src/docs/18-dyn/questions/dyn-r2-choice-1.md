@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: dyn
 order: 0
+assessment:
+  answer: Vec<Box<dyn Trait>>
+  explanation: trait 对象统一行为接口。
+  mode: fold
 ---
 
 异构对象集合通常可使用什么？

@@ -5,16 +5,20 @@ title: 允许更新计时器
 type: question
 chapterId: variables
 order: 5
+assessment:
+  answer: mut
+  explanation: minutes += 5 修改原绑定，需要 let mut，但不改变类型。
+  mode: exact
 ---
 
 填一个关键字：
 
-```rust
-let ____ minutes: u32 = 25;
+```rust source=02-variables/snippets/variables-extra-fill-2-snippet-1.rs
+
 ```
 
 minutes += 5;
 
-```rust
-assert_eq!(minutes, 30);
+```rust source=02-variables/snippets/variables-extra-fill-2-snippet-2.rs
+
 ```

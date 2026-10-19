@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue';
 
-import { chapters } from '../data/course';
+import { chapters } from '../runtime/course';
 
 export function useCourseSearch() {
   const search = ref('');

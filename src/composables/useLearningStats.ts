@@ -1,8 +1,8 @@
 import { Code2, Flag, Zap, Trophy } from 'lucide-vue-next';
 import { computed } from 'vue';
 
-import { chapters } from '../data/course';
 import { progress, chapterCompletion } from '../progress';
+import { chapters } from '../runtime/course';
 
 export function useLearningStats() {
   const week = computed(() =>

@@ -1,4 +1,5 @@
 {
+  "rust-analyzer.linkedProjects": ["course/Cargo.toml"],
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "tsconfig.json": "tsconfig.*.json, env.d.ts, typed-router.d.ts",
@@ -27,5 +28,20 @@
   "editor.formatOnSaveMode": "file",
   "editor.codeActionsOnSave": {
     "source.fixAll.oxc": "explicit"
-  }
+  },
+  "cSpell.words": [
+    "miri",
+    "nonoctal",
+    "oxnode",
+    "println",
+    "reqwest",
+    "rusqlite",
+    "rustls",
+    "rustup",
+    "serde",
+    "shiki",
+    "thiserror",
+    "uninvoked",
+    "unstub"
+  ]
 }

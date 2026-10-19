@@ -6,6 +6,7 @@ minutes: 18
 type: lesson
 chapterId: smart
 order: 2
+advanced: true
 ---
 
 ## 内部可变性改变检查位置，不取消借用规则。
@@ -24,30 +25,8 @@ Rc&lt;RefCell&lt;T&gt;&gt; 是单线程可变图结构中的常见组合：Rc �
 
 ## 亲手试一试
 
-```rust playground id=smart-cells
-use std::cell::{Cell, RefCell};
+```rust playground id=smart-cells source=24-smart/src/bin/smart-cells.rs
 
-fn main() {
-    // 保存访问次数，后续通过受控的可变访问更新。
-    let visits = Cell::new(0);
-    visits.set(visits.get() + 1);
-
-    // 保存拥有文本的集合，验证接口并不要求元素都是 Copy。
-    let names = RefCell::new(vec![String::from("Ada")]);
-    {
-        // 守卫存活期间只能共享读取，不能再取得独占借用。
-        let guard = names.borrow();
-
-        // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-        assert!(names.try_borrow_mut().is_err());
-        assert_eq!(guard.len(), 1);
-    }
-
-    // 离开上面的作用域后守卫已释放，此时可以修改。
-    names.borrow_mut().push(String::from("Lin"));
-    assert_eq!(names.borrow().len(), 2);
-    assert_eq!(visits.get(), 1);
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

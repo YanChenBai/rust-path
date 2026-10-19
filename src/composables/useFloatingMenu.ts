@@ -1,6 +1,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
-export function useFloatingMenu() {
+export function useFloatingMenu(options: { align?: 'start' | 'end'; offset?: number } = {}) {
   const open = ref(false);
   const anchor = ref<HTMLElement>();
   const menu = ref<HTMLElement>();
@@ -20,13 +20,22 @@ export function useFloatingMenu() {
     const bounds = anchor.value.getBoundingClientRect();
     const width = menu.value.offsetWidth;
     const height = menu.value.scrollHeight;
-    const below = innerHeight - bounds.bottom - 16;
-    const above = bounds.top - 16;
+    const offset = options.offset ?? 6;
+    const below = innerHeight - bounds.bottom - offset - 10;
+    const above = bounds.top - offset - 10;
     const flip = below < height && above > below;
     const maxHeight = Math.max(100, flip ? above : below);
     position.value = {
-      left: Math.max(8, Math.min(bounds.right - width, innerWidth - width - 8)),
-      top: flip ? Math.max(8, bounds.top - Math.min(height, maxHeight) - 6) : bounds.bottom + 6,
+      left: Math.max(
+        8,
+        Math.min(
+          options.align === 'start' ? bounds.left : bounds.right - width,
+          innerWidth - width - 8,
+        ),
+      ),
+      top: flip
+        ? Math.max(8, bounds.top - Math.min(height, maxHeight) - offset)
+        : bounds.bottom + offset,
       maxHeight,
     };
   }

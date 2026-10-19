@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: lifetimes
 order: 0
+assessment:
+  answer: 不会
+  explanation: 标注描述约束，不改变析构。
+  mode: fold
 ---
 
 生命周期标注会延长局部变量存活吗？

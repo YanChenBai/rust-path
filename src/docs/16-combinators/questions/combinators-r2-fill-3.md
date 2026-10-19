@@ -5,6 +5,10 @@ title: 确认使用约束
 type: question
 chapterId: combinators
 order: 5
+assessment:
+  answer: as_deref
+  explanation: as_deref 保留原所有者。
+  mode: fold
 ---
 
-借用 `Option`&lt;`String`&gt; 为 `Option`&lt;`&str`&gt; 可调用什么？
+借用 `Option<String>` 为 `Option<&str>` 可调用什么？

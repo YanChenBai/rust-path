@@ -22,23 +22,8 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=blocks
-fn main() {
-    // 没有分号的尾表达式决定块的返回值。
+```rust playground id=blocks source=03-functions/src/bin/blocks.rs
 
-    // 保存基础数值，内层计算在它的基础上增加奖励。
-    let base = 30;
-
-    // 接收内部代码块的尾表达式结果。
-    let boosted = {
-        // 保存本次额外奖励，只在当前块作用域内可见。
-        let bonus = 15;
-        base + bonus
-    };
-
-    // 输出当前值以便观察；打印本身不等于创建一份拥有的字符串副本。
-    println!("最终积分：{boosted}");
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

@@ -11,9 +11,9 @@ import {
 } from 'lucide-vue-next';
 import { computed, ref, onMounted, type ComponentPublicInstance } from 'vue';
 
-import type { Chapter, Question } from '../data/course';
 import { progress, recordActivity } from '../progress';
 import { checkProgram } from '../runtime/assessment';
+import type { Chapter, Question } from '../runtime/course';
 import CodeEditor from './CodeEditor.vue';
 import CodeSnippet from './CodeSnippet.vue';
 import ContentDocument from './docs/ContentDocument.vue';
@@ -76,7 +76,7 @@ function storeEditor(id: string, value: Element | ComponentPublicInstance | null
 }
 
 async function checkQuestion(question: Question) {
-  const { assessments } = await import('../data/assessments.js');
+  const { assessments } = await import('../runtime/assessments');
   const item = assessments[question.id]!;
 
   if (question.kind !== 'code') {
@@ -153,7 +153,7 @@ async function reveal(id: string) {
     return;
   }
 
-  const { assessments } = await import('../data/assessments.js');
+  const { assessments } = await import('../runtime/assessments');
   const item = assessments[id]!;
 
   if (!progress.revealed.includes(id)) {

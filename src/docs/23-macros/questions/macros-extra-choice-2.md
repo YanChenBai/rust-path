@@ -10,12 +10,14 @@ options:
 type: question
 chapterId: macros
 order: 2
+assessment:
+  answer: (1, 2) 2
+  explanation: 宏展开把传入表达式放入两个位置，元组元素从左到右求值，所以副作用发生两次。
+  mode: fold
 ---
 
 macro_rules! twice { ($value:expr) =&gt; { ($value, $value) }; }
 
-```rust
-let mut n = 0;
-let pair = twice!({ n += 1; n });
-println!("{pair:?} {n}"); 输出什么？
+```rust source=23-macros/snippets/macros-extra-choice-2-snippet-1.rs
+
 ```

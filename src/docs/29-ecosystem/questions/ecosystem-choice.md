@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: ecosystem
 order: 0
+assessment:
+  answer: 库用 thiserror 定义错误，应用用 anyhow 添加上下文
+  explanation: 这是常见分工而非硬性限制；serde 负责数据模型，reqwest 负责 HTTP 客户端。
+  mode: fold
 ---
 
 哪种错误分工在应用中较常见？

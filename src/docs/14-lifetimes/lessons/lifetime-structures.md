@@ -12,7 +12,7 @@ order: 1
 
 结构体字段如果保存引用，通常要用生命周期参数说明它借用了多久。Excerpt&lt;'a&gt; 不拥有文本，它要求其中的 `&str` 在视图使用期间仍有效。标注不会把局部字符串搬到堆外，也不会延长它的存活时间；负责保存数据的仍是输入的所有者。
 
-方法 `fn` text(&self) -&gt; `&str` 中，输出省略生命周期通常与 self 的借用关联。若明确写成返回 &'a str，可以表达底层输入的关系，但应确认接口是否真的需要让返回值超出本次 self 借用。不要为了通过编译把所有引用都写成 'static；这通常把可用输入缩小为静态数据。
+方法 `fn text(&self) -> &str` 中，输出省略生命周期通常与 self 的借用关联。若明确写成返回 &'a str，可以表达底层输入的关系，但应确认接口是否真的需要让返回值超出本次 self 借用。不要为了通过编译把所有引用都写成 'static；这通常把可用输入缩小为静态数据。
 
 T: 'static 表示 T 不包含更短的借用，不表示值永不释放。拥有 `String` 的结构体经常满足这个约束，却仍会正常析构。先画所有者、借用视图和调用处的有效区间，再决定使用借用字段还是拥有字段。
 
@@ -24,26 +24,8 @@ T: 'static 表示 T 不包含更短的借用，不表示值永不释放。拥有
 
 ## 亲手试一试
 
-```rust playground id=lifetime-structures
-struct Excerpt<'a> {
-    text: &'a str,
-}
+```rust playground id=lifetime-structures source=14-lifetimes/src/bin/lifetime-structures.rs
 
-impl Excerpt<'_> {
-    fn text(&self) -> &str {
-        self.text
-    }
-}
-
-fn main() {
-    // 拥有原始文本；借用视图使用期间，这份数据必须保持有效。
-    let source = String::from("第一段。第二段。");
-
-    // 借用底层内容进行读取，不接管拥有者的清理责任。
-    let view = Excerpt { text: &source[..9] };
-    // 视图借用 source；source 在使用期间必须存活。
-    assert_eq!(view.text(), "第一段");
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

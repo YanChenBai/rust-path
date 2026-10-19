@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: threads
 order: 0
+assessment:
+  answer: 确保线程在作用域返回前结束
+  explanation: 受控线程存活范围保证引用有效。
+  mode: fold
 ---
 
 `thread::scope` 允许借用外部数据的关键原因是什么？

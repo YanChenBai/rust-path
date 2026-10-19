@@ -22,14 +22,8 @@ Rust 程序从 `main` 函数开始执行。`fn` 用来定义函数，花括号�
 
 ## 亲手试一试
 
-```rust playground id=hello
-fn main() {
-    // main 是程序入口；两次宏调用会按顺序各输出一行。
+```rust playground id=hello source=01-start/src/bin/hello.rs
 
-    // 向终端输出这一行问候；println! 会在末尾自动换行。
-    println!("你好，Rust！");
-    println!("每一次尝试，都是进步。");
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

@@ -6,11 +6,12 @@ minutes: 18
 type: lesson
 chapterId: smart
 order: 1
+advanced: true
 ---
 
 ## 强引用决定存活，弱引用只观察。
 
-Rc&lt;T&gt; 为单线程数据提供引用计数共享所有权。`Rc::clone` 只增加计数，不会深复制内部对象。最后一个强引用消失时，内部 T 被析构；弱引用可能继续保留计数控制块，直到弱引用也消失。`Weak::upgrade` 返回 `Option`&lt;Rc&lt;T&gt;&gt;，使用者必须接受对象可能已经释放这一事实。
+Rc&lt;T&gt; 为单线程数据提供引用计数共享所有权。`Rc::clone` 只增加计数，不会深复制内部对象。最后一个强引用消失时，内部 T 被析构；弱引用可能继续保留计数控制块，直到弱引用也消失。`Weak::upgrade` 返回 `Option<Rc<T>>`，使用者必须接受对象可能已经释放这一事实。
 
 父子双向关系是理解引用环的好场景。若父亲用 Rc 持有孩子，孩子也用 Rc 持有父亲，即使外部不再使用这棵树，环内计数仍然无法归零。通常把父到子的拥有边保留为强引用，把子到父的观察边改成 Weak。内存安全并不保证没有资源泄漏，类型系统不会自动判断业务图中哪些边不应拥有对象。
 
@@ -24,35 +25,8 @@ Rc&lt;T&gt; 为单线程数据提供引用计数共享所有权。`Rc::clone` �
 
 ## 亲手试一试
 
-```rust playground id=smart-sharing
-use std::rc::Rc;
-use std::sync::Arc;
+```rust playground id=smart-sharing source=24-smart/src/bin/smart-sharing.rs
 
-fn main() {
-    // 创建共享数据的强引用所有者，由强引用数量决定数据存活。
-    let owner = Rc::new(String::from("共享"));
-
-    // 弱引用只观察对象，不延长被观察值的生命周期。
-    let observer = Rc::downgrade(&owner);
-
-    // 这里只增加强引用计数，不复制内部字符串。
-    let second = Rc::clone(&owner);
-
-    // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-    assert_eq!(Rc::strong_count(&owner), 2);
-
-    // 主动释放这个值或守卫，观察资源存活与访问范围的变化。
-    drop(owner);
-    assert!(observer.upgrade().is_some());
-    drop(second);
-
-    // 最后一个强引用已释放，升级弱引用会返回 None。
-    assert!(observer.upgrade().is_none());
-
-    // Arc 提供跨线程可用的引用计数；这里先观察它的拥有语义。
-    let shared = Arc::new(7);
-    assert_eq!(*Arc::clone(&shared), 7);
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

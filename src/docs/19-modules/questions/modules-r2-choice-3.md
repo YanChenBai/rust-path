@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: modules
 order: 2
+assessment:
+  answer: 当前 crate
+  explanation: crate 内接口不必成为外部 API。
+  mode: fold
 ---
 
-`pub`(crate) 限制到哪里？
+`pub(crate)` 限制到哪里？

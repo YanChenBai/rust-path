@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: collections
 order: 2
+assessment:
+  answer: get
+  explanation: get 返回 Option。
+  mode: fold
 ---
 
 查询可能不存在的索引通常使用什么？

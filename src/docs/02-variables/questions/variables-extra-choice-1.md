@@ -10,12 +10,14 @@ options:
 type: question
 chapterId: variables
 order: 1
+assessment:
+  answer: 1:30
+  explanation: 遮蔽允许 String 切片绑定变成 u32 绑定；90 / 60 为 1，90 % 60 为 30。
+  mode: fold
 ---
 
 执行下列代码，输出是什么？
 
-```rust
-let minutes = " 90 ";
-let minutes = minutes.trim().parse::<u32>().unwrap();
-println!("{}:{}", minutes / 60, minutes % 60);
+```rust source=02-variables/snippets/variables-extra-choice-1-snippet-1.rs
+
 ```

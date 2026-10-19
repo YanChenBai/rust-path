@@ -5,16 +5,14 @@ title: 取出有效状态
 type: question
 chapterId: enums
 order: 7
+assessment:
+  explanation: '实现 nonzero(value: Option<u32>) -> bool，仅 Some(n) 且 n>0 返回 true。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。'
+  answerSource: 09-enums/src/bin/enums-r2-code-2.rs?region=answer
+  testsSource: 09-enums/src/bin/enums-r2-code-2.rs?region=tests
 ---
 
-实现 nonzero(value: `Option`&lt;`u32`&gt;) -&gt; `bool`，仅 `Some`(n) 且 n&gt;0 返回 true。
+实现 `nonzero(value: Option<u32>) -> bool`，仅 `Some(n)` 且 n&gt;0 返回 true。
 
-```rust starter
-fn nonzero(value: Option<u32>) -> bool {
-    todo!()
-}
+```rust starter source=09-enums/starters/enums-r2-code-2-starter.rs
 
-fn main() {
-    // 先完成上方函数，再提交边界测试。
-}
 ```

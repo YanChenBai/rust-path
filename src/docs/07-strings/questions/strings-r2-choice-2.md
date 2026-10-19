@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: strings
 order: 1
+assessment:
+  answer: 返回 None
+  explanation: get 安全检查范围和 UTF-8 边界。
+  mode: fold
 ---
 
 text.get(0..1) 切开中文字符时会怎样？

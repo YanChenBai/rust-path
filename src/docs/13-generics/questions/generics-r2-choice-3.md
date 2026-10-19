@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: generics
 order: 2
+assessment:
+  answer: 类型与能力约束
+  explanation: where 让复杂约束更易阅读。
+  mode: fold
 ---
 
 where 子句主要表达什么？

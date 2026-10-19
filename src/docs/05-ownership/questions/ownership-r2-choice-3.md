@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: ownership
 order: 2
+assessment:
+  answer: 不是，取决于具体类型
+  explanation: String clone 通常复制内容。
+  mode: fold
 ---
 
 `clone` 的成本是否总是常数？

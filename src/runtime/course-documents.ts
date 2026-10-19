@@ -1,6 +1,8 @@
 import { parse } from 'yaml';
 
-import type { Chapter, Lesson, Question } from '../data/course-types';
+import type { AssessmentDefinition } from './assessment-definitions';
+import { courseSource, sourceReference } from './course-code';
+import type { Chapter, Lesson, Question } from './course-types';
 
 export interface Guide {
   title: string;
@@ -8,10 +10,33 @@ export interface Guide {
   code?: string;
   mistake?: string;
   document: string;
+  codeSource?: string;
 }
 
-export function parseDocument(source: string) {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(source);
+function validateDocumentPath(metadata: Record<string, unknown>, document: string) {
+  const match = /^\d{2}-([^/]+)\/(.+)$/.exec(document);
+
+  const paths: Record<string, string> = {
+    chapter: 'chapter.md',
+    lesson: `lessons/${String(metadata.id)}.md`,
+    question: `questions/${String(metadata.id)}.md`,
+    project: 'project.md',
+    guide: `guides/${String(metadata.lessonId)}-${String(metadata.index)}.md`,
+  };
+
+  if (!match || paths[String(metadata.type)] !== match[2]) {
+    throw new Error(`${document} 不符合固定教材目录结构`);
+  }
+
+  const chapterId = metadata.type === 'chapter' ? metadata.id : metadata.chapterId;
+
+  if (chapterId && chapterId !== match[1]) {
+    throw new Error(`${document} 的所属章节与目录不一致`);
+  }
+}
+
+export function parseDocument(source: string, sources: Record<string, string> = {}) {
+  const match = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(source.replace(/\r\n?/g, '\n'));
 
   if (!match) {
     throw new Error('教材缺少 YAML frontmatter');
@@ -28,17 +53,43 @@ export function parseDocument(source: string) {
     throw new Error('教材 frontmatter 必须包含 type');
   }
 
-  const body = match[2]!.trim();
+  const references: (string | undefined)[] = [];
 
-  const blocks = [...body.matchAll(/^```([^\n]*)\n([\s\S]*?)\n```/gm)].map(item => ({
+  const body = match[2]!
+    .trim()
+    .replace(/^```([^\n]*)\n([\s\S]*?)\n```/gm, (fence: string, info: string, code: string) => {
+      const reference = sourceReference(info);
+      references.push(reference);
+
+      if (!reference) {
+        return fence;
+      }
+
+      if (code.trim()) {
+        throw new Error(`外部源码围栏不能重复定义代码：${reference}`);
+      }
+
+      return `\`\`\`${info.replace(/\s+source=\S+/, '')}\n${courseSource(sources, reference)}\n\`\`\``;
+    });
+
+  const blocks: { info: string; code: string; source?: string }[] = [
+    ...body.matchAll(/^```([^\n]*)\n([\s\S]*?)\n```/gm),
+  ].map((item, index) => ({
     info: item[1]!,
     code: item[2]!,
+    ...(references[index] ? { source: references[index] } : {}),
   }));
 
   return { metadata, body, blocks };
 }
 
-export function buildDocuments(files: Record<string, string>) {
+export function buildDocuments(
+  files: Record<string, string>,
+  sources: Record<string, string> = {},
+) {
+  const assessmentDefinitions: Record<string, AssessmentDefinition> = {};
+  const advancedLessonIds: string[] = [];
+  const revisedLegacyIds: string[] = [];
   const chapters: Chapter[] = [];
   const lessons: (Lesson & { chapterId: string; order: number })[] = [];
   const questions: (Question & { chapterId: string; order: number })[] = [];
@@ -46,8 +97,37 @@ export function buildDocuments(files: Record<string, string>) {
   const guideEntries: { lessonId: string; index: number; guide: Guide }[] = [];
 
   for (const [document, source] of Object.entries(files)) {
-    const { metadata, body, blocks } = parseDocument(source);
-    const entry = { ...metadata, document };
+    const { metadata, body, blocks } = parseDocument(source, sources);
+    validateDocumentPath(metadata, document);
+    const { assessment, ...fields } = metadata;
+    const entry = { ...fields, document };
+
+    if (assessment) {
+      const definition = assessment as {
+        answer?: string;
+        explanation: string;
+        mode?: string;
+        answerSource?: string;
+        testsSource?: string;
+      };
+
+      const answerSource = definition.answerSource;
+      assessmentDefinitions[String(metadata.id)] = {
+        answer: answerSource ? courseSource(sources, answerSource) : (definition.answer ?? ''),
+        explanation: definition.explanation,
+        mode: definition.mode,
+        tests: definition.testsSource ? courseSource(sources, definition.testsSource) : undefined,
+        source: answerSource?.split('?')[0],
+      };
+    }
+
+    if (metadata.advanced === true) {
+      advancedLessonIds.push(String(metadata.id));
+    }
+
+    if (metadata.revisedLegacy === true) {
+      revisedLegacyIds.push(String(metadata.id));
+    }
 
     switch (metadata.type) {
       case 'chapter': {
@@ -81,6 +161,7 @@ export function buildDocuments(files: Record<string, string>) {
           tip: callouts[0]?.[1]?.trim() ?? '',
           task: callouts.at(-1)?.[1]?.trim() ?? '',
           code,
+          codeSource: blocks.find(block => block.info.includes('playground'))?.source,
         } as (typeof lessons)[number]);
         break;
       }
@@ -125,6 +206,7 @@ export function buildDocuments(files: Record<string, string>) {
             paragraphs,
             document,
             code: blocks[0]?.code,
+            codeSource: blocks[0]?.source,
             mistake: metadata.mistake as string | undefined,
           },
         });
@@ -159,5 +241,12 @@ export function buildDocuments(files: Record<string, string>) {
     (lessonGuides[lessonId] ??= []).push(guide);
   }
 
-  return { chapters, allLessons: chapters.flatMap(chapter => chapter.lessons), lessonGuides };
+  return {
+    chapters,
+    allLessons: chapters.flatMap(chapter => chapter.lessons),
+    lessonGuides,
+    assessmentDefinitions,
+    advancedLessonIds,
+    revisedLegacyIds,
+  };
 }

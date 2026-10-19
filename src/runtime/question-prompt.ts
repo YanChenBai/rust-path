@@ -1,3 +1,5 @@
+import { syntaxSegments } from './syntax-text';
+
 export interface PromptPart {
   kind: 'text' | 'code';
   text: string;
@@ -27,10 +29,16 @@ export function splitPrompt(text: string): PromptPart[] {
       continue;
     }
 
+    const plain = fenced
+      ? line
+      : syntaxSegments(line)
+          .map(part => part.text)
+          .join('');
+
     const isCode =
       fenced ||
       /^\s*(?:fn\s|pub\s|let\s|use\s|impl\b|struct\s|enum\s|trait\s|mod\s|\/\/|#\[|(?:println|print|assert(?:_eq|_ne)?|vec)!|[{}]|(?:if|for|while|match)\s)/.test(
-        line,
+        plain,
       );
 
     // 代码块中的缩进行继续归属代码；后续自然语言另起文本块。
@@ -41,7 +49,7 @@ export function splitPrompt(text: string): PromptPart[] {
       kind = next;
     }
 
-    buffer.push(line);
+    buffer.push(next === 'code' ? plain : line);
   }
 
   flush();

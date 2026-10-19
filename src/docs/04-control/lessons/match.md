@@ -22,24 +22,8 @@ order: 2
 
 ## 亲手试一试
 
-```rust playground id=match
-fn main() {
-    // 从上往下匹配分支；模式必须覆盖所有可能的输入。
+```rust playground id=match source=04-control/src/bin/match.rs
 
-    // 保存连续学习天数，用于匹配奖励档位。
-    let streak = 3;
-
-    // 保存匹配分支返回的标记，供后续输出。
-    let badge = match streak {
-        0 => "旅程即将开始",
-        1..=2 => "初露锋芒",
-        3..=6 => "渐入佳境",
-        _ => "坚持的力量",
-    };
-
-    // 输出当前值以便观察；打印本身不等于创建一份拥有的字符串副本。
-    println!("{badge}");
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

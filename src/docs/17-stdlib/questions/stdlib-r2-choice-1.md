@@ -10,8 +10,12 @@ options:
 type: question
 chapterId: stdlib
 order: 0
+assessment:
+  answer: 发散，不回到后续成功路径
+  explanation: return 等发散操作保证后续模式已匹配。
+  mode: fold
 ---
 
-```rust
-let else 的 else 分支必须怎样结束？
+```rust source=17-stdlib/snippets/stdlib-r2-choice-1-snippet-1.rs
+
 ```

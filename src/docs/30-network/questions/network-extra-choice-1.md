@@ -10,10 +10,12 @@ options:
 type: question
 chapterId: network
 order: 1
+assessment:
+  answer: '404'
+  explanation: next 取首行，split_whitespace 的第 0 词是版本，第 1 词是状态码。
+  mode: fold
 ---
 
-```rust
-let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-let status = response.lines().next().unwrap().split_whitespace().nth(1).unwrap();
-println!("{status}"); 输出什么？
+```rust source=30-network/snippets/network-extra-choice-1-snippet-1.rs
+
 ```

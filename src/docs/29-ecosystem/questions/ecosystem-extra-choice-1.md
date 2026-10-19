@@ -10,9 +10,12 @@ options:
 type: question
 chapterId: ecosystem
 order: 1
+assessment:
+  answer: Some(25)
+  explanation: JSON 数字可通过 as_u64 提取，方法返回 Option<u64>，调试输出保留 Some。
+  mode: exact
 ---
 
-```rust
-let plan: serde_json::Value = serde_json::from_str(r#"{"minutes":25,"done":false}"#).unwrap();
-println!("{:?}", plan["minutes"].as_u64()); 输出什么？
+```rust source=29-ecosystem/snippets/ecosystem-extra-choice-1-snippet-1.rs
+
 ```

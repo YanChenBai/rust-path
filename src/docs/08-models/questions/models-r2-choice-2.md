@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: models
 order: 1
+assessment:
+  answer: 关联函数
+  explanation: 构造函数通过类型路径调用。
+  mode: fold
 ---
 
 没有 self 的 new 通常是什么？

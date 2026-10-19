@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: threads
 order: 2
+assessment:
+  answer: 不会
+  explanation: 移动引用不延长被引用对象的存活。
+  mode: fold
 ---
 
 `move` 捕获一个短引用会把它变成 static 吗？

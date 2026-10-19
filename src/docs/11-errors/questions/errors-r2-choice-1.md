@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: errors
 order: 0
+assessment:
+  answer: 返回 Result 错误
+  explanation: 可恢复错误属于接口的一部分。
+  mode: fold
 ---
 
 用户输入不合法通常应如何表达？

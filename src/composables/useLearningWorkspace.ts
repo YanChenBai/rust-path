@@ -1,7 +1,7 @@
 import { computed, ref, onBeforeUnmount } from 'vue';
 
-import type { chapters } from '../data/course';
 import { progress, recordActivity, importProgress } from '../progress';
+import type { chapters } from '../runtime/course';
 import { useCurrentLesson } from './useCurrentLesson';
 
 export function useLearningWorkspace() {

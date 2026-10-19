@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: collections
 order: 1
+assessment:
+  answer: 容量是可容纳空间，长度是已有元素数
+  explanation: 预留容量不会创建元素。
+  mode: fold
 ---
 
 `Vec` 的容量和长度有什么区别？

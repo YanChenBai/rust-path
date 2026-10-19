@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: traits
 order: 2
+assessment:
+  answer: 不同业务含义与不变量
+  explanation: 同样底层表示可以有不同类型意义。
+  mode: fold
 ---
 
 newtype 主要帮助表达什么？

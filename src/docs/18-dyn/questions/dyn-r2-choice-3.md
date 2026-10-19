@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: dyn
 order: 2
+assessment:
+  answer: 带类型参数的方法
+  explanation: 泛型方法无法简单放入统一虚表。
+  mode: fold
 ---
 
 哪种方法通常不能直接通过 dyn 对象调用？

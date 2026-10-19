@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: http
 order: 2
+assessment:
+  answer: 给等待提供明确上限
+  explanation: 超时控制资源等待边界。
+  mode: fold
 ---
 
 客户端请求为何应设置超时？

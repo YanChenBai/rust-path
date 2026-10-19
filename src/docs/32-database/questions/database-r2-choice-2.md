@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: database
 order: 1
+assessment:
+  answer: 整组回滚
+  explanation: 事务守住整组业务更新的不变量。
+  mode: fold
 ---
 
 事务内一条更新失败时，通常应该怎样？

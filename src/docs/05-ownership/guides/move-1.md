@@ -9,32 +9,6 @@ title: 按值传参和返回值也会移动
 
 示例把原文本移动给 decorate，再把修改后的 `String` 返回并绑定为 decorated。backup 是在移动之前显式 `clone` 得到的独立文本，所以不会随着追加内容而变化。这个流程适合流水线逐步接管数据；如果函数只读取字符数，接收 `&str` 更合适，无需为了还能访问原变量而做一次昂贵的复制。
 
-```rust runnable id=move-guide-1
-fn decorate(mut text: String) -> String {
-    // 把这一段文本追加到可变 String，已有内容不会被覆盖。
-    text.push_str(" · 已完成");
-    text
-}
+```rust runnable id=move-guide-1 source=05-ownership/src/bin/move-guide-1.rs
 
-fn main() {
-    // 保留未处理的输入，方便对比方法是否修改原数据。
-    let original = String::from("所有权练习");
-
-    // 显式保留一份独立文本，后续移动不会拿走这份副本。
-    let backup = original.clone();
-    let decorated = decorate(original);
-
-    // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-    assert_eq!(backup, "所有权练习");
-    assert_eq!(decorated, "所有权练习 · 已完成");
-
-    // 保存当前计数，用于对比操作之前与之后的状态。
-    let count = 3_u32;
-
-    // 创建独立副本，后续修改不会影响原来的字符串。
-    let copied = count;
-
-    // 输出当前值以便观察；打印本身不等于创建一份拥有的字符串副本。
-    println!("{backup} / {decorated} / {}", count + copied);
-}
 ```

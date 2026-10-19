@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { chapters } from '../../data/course';
 import { progress } from '../../progress';
+import { chapters } from '../../runtime/course';
 import CodeEditor from '../CodeEditor.vue';
 import CodeSnippet from '../CodeSnippet.vue';
 

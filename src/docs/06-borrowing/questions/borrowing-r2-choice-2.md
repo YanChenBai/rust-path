@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: borrowing
 order: 1
+assessment:
+  answer: n 的值
+  explanation: 解引用访问被引用的数据。
+  mode: fold
 ---
 
-执行 `let` p = &`mut` n; *p += 2; 修改的是谁？
+执行 `let p = &mut n; *p += 2;` 修改的是谁？

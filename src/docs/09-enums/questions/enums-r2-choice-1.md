@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: enums
 order: 0
+assessment:
+  answer: 可以，各变体可以不同
+  explanation: 变体可以表达各自需要的数据。
+  mode: fold
 ---
 
 枚举变体可以携带数据吗？

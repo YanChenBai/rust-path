@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: enums
 order: 2
+assessment:
+  answer: 借用内部字符串
+  explanation: 借用匹配可保留原值。
+  mode: fold
 ---
 
 匹配 &State 时通常如何访问其中的 `String`？

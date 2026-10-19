@@ -7,6 +7,7 @@ nativeRequired: true
 type: lesson
 chapterId: macros
 order: 1
+advanced: true
 ---
 
 ## 声明宏按规则展开，过程宏程序处理 token 流。
@@ -25,32 +26,8 @@ derive 是属性语法，常用于根据结构体或枚举生成 `trait` 实现�
 
 ## 亲手试一试
 
-```rust playground id=macros-derive
-#[derive(Debug, Clone, PartialEq, Eq)]
+```rust playground id=macros-derive source=23-macros/src/bin/macros-derive.rs
 
-struct Config {
-    name: String,
-    retries: u8,
-}
-
-fn main() {
-    // 保留未处理的输入，方便对比方法是否修改原数据。
-    let original = Config {
-        name: "local".into(),
-        retries: 2,
-    };
-
-    // 调用派生的 Clone 创建副本，用相等比较验证派生行为。
-    let mut copy = original.clone();
-
-    // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-    assert_eq!(original, copy);
-    copy.retries += 1;
-    assert_ne!(original, copy);
-
-    // 输出当前值以便观察；打印本身不等于创建一份拥有的字符串副本。
-    println!("{original:?}");
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

@@ -5,16 +5,14 @@ title: 借用前半段
 type: question
 chapterId: lifetimes
 order: 6
+assessment:
+  explanation: '实现 before_space(text: &str) -> &str，返回第一个 ASCII 空格之前的原切片，无空格返回全部。 参考实现先处理边界，再构造结果；修改后应重新提交全部测试。'
+  answerSource: 14-lifetimes/src/bin/lifetimes-r2-code-1.rs?region=answer
+  testsSource: 14-lifetimes/src/bin/lifetimes-r2-code-1.rs?region=tests
 ---
 
-实现 before_space(text: `&str`) -&gt; `&str`，返回第一个 ASCII 空格之前的原切片，无空格返回全部。
+实现 `before_space(text: &str) -> &str`，返回第一个 ASCII 空格之前的原切片，无空格返回全部。
 
-```rust starter
-fn before_space(text: &str) -> &str {
-    todo!()
-}
+```rust starter source=14-lifetimes/starters/lifetimes-r2-code-1-starter.rs
 
-fn main() {
-    // 先完成上方函数，再提交边界测试。
-}
 ```

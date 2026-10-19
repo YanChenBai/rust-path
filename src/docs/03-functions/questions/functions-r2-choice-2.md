@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: functions
 order: 1
+assessment:
+  answer: 不能，除非通过结果带出
+  explanation: 作用域控制名字可见范围。
+  mode: fold
 ---
 
 局部块里的变量能在块外直接使用吗？

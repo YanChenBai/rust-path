@@ -1,5 +1,3 @@
-import { resolve } from 'node:path';
-
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { nitro } from 'nitro/vite';
@@ -8,6 +6,49 @@ import { defineConfig, lazyPlugins } from 'vite-plus';
 
 import { courseCatalog } from './plugins/course-catalog';
 import { courseMarkdown } from './plugins/markdown-plugin';
+
+const courseVerificationCache = {
+  env: [
+    'RUSTUP_TOOLCHAIN',
+    'RUSTUP_HOME',
+    'CARGO_HOME',
+    'RUSTFLAGS',
+    'CARGO_ENCODED_RUSTFLAGS',
+    'CARGO_BUILD_TARGET',
+    'RUSTC',
+    'RUSTC_WRAPPER',
+    'RUSTC_WORKSPACE_WRAPPER',
+    'PATH',
+  ],
+  input: [
+    'package.json',
+    'pnpm-lock.yaml',
+    'tsconfig.node.json',
+    'scripts/verify-course.ts',
+    'scripts/logger.ts',
+    'scripts/course-verification/**/*.ts',
+    'plugins/course-sources.ts',
+    'src/runtime/assessment-definitions.ts',
+    'src/runtime/course-code.ts',
+    'src/runtime/course-documents.ts',
+    'src/runtime/course-types.ts',
+    'src/docs/**',
+    'course/**/*.rs',
+    'course/**/Cargo.toml',
+    'course/Cargo.lock',
+    '**/rust-toolchain',
+    '**/rust-toolchain.toml',
+    '.cargo/config',
+    '.cargo/config.toml',
+    'course/.cargo/config',
+    'course/.cargo/config.toml',
+    '!course/target/**',
+    '!node_modules/**',
+    '!.rust-path/**',
+  ],
+  // 仅恢复本次任务写入的报告；Cargo 编译缓存由 Cargo 自行管理。
+  output: [{ auto: true }, '!node_modules/**', '!course/**'],
+};
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -45,7 +86,7 @@ export default defineConfig({
 
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     clearMocks: true,
     restoreMocks: true,
     unstubGlobals: true,
@@ -56,7 +97,7 @@ export default defineConfig({
     tasks: {
       dev: 'vp dev',
       start: {
-        command: `node --enable-source-maps scripts/start.mjs`,
+        command: `oxnode scripts/start.ts`,
         dependsOn: ['build'],
         cache: false,
       },
@@ -76,8 +117,39 @@ export default defineConfig({
         },
       },
       preview: 'vp preview',
-      'prepare:runtime': 'node scripts/prepare-runtime.mjs',
-      'verify:course': 'node scripts/verify-course.mjs',
+      'prepare:runtime': {
+        command: 'oxnode scripts/prepare-runtime.ts',
+        cache: {
+          env: ['RUSTUP_TOOLCHAIN', 'RUSTUP_HOME', 'CARGO_HOME', 'PATH'],
+          input: [
+            'package.json',
+            'pnpm-lock.yaml',
+            'tsconfig.node.json',
+            'scripts/prepare-runtime.ts',
+            'scripts/native-runtime.ts',
+            'scripts/logger.ts',
+            '**/rust-toolchain',
+            '**/rust-toolchain.toml',
+          ],
+          output: ['public/runtime/**', 'public/analyzer/**'],
+        },
+      },
+      'verify:course': {
+        command: 'oxnode scripts/verify-course.ts',
+        cache: courseVerificationCache,
+      },
+      'verify:course:structure': {
+        command: 'oxnode scripts/verify-course.ts --only structure',
+        cache: courseVerificationCache,
+      },
+      'verify:course:answers': {
+        command: 'oxnode scripts/verify-course.ts --only answers',
+        cache: courseVerificationCache,
+      },
+      'verify:course:execution': {
+        command: 'oxnode scripts/verify-course.ts --only execution',
+        cache: courseVerificationCache,
+      },
     },
   },
 

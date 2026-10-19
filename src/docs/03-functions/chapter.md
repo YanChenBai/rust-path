@@ -6,6 +6,7 @@ dependencies: []
 icon: '03'
 stage: 基础表达
 type: chapter
+revisedLegacy: true
 ---
 
 函数、表达式与作用域

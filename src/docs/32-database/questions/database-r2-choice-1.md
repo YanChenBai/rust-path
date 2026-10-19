@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: database
 order: 0
+assessment:
+  answer: 参数绑定
+  explanation: SQL 结构与数据值分离。
+  mode: fold
 ---
 
 传入带引号的用户输入应如何构造查询？

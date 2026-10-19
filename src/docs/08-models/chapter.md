@@ -6,6 +6,7 @@ dependencies: []
 icon: '08'
 stage: 数据与所有权
 type: chapter
+revisedLegacy: true
 ---
 
 构造入口、只读查询、修改操作应有清楚的签名。

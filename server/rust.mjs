@@ -17,6 +17,7 @@ export const dependencies = {
   tracing: 'tracing = "0.1"',
   rusqlite: 'rusqlite = { version = "0.37", features = ["bundled"] }',
 };
+
 const sessions = new Map();
 const commands = new Map();
 const children = new Set();

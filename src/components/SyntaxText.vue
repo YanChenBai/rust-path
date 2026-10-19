@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 
 import { highlightCode } from '../runtime/highlight';
+import { syntaxSegments } from '../runtime/syntax-text';
 
 const props = defineProps<{ text: string; code?: boolean }>();
 const parts = ref<{ text: string; code: boolean; html?: string }[]>([]);
@@ -12,18 +13,7 @@ watch(
   async ([text, code]) => {
     const current = ++generation;
 
-    const isCode =
-      code || /^(?:fn |let |use |impl |pub |&|Box<|Rc<|Arc<)|[{};]|::|^\w+\(.*\)$/.test(text);
-
-    const segments = isCode
-      ? [{ text, code: true }]
-      : text
-          .split(/(`[^`]+`)/g)
-          .filter(Boolean)
-          .map(value => ({
-            text: value.startsWith('`') ? value.slice(1, -1) : value,
-            code: value.startsWith('`'),
-          }));
+    const segments = syntaxSegments(text, code);
 
     parts.value = segments;
 

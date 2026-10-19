@@ -1,50 +1,55 @@
-import { readdir, readFile } from 'node:fs/promises';
-import { resolve, relative } from 'node:path';
+import { resolve } from 'node:path';
 
 import type { Plugin } from 'vite-plus';
 
+import { courseSource } from '../src/runtime/course-code';
 import { buildDocuments } from '../src/runtime/course-documents';
+import { loadCourseDocuments, loadCourseSources } from './course-sources';
 
 export function courseCatalog(): Plugin {
-  const id = '\0virtual:course-catalog';
-  const root = resolve('src/docs');
+  const catalogId = 'virtual:course-catalog';
+  const assessmentId = 'virtual:course-assessments';
+  const codePrefix = 'virtual:course-code/';
+  const root = resolve('.');
+  let sources: ReturnType<typeof loadCourseSources> | undefined;
 
   return {
     name: 'course-catalog',
     resolveId(source) {
-      if (source === 'virtual:course-catalog') {
-        return id;
+      if (source === catalogId || source === assessmentId || source.startsWith(codePrefix)) {
+        return `\0${source}`;
       }
     },
     async load(source) {
-      if (source !== id) {
+      if (!source.startsWith('\0virtual:course-')) {
         return;
       }
 
-      const files: Record<string, string> = {};
-      const entries = await readdir(root, { recursive: true, withFileTypes: true });
+      sources ??= loadCourseSources(root, path => this.addWatchFile(path));
+      const codes = await sources;
+      const id = source.slice(1);
 
-      for (const entry of entries) {
-        if (!entry.isFile() || !entry.name.endsWith('.md') || entry.parentPath === root) {
-          continue;
-        }
-
-        const path = resolve(entry.parentPath, entry.name);
-        this.addWatchFile(path);
-        files[relative(root, path).replaceAll('\\', '/')] = await readFile(path, 'utf8');
+      if (id.startsWith(codePrefix)) {
+        return `export default ${JSON.stringify(courseSource(codes, id.slice(codePrefix.length)))};`;
       }
 
-      return `export default ${JSON.stringify(buildDocuments(files))};`;
+      const files = await loadCourseDocuments(root, path => this.addWatchFile(path));
+      const { assessmentDefinitions, ...documents } = buildDocuments(files, codes);
+      return `export default ${JSON.stringify(id === assessmentId ? assessmentDefinitions : documents)};`;
     },
     handleHotUpdate(context) {
-      if (!context.file.replaceAll('\\', '/').includes('/src/docs/')) {
+      const file = context.file.replaceAll('\\', '/');
+
+      if (!file.includes('/src/docs/') && !file.includes('/course/')) {
         return;
       }
 
-      const module = context.server.moduleGraph.getModuleById(id);
+      sources = undefined;
 
-      if (module) {
-        context.server.moduleGraph.invalidateModule(module);
+      for (const module of context.server.moduleGraph.idToModuleMap.values()) {
+        if (module.id?.startsWith('\0virtual:course-')) {
+          context.server.moduleGraph.invalidateModule(module);
+        }
       }
 
       context.server.ws.send({ type: 'full-reload' });

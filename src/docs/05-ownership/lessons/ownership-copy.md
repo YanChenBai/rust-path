@@ -24,28 +24,8 @@ Rust 的值有负责清理它的所有者。把 `String` 按值赋给新绑定�
 
 ## 亲手试一试
 
-```rust playground id=ownership-copy
-fn main() {
-    // 从固定文本创建拥有存储的字符串，后续操作以这个值为输入。
-    let first = String::from("Rust");
-    // 显式创建独立副本，而不是让两个绑定共同负责同一分配。
-    let second = first.clone();
+```rust playground id=ownership-copy source=05-ownership/src/bin/ownership-copy.rs
 
-    // 主动释放这个值或守卫，观察资源存活与访问范围的变化。
-    drop(second);
-
-    // 输出当前值以便观察；打印本身不等于创建一份拥有的字符串副本。
-    println!("{first}");
-
-    // 保存当前解析或运算得到的数值，后续继续执行业务规则。
-    let n = 7;
-
-    // 整数实现 Copy，赋值复制数值，原绑定 n 仍可继续使用。
-    let copy = n;
-
-    // 检查具体结果是否符合前面的规则；修改输入后也要同步预测这些断言。
-    assert_eq!(n + copy, 14);
-}
 ```
 
 <CourseCallout title="给自己一个小挑战">

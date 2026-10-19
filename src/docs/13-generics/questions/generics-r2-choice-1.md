@@ -10,6 +10,10 @@ options:
 type: question
 chapterId: generics
 order: 0
+assessment:
+  answer: Copy 或显式 Clone 约束
+  explanation: 泛型体也必须证明操作合法。
+  mode: fold
 ---
 
 泛型函数复制 T 的值通常需要什么能力？
