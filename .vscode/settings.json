@@ -30,6 +30,9 @@
     "source.fixAll.oxc": "explicit"
   },
   "cSpell.words": [
+    "clippy",
+    "codegen",
+    "fflate",
     "miri",
     "nonoctal",
     "oxnode",

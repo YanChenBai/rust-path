@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare": "vp config && vp run prepare:runtime"
+    "prepare": "vp config && vp run prepare:browser"
   },
   "dependencies": {
     "@live-codes/rust-wasm": "^0.3.0",
@@ -24,12 +24,11 @@
     "@oxc-node/cli": "^0.1.7",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@tailwindcss/vite": "^4.3.3",
-    "@tsconfig/node24": "^24.0.5",
+    "@tsconfig/node26": "^26.0.1",
     "@types/markdown-it": "^14.2.0",
-    "@types/node": "^24.13.4",
+    "@types/node": "^26.6.5",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
-    "nitro": "3.0.260903-beta",
     "npm-run-all2": "^9.0.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.0",
@@ -44,9 +43,14 @@
       "name": "pnpm",
       "version": "12.14.0",
       "onFail": "download"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "26.12.0",
+      "onFail": "download"
     }
   },
   "engines": {
-    "node": "^22.18.0 || >=24.12.0"
+    "node": ">=26.0.0"
   }
 }

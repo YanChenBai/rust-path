@@ -141,4 +141,4 @@ Markdown 支持 `<script setup>`，可以导入自定义 Vue 组件后直接在�
 
 `--skip-advanced-lessons` 仅跳过深入课程的课时示例，`--previous-report PATH` 将历史执行统计附在报告中，不计作本次执行。JSON 报告保存在仓库根目录 `.rust-path/reports/<验收范围>-<运行编号>/report.json`，该目录不提交 Git。
 
-验收默认只打印每项的完成结果，失败和重试仍有诊断；单独执行一个能力时省去阶段的 RUN/PASS，只保留汇总和完成摘要。`prepare:runtime` 与四个 `verify:course` 任务均启用 Vite+ 缓存，记录脚本、教材、Rust 源码、锁文件及相关配置输入。命中缓存时恢复生成资源或报告，并回放上次日志，不会重新安装组件或运行 Rust。需要重新检查本机环境或重新执行断言时，使用 `vp run --no-cache prepare:runtime`、`vp run --no-cache verify:course`。
+验收默认只打印每项的完成结果，失败和重试仍有诊断；单独执行一个能力时省去阶段的 RUN/PASS，只保留汇总和完成摘要。`prepare:browser` 与四个 `verify:course` 任务均启用 Vite+ 缓存，记录脚本、教材、Rust 源码、锁文件及相关配置输入。命中缓存时恢复生成资源或报告，并回放上次日志，不会重新生成浏览器资源或运行 Rust。浏览器资源准备不安装或检查本机工具链。需要重新准备资源或重新执行断言时，使用 `vp run --no-cache prepare:browser`、`vp run --no-cache verify:course`。

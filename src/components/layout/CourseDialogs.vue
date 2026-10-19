@@ -89,6 +89,21 @@ function navigate(id: string) {
           <div class="help-local">
             <HardDrive :size="18" />无需账号。进度和草稿保存在当前浏览器，可在「学习足迹」导出备份。
           </div>
+          <div class="help-sources help-service">
+            <h3>代码提示与本机增强</h3>
+            <p>
+              默认在浏览器中运行，无需连接服务。本机增强可提供 Cargo
+              执行、代码补全、悬浮说明和实时编译诊断。
+            </p>
+            <p>
+              安装 Rust 及 rust-analyzer、rust-src
+              后，启动独立服务。点击页头插头按钮，按「如何连接独立服务」中的命令允许当前网页访问，再填写服务地址并保存连接。
+            </p>
+            <p>
+              绿点表示服务已连接；完整语言提示还需等待 Rust Analyzer
+              完成索引。页头显示当前阶段和可用的百分比，准备完成后自动隐藏。
+            </p>
+          </div>
           <div class="help-sources">
             <h3>课程参考</h3>
             <a
@@ -103,3 +118,12 @@ function navigate(id: string) {
       </section></div
   ></Transition>
 </template>
+
+<style scoped>
+.help-service p {
+  margin-top: 10px;
+  color: #aaa;
+  font-size: 14px;
+  line-height: 1.9;
+}
+</style>

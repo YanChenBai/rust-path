@@ -1,15 +1,28 @@
 <script setup lang="ts">
-import { BookOpen, ChevronRight, Check, Flame, Menu, X, Search, HardDrive } from 'lucide-vue-next';
+import {
+  PanelLeftClose,
+  PanelLeftOpen,
+  ChevronRight,
+  Check,
+  Flame,
+  Menu,
+  X,
+  Search,
+  HardDrive,
+} from 'lucide-vue-next';
 
 import CodeEditor from './components/CodeEditor.vue';
 import CourseDialogs from './components/layout/CourseDialogs.vue';
 import CourseSidebar from './components/layout/CourseSidebar.vue';
+import NativeServiceSettings from './components/layout/NativeServiceSettings.vue';
+import ResourceLoading from './components/layout/ResourceLoading.vue';
 import LearningPath from './components/learning/LearningPath.vue';
 import LearningProgress from './components/learning/LearningProgress.vue';
 import LessonPage from './components/learning/LessonPage.vue';
 import LessonRail from './components/learning/LessonRail.vue';
 import { useLearningWorkspace } from './composables/useLearningWorkspace';
 import { progress, streak, storage, exportProgress } from './progress';
+import { nativeServiceUrl } from './runtime/native';
 const workspace = useLearningWorkspace();
 
 const {
@@ -51,12 +64,13 @@ const {
         <div class="topbar-leading">
           <button
             class="icon-button focus-button"
-            :aria-label="progress.focusMode ? '退出专注模式' : '进入专注模式'"
+            :aria-label="progress.focusMode ? '展开侧栏' : '收起侧栏'"
             :aria-pressed="progress.focusMode"
-            :title="progress.focusMode ? '退出专注模式' : '专注模式'"
+            :title="progress.focusMode ? '展开侧栏' : '收起侧栏'"
             @click="progress.focusMode = !progress.focusMode"
           >
-            <BookOpen :size="17" />
+            <PanelLeftOpen v-if="progress.focusMode" :size="17" />
+            <PanelLeftClose v-else :size="17" />
           </button>
           <div class="breadcrumbs">
             <button
@@ -79,6 +93,8 @@ const {
           </div>
         </div>
         <div class="topbar-right">
+          <ResourceLoading />
+          <NativeServiceSettings />
           <button
             class="icon-button"
             aria-label="搜索知识点"
@@ -99,7 +115,7 @@ const {
         {{ storage.error }}<button @click="exportProgress">导出备份</button>
       </div>
       <div class="content-layout" :class="{ 'full-width': progress.page !== 'learn' }">
-        <main id="main-content" class="main-content">
+        <main id="main-content" :key="nativeServiceUrl" class="main-content">
           <LessonPage
             v-if="progress.page === 'learn'"
             @navigate="navigate"

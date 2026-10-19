@@ -9,7 +9,6 @@
 <p align="center">
   <a href="#-在这里你可以">功能介绍</a> ·
   <a href="#-学习路线">学习路线</a> ·
-  <a href="#-开始学习">开始学习</a> ·
   <a href="docs/learning.md">学习指南</a> ·
   <a href="docs/development.md">开发指南</a>
 </p>
@@ -38,11 +37,11 @@
 
 - 在 `main.rs` 与 `Cargo.toml` 标签间切换，按需选择课程支持的依赖。
 - 调整编辑器与终端的上下、左右布局，拖拽分隔线分配空间。
-- 进入网页全屏或专注模式，集中阅读与编写代码。
+- 进入网页全屏或折叠侧栏，集中阅读与编写代码。
 - 隐藏示例里的 Rust 注释，先看实现，需要时再展开。
 - 在终端中查看带颜色的运行输出，跟随程序执行观察结果。
 
-> 完整编辑与执行能力由本机 Rust 工具链提供。无本机服务时可使用浏览器基础回退，适合入门语法实验；外部依赖、系统网络等内容需要完整模式。
+> 网页默认使用浏览器模式。需要完整代码补全、悬浮说明、实时诊断或本机 Cargo 执行时，请前往[发布页](https://github.com/YanChenBai/rust-path/releases)下载适合当前系统的增强服务，按[学习指南](docs/learning.md#连接本机语言服务)启动并连接。本机需安装 Rust 工具链及 rust-analyzer、rust-src 组件。
 
 ### 把自己的理解留在教材旁边
 
@@ -71,27 +70,6 @@
 
 Unsafe / FFI、过程宏编写、性能分析与 WebAssembly 尚未列入当前课程。
 
-## 🚀 开始学习
-
-启动前需要安装：
-
-| 基础依赖                                        | 用途                                                         |
-| ----------------------------------------------- | ------------------------------------------------------------ |
-| [Vite+](https://viteplus.dev/)                  | 管理 Node.js、pnpm 和项目任务，无需单独安装 Node.js 与 pnpm  |
-| [Rust](https://www.rust-lang.org/tools/install) | 通过 rustup 安装 stable 工具链，提供课程代码的编译与运行能力 |
-
-在项目根目录执行：
-
-```sh
-vp install
-vpr prepare:runtime
-vpr start
-```
-
-打开终端显示的本地地址即可。运行资源准备和工具链检查由脚本统一处理，`vpr start` 会先构建项目，再启动服务。
-
-本项目面向本机学习，完整服务仅接受 localhost 和同源请求。更多使用说明见[学习指南](docs/learning.md)。
-
 ## ✍️ 添加课程
 
 可以补充现有课时，也可以添加完整章节。教材使用 Markdown 编写，Rust 示例独立维护，新增内容会自动进入课程目录。
@@ -115,4 +93,4 @@ vpr start
 
 课程内容参考 [The Rust Programming Language](https://doc.rust-lang.org/book/)、[Rust by Example](https://doc.rust-lang.org/rust-by-example/)、Rust 标准库与依赖官方文档。本项目为独立学习教程，并非 Rust 官方课程。
 
-编辑与学习体验基于 Vue、Monaco Editor、Nitro 和 Rust 工具链构建。浏览器运行资源的来源与许可见[第三方说明](THIRD_PARTY_NOTICES.md)。
+编辑与学习体验基于 Vue、Monaco Editor、Rust 本机服务和 Rust 工具链构建。浏览器运行资源的来源与许可见[第三方说明](THIRD_PARTY_NOTICES.md)。

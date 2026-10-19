@@ -63,11 +63,9 @@ function openEditor(value: string) {
   modal.value = true;
 }
 
-async function editChapter() {
+function editChapter() {
   chapterDraft.value = chapterNote.value;
   chapterEditing.value = true;
-  await nextTick();
-  chapterInput.value?.focus();
 }
 
 function saveChapter() {
@@ -263,30 +261,41 @@ onBeforeUnmount(() => {
         <SquarePen :size="15" />{{ chapterNote.trim() ? '修改笔记' : '写笔记' }}
       </button>
     </header>
-    <div v-if="chapterEditing" class="chapter-note-editor">
-      <label for="chapter-note-draft" class="notes-input-label">Markdown 内容</label>
-      <textarea
-        id="chapter-note-draft"
-        ref="chapterInput"
-        v-model="chapterDraft"
-        class="notes-markdown-input"
-        placeholder="## 我的理解&#10;&#10;支持 **重点**、列表、引用和代码块…"
-        @keydown.ctrl.enter.prevent="saveChapter"
-        @keydown.meta.enter.prevent="saveChapter"
+    <Transition
+      name="note-swap"
+      mode="out-in"
+      @after-enter="chapterEditing && chapterInput?.focus()"
+    >
+      <div v-if="chapterEditing" key="editor" class="chapter-note-editor">
+        <label for="chapter-note-draft" class="notes-input-label">Markdown 内容</label>
+        <textarea
+          id="chapter-note-draft"
+          ref="chapterInput"
+          v-model="chapterDraft"
+          class="notes-markdown-input"
+          placeholder="## 我的理解&#10;&#10;支持 **重点**、列表、引用和代码块…"
+          @keydown.ctrl.enter.prevent="saveChapter"
+          @keydown.meta.enter.prevent="saveChapter"
+        />
+        <footer class="chapter-note-actions">
+          <span
+            >{{ chapterDraft === chapterNote ? '内容未修改' : '尚未保存' }} · Ctrl / ⌘ + Enter
+            保存</span
+          >
+          <button class="secondary-button" @click="chapterEditing = false">取消</button>
+          <button class="primary-button" @click="saveChapter"><Check :size="15" />保存笔记</button>
+        </footer>
+      </div>
+      <MarkdownNote
+        v-else-if="chapterNote.trim()"
+        key="preview"
+        class="chapter-note-card"
+        :text="chapterNote"
       />
-      <footer class="chapter-note-actions">
-        <span
-          >{{ chapterDraft === chapterNote ? '内容未修改' : '尚未保存' }} · Ctrl / ⌘ + Enter
-          保存</span
-        >
-        <button class="secondary-button" @click="chapterEditing = false">取消</button>
-        <button class="primary-button" @click="saveChapter"><Check :size="15" />保存笔记</button>
-      </footer>
-    </div>
-    <MarkdownNote v-else-if="chapterNote.trim()" :text="chapterNote" />
-    <p v-else class="notes-empty">
-      把这一章的理解留在这里。支持 Markdown，编辑后点击「保存笔记」。
-    </p>
+      <p v-else key="empty" class="notes-empty">
+        把这一章的理解留在这里。支持 Markdown，编辑后点击「保存笔记」。
+      </p>
+    </Transition>
   </section>
   <Teleport v-for="marker in markers" :key="marker.annotation.id" :to="marker.element">
     <AnnotationCapsule
@@ -302,15 +311,17 @@ onBeforeUnmount(() => {
     />
   </Teleport>
   <Teleport to="body">
-    <button
-      v-if="selection && !modal"
-      class="selection-annotate"
-      :style="selectionStyle"
-      @pointerdown.prevent
-      @click="addAnnotation"
-    >
-      <MessageSquarePlus :size="15" />添加注释
-    </button>
+    <Transition name="annotation-popover">
+      <button
+        v-if="selection && !modal"
+        class="selection-annotate"
+        :style="selectionStyle"
+        @pointerdown.prevent
+        @click="addAnnotation"
+      >
+        <MessageSquarePlus :size="15" />添加注释
+      </button>
+    </Transition>
     <div ref="floating" class="study-notes-floating">
       <button
         class="study-notes-trigger"
@@ -366,45 +377,54 @@ onBeforeUnmount(() => {
         </article>
       </nav>
     </Transition>
-    <div v-if="modal" class="modal-backdrop notes-backdrop" @click.self="close" @keydown="keyboard">
-      <section
-        ref="dialog"
-        class="dialog study-notes-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-label="编辑文字注释"
+    <Transition name="modal">
+      <div
+        v-if="modal"
+        class="modal-backdrop notes-backdrop"
+        @click.self="close"
+        @keydown="keyboard"
       >
-        <header class="dialog-header">
-          <div>
-            <p>{{ chapter.title }}</p>
-            <h2>编辑文字注释</h2>
+        <section
+          ref="dialog"
+          class="dialog study-notes-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="编辑文字注释"
+        >
+          <header class="dialog-header">
+            <div>
+              <p>{{ chapter.title }}</p>
+              <h2>编辑文字注释</h2>
+            </div>
+            <button class="icon-button" aria-label="关闭编辑" @click="close">
+              <X :size="19" />
+            </button>
+          </header>
+          <blockquote class="annotation-quote">
+            {{ active?.quote }}
+          </blockquote>
+          <div class="notes-modal-body">
+            <label for="note-draft" class="notes-input-label">Markdown 内容</label
+            ><textarea
+              id="note-draft"
+              ref="input"
+              v-model="draft"
+              :maxlength="20000"
+              class="notes-markdown-input"
+              placeholder="## 我的理解&#10;&#10;支持 **重点**、列表、引用和代码块…"
+            />
           </div>
-          <button class="icon-button" aria-label="关闭编辑" @click="close"><X :size="19" /></button>
-        </header>
-        <blockquote class="annotation-quote">
-          {{ active?.quote }}
-        </blockquote>
-        <div class="notes-modal-body">
-          <label for="note-draft" class="notes-input-label">Markdown 内容</label
-          ><textarea
-            id="note-draft"
-            ref="input"
-            v-model="draft"
-            :maxlength="20000"
-            class="notes-markdown-input"
-            placeholder="## 我的理解&#10;&#10;支持 **重点**、列表、引用和代码块…"
-          />
-        </div>
-        <footer class="notes-editor-footer">
-          <button v-if="active?.body" class="annotation-edit" @click="removeAnnotation">
-            <Trash2 :size="15" />删除注释</button
-          ><span>Ctrl / ⌘ + Enter 保存</span
-          ><button class="secondary-button" @click="close">取消</button
-          ><button class="primary-button" :disabled="!draft.trim()" @click="save">
-            <Check :size="15" />保存注释
-          </button>
-        </footer>
-      </section>
-    </div>
+          <footer class="notes-editor-footer">
+            <button v-if="active?.body" class="annotation-edit" @click="removeAnnotation">
+              <Trash2 :size="15" />删除注释</button
+            ><span>Ctrl / ⌘ + Enter 保存</span
+            ><button class="secondary-button" @click="close">取消</button
+            ><button class="primary-button" :disabled="!draft.trim()" @click="save">
+              <Check :size="15" />保存注释
+            </button>
+          </footer>
+        </section>
+      </div>
+    </Transition>
   </Teleport>
 </template>

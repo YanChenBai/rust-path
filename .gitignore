@@ -11,6 +11,7 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+/build/
 coverage
 *.local
 
@@ -56,4 +57,5 @@ __screenshots__/
 /.nitro/
 
 /course/target/
+/target/
 /.rust-path/

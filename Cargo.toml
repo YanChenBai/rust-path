@@ -1,0 +1,10 @@
+[workspace]
+members = ["crates/server"]
+exclude = ["course"]
+resolver = "3"
+
+[profile.release]
+opt-level = "s"
+lto = "thin"
+codegen-units = 1
+strip = true

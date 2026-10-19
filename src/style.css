@@ -61,7 +61,7 @@ summary:focus-visible {
 }
 input:focus,
 textarea:focus {
-  outline: 1px solid var(--accent);
+  outline: 1px solid #666;
 }
 ::selection {
   background: #545454;
@@ -3311,8 +3311,7 @@ body {
   padding: 7px 10px;
   color: #bcbcbc;
 }
-.focus-button:hover,
-.focus-button[aria-pressed='true'] {
+.focus-button:hover {
   background: #ededed;
   color: #161616;
   border-color: #ededed;
@@ -4645,10 +4644,12 @@ h1 {
   height: 30px;
   color: #929292 !important;
 }
-.focus-button:hover,
-.focus-button[aria-pressed='true'] {
+.focus-button:hover {
   background: #292929 !important;
   color: #ddd !important;
+}
+.focus-button[aria-pressed='true'] {
+  background: transparent !important;
 }
 .sidebar .brand {
   padding-right: 8px !important;
@@ -6162,8 +6163,14 @@ h1 {
 }
 .chapter-notes {
   margin-top: 32px;
-  padding: 24px 0 120px;
+  padding: 24px 0 320px;
   border-top: 1px solid #333;
+}
+.chapter-note-card {
+  padding: 20px;
+  border: 1px solid #ffffff0d;
+  border-radius: 8px;
+  background: #ffffff04;
 }
 .chapter-note-editor .notes-markdown-input {
   min-height: 280px;
@@ -6240,6 +6247,10 @@ h1 {
   padding-bottom: 12px;
   border-bottom: 1px solid #3b3b3b;
 }
+.chapter-annotation-entry:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
 .annotation-list-item {
   border: 0;
   padding: 12px 0;
@@ -6292,7 +6303,8 @@ h1 {
   font-size: 13px;
 }
 .notes-markdown-input:focus {
-  border-color: #aaa;
+  border-color: #666;
+  outline: 0;
 }
 .notes-editor-footer {
   display: flex;
@@ -6321,6 +6333,9 @@ h1 {
   .notes-editor-footer .secondary-button {
     margin-left: auto;
   }
+}
+.topbar {
+  padding-left: 24px;
 }
 .topbar-leading {
   display: flex;
@@ -6403,6 +6418,9 @@ h1 {
     padding: 6px;
     min-width: 28px;
   }
+  .topbar {
+    padding-left: 7px;
+  }
   .topbar-leading .breadcrumbs > span:not(:last-child) {
     display: none;
   }
@@ -6417,6 +6435,17 @@ h1 {
   .global-progress-track > span {
     transition: none;
   }
+}
+.note-swap-enter-active,
+.note-swap-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 180ms ease;
+}
+.note-swap-enter-from,
+.note-swap-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
 }
 .annotation-popover-enter-active,
 .annotation-popover-leave-active {
@@ -6442,11 +6471,15 @@ h1 {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .note-swap-enter-active,
+  .note-swap-leave-active,
   .annotation-popover-enter-active,
   .annotation-popover-leave-active,
   .markdown-document .annotation-capsule {
     transition: none;
   }
+  .note-swap-enter-from,
+  .note-swap-leave-to,
   .annotation-popover-enter-from,
   .annotation-popover-leave-to {
     transform: none;

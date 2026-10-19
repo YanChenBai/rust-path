@@ -42,7 +42,7 @@ watch(open, value => emit('update:expanded', value));
     </button>
   </span>
   <Teleport to="body">
-    <Transition name="annotation-popover">
+    <Transition name="annotation-popover" appear>
       <aside
         v-if="open"
         :id="'annotation-detail-' + annotation.id"

@@ -1,6 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
-import { nitro } from 'nitro/vite';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import { defineConfig, lazyPlugins } from 'vite-plus';
 
@@ -58,7 +57,6 @@ export default defineConfig({
     courseMarkdown(),
     vueDevTools(),
     tailwindcss(),
-    nitro(),
   ]),
 
   server: {
@@ -66,6 +64,10 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
     },
+  },
+
+  build: {
+    outDir: 'dist',
   },
 
   preview: {
@@ -77,11 +79,6 @@ export default defineConfig({
 
   resolve: {
     tsconfigPaths: true,
-  },
-
-  nitro: {
-    serverDir: './server',
-    preset: 'node-server',
   },
 
   test: {
@@ -96,40 +93,59 @@ export default defineConfig({
     cache: true,
     tasks: {
       dev: 'vp dev',
-      start: {
-        command: `oxnode scripts/start.ts`,
-        dependsOn: ['build'],
+      'dev:server': {
+        command: 'cargo run --locked --package rust-path-server --',
+        cache: false,
+      },
+      'test:server': {
+        command: 'cargo test --locked --package rust-path-server',
+        cache: false,
+      },
+      'check:server': {
+        command: [
+          'cargo fmt --all --check',
+          'cargo clippy --locked --workspace --all-targets -- -D warnings',
+        ],
+        cache: false,
+      },
+      'build:server': {
+        command: 'cargo build --locked --release --package rust-path-server',
+        // 编译缓存由 Cargo 负责，不重复归档 target 或搬运可执行文件。
         cache: false,
       },
       build: {
         command: 'vp build',
         cache: {
-          input: [{ auto: true }, '!node_modules/.nitro/**', '!.output/**'],
-          output: [{ auto: true }, '!node_modules/.nitro/**'],
+          input: [
+            { auto: true },
+            '!dist/**',
+            '!build/**',
+            '!.output/**',
+            '!.rust-path/**',
+            '!course/target/**',
+            '!target/**',
+          ],
+          output: ['dist/**'],
         },
         dependsOn: ['typecheck'],
       },
       typecheck: {
         command: 'vue-tsc --build',
         cache: {
-          input: [{ auto: true }, '!**/*.tsbuildinfo'],
-          output: [{ auto: true }, '!**/*.tsbuildinfo'],
+          input: [{ auto: true }, '!**/*.tsbuildinfo', '!dist/**', '!build/**', '!.output/**'],
+          output: [],
         },
       },
       preview: 'vp preview',
-      'prepare:runtime': {
-        command: 'oxnode scripts/prepare-runtime.ts',
+      'prepare:browser': {
+        command: 'oxnode scripts/prepare-browser.ts',
         cache: {
-          env: ['RUSTUP_TOOLCHAIN', 'RUSTUP_HOME', 'CARGO_HOME', 'PATH'],
           input: [
             'package.json',
             'pnpm-lock.yaml',
             'tsconfig.node.json',
-            'scripts/prepare-runtime.ts',
-            'scripts/native-runtime.ts',
+            'scripts/prepare-browser.ts',
             'scripts/logger.ts',
-            '**/rust-toolchain',
-            '**/rust-toolchain.toml',
           ],
           output: ['public/runtime/**', 'public/analyzer/**'],
         },

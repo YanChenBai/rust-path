@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 
 import { detectNative, nativeRequest, nativeRunStream } from './native';
+import { beginResourceLoading } from './resource-loading';
 
 export const runtimeStatus = ref('浏览器 Rust · 待加载');
 
@@ -29,6 +30,8 @@ let worker: Worker | undefined;
 let sequence = 0;
 let running = false;
 let nativeRequestId: string | undefined;
+let runtimeLoading: ReturnType<typeof beginResourceLoading> | undefined;
+let browserReady = false;
 
 export interface RunOptions {
   mode?: 'run' | 'check' | 'build' | 'test';
@@ -76,7 +79,7 @@ export async function runRust(code: string, options: RunOptions = {}): Promise<R
   }
 
   if (options.nativeRequired || options.dependencies?.length) {
-    throw new Error('这个示例需要 Nitro + Cargo 工具链，请使用 vp dev 启动完整学习环境。');
+    throw new Error('这个示例需要连接本机 Rust 增强服务，浏览器模式暂不支持。');
   }
 
   if (running) {
@@ -86,7 +89,17 @@ export async function runRust(code: string, options: RunOptions = {}): Promise<R
   running = true;
 
   if (!worker) {
-    worker = new Worker(`${import.meta.env.BASE_URL}runtime/miri-worker.js`);
+    runtimeLoading?.dispose();
+    runtimeLoading = beginResourceLoading('runtime', '加载浏览器 Rust 工具链');
+    browserReady = false;
+
+    try {
+      worker = new Worker(`${import.meta.env.BASE_URL}runtime/miri-worker.js`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '无法启动浏览器 Rust 引擎';
+      fail(message);
+      throw error;
+    }
 
     worker.onmessage = ({ data }: MessageEvent<WorkerResult>) => {
       if (data.type === 'output' && pending && data.bytes) {
@@ -96,10 +109,17 @@ export async function runRust(code: string, options: RunOptions = {}): Promise<R
 
       if (data.type === 'progress') {
         runtimeStatus.value = `加载 Rust 工具链 ${data.loaded ?? 0}/${data.total ?? '…'}`;
+        runtimeLoading?.progress(data.loaded ?? 0, data.total ?? 0);
+
+        if (data.total && data.loaded === data.total) {
+          runtimeLoading?.stage('初始化浏览器 Rust 引擎');
+        }
       }
 
       if (data.type === 'ready') {
         runtimeStatus.value = 'Rust · 浏览器就绪';
+        browserReady = true;
+        runtimeLoading?.ready('浏览器 Rust 已就绪');
       }
 
       if (data.type === 'result' && pending) {
@@ -154,6 +174,12 @@ export async function runRust(code: string, options: RunOptions = {}): Promise<R
 }
 
 function fail(message: string) {
+  if (browserReady) {
+    runtimeLoading?.dispose();
+  } else {
+    runtimeLoading?.fail(message);
+  }
+
   if (pending) {
     clearTimeout(pending.timer);
     pending.reject(new Error(message));
@@ -174,5 +200,7 @@ export function stopRust() {
     return;
   }
 
+  runtimeLoading?.dispose();
+  runtimeLoading = undefined;
   fail('执行已停止。');
 }

@@ -12,7 +12,8 @@ import {
   FileCog,
   Maximize2,
   Minimize2,
-  BookOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
   ArrowLeft,
   Search,
   Menu,
@@ -27,7 +28,10 @@ import { analyze } from '../runtime/analyzer';
 import { commentPresentation, type CommentAwareEditor } from '../runtime/editor-comments';
 import { detectNative, nativeAvailable } from '../runtime/native';
 import { NativeAnalyzer } from '../runtime/native-analyzer';
+import { beginResourceLoading } from '../runtime/resource-loading';
 import { runRust, runtimeStatus, stopRust, type RunResult } from '../runtime/rust';
+import NativeServiceSettings from './layout/NativeServiceSettings.vue';
+import ResourceLoading from './layout/ResourceLoading.vue';
 import TerminalView from './TerminalView.vue';
 
 const props = withDefaults(
@@ -132,6 +136,8 @@ function animateFullscreen(before: DOMRect | undefined, value: boolean) {
 }
 
 const loading = ref(true);
+let editorLoading: ReturnType<typeof beginResourceLoading> | undefined;
+let analyzerLoading: ReturnType<typeof beginResourceLoading> | undefined;
 const busy = ref(false);
 
 const analyzer = ref('语义引擎加载中');
@@ -300,10 +306,16 @@ async function updateAnalysis() {
 }
 
 async function startAnalyzer() {
+  analyzerLoading = beginResourceLoading('editor', '连接语义服务');
   let hasNative = await detectNative();
+
+  if (disposed) {
+    return;
+  }
 
   if (!hasNative && !crossOriginIsolated) {
     analyzer.value = '语义引擎需要跨源隔离响应头';
+    analyzerLoading.fail(analyzer.value);
     return;
   }
 
@@ -323,6 +335,7 @@ async function startAnalyzer() {
 
         // Cargo 可运行不代表 rust-analyzer 已安装，语义服务单独回退。
         hasNative = false;
+        analyzerLoading.dispose();
         await call('update', model!.getValue());
       }
 
@@ -355,6 +368,7 @@ async function startAnalyzer() {
         }, 900);
       }
     } else {
+      analyzerLoading.dispose();
       await call('update', model!.getValue());
     }
 
@@ -363,6 +377,7 @@ async function startAnalyzer() {
     }
 
     ready = true;
+    analyzerLoading.ready('语义服务已就绪');
     analyzer.value = hasNative ? 'rust-analyzer · 实时诊断' : 'rust-analyzer · WASM';
     await updateAnalysis();
     subscriptions.push(
@@ -411,14 +426,23 @@ async function startAnalyzer() {
     );
   } catch {
     analyzer.value = '语义引擎加载失败，运行仍可用';
+    analyzerLoading.fail(analyzer.value);
   }
 }
 
 onMounted(async () => {
+  editorLoading = beginResourceLoading('editor', '加载代码编辑器', 8);
+  let completed = 0;
+
+  const imported = <T>(value: T) => {
+    editorLoading?.progress(++completed, 8);
+    return value;
+  };
+
   try {
     const [api, workerModule] = await Promise.all([
-      import('monaco-editor/editor/editor.api.js'),
-      import('monaco-editor/editor/editor.worker.js?worker'),
+      import('monaco-editor/editor/editor.api.js').then(imported),
+      import('monaco-editor/editor/editor.worker.js?worker').then(imported),
     ]);
 
     if (disposed) {
@@ -428,15 +452,21 @@ onMounted(async () => {
     monaco = api;
     self.MonacoEnvironment = { getWorker: () => new workerModule.default() };
     await Promise.all([
-      import('monaco-editor/languages/definitions/rust/register.js'),
-      import('monaco-editor/editor/contrib/hover/browser/hoverContribution.js'),
-      import('monaco-editor/editor/contrib/suggest/browser/suggestController.js'),
-      import('monaco-editor/editor/contrib/parameterHints/browser/parameterHints.js'),
-      import('monaco-editor/editor/contrib/gotoError/browser/gotoError.js'),
+      import('monaco-editor/languages/definitions/rust/register.js').then(imported),
+      import('monaco-editor/editor/contrib/hover/browser/hoverContribution.js').then(imported),
+      import('monaco-editor/editor/contrib/suggest/browser/suggestController.js').then(imported),
+      import('monaco-editor/editor/contrib/parameterHints/browser/parameterHints.js').then(
+        imported,
+      ),
+      import('monaco-editor/editor/contrib/gotoError/browser/gotoError.js').then(imported),
     ]);
 
     // 先等 Rust 分词器就绪，再应用保存的注释视图，避免刷新后漏掉首次隐藏。
-    const rustLanguage = await import('monaco-editor/languages/definitions/rust/rust.js');
+    const rustLanguage = await import('monaco-editor/languages/definitions/rust/rust.js').then(
+      imported,
+    );
+
+    editorLoading.stage('初始化代码编辑器');
     monaco.languages.setMonarchTokensProvider('rust', rustLanguage.language);
     monaco.languages.setLanguageConfiguration('rust', rustLanguage.conf);
 
@@ -525,10 +555,12 @@ onMounted(async () => {
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => void run());
     updateCommentView();
     loading.value = false;
+    editorLoading.ready('代码编辑器已就绪');
     void startAnalyzer();
   } catch (err) {
     loading.value = false;
     error.value = err instanceof Error ? err.message : '编辑器加载失败';
+    editorLoading.fail(error.value);
   }
 });
 
@@ -695,6 +727,8 @@ defineExpose({
 });
 onBeforeUnmount(() => {
   disposed = true;
+  editorLoading?.dispose();
+  analyzerLoading?.dispose();
   fullscreenAnimation?.cancel();
 
   window.removeEventListener('keydown', escapeEditor, true);
@@ -761,6 +795,8 @@ onBeforeUnmount(() => {
           </button>
         </div>
         <div class="editor-actions">
+          <ResourceLoading v-if="editorId === 'playground' || maximized" />
+          <NativeServiceSettings v-if="editorId === 'playground' || maximized" />
           <button
             v-if="editorId === 'playground'"
             class="icon-button"
@@ -773,11 +809,12 @@ onBeforeUnmount(() => {
           <button
             v-if="editorId === 'playground'"
             class="icon-button"
-            :aria-label="progress.focusMode ? '退出专注模式' : '进入专注模式'"
-            :title="progress.focusMode ? '退出专注模式' : '专注模式'"
+            :aria-label="progress.focusMode ? '展开侧栏' : '收起侧栏'"
+            :title="progress.focusMode ? '展开侧栏' : '收起侧栏'"
             @click="progress.focusMode = !progress.focusMode"
           >
-            <BookOpen :size="16" /></button
+            <PanelLeftOpen v-if="progress.focusMode" :size="16" />
+            <PanelLeftClose v-else :size="16" /></button
           ><span
             class="editor-saved"
             :class="{ 'save-error': storage.error }"

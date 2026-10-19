@@ -1,11 +1,9 @@
 // TSConfig for modules that run in Node.js environment via either transpilation or type-stripping.
 {
-  "extends": "@tsconfig/node24/tsconfig.json",
+  "extends": "@tsconfig/node26/tsconfig.json",
   "include": [
-    "scripts/prepare-runtime.ts",
+    "scripts/prepare-browser.ts",
     "scripts/logger.ts",
-    "scripts/native-runtime.ts",
-    "scripts/native-runtime.test.ts",
     "scripts/verify-course.ts",
     "scripts/course-verification/**/*.ts",
     "vite.config.*",

@@ -3,12 +3,11 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { logger, logReady } from './logger';
-import { ensureRustAnalyzer } from './native-runtime';
 
 const started = performance.now();
 const root = new URL('../', import.meta.url);
 
-async function prepareRuntime() {
+async function prepareBrowser() {
   logger.info('准备浏览器 Rust 编译器与分析资源…');
   await mkdir(new URL('public/runtime', root), { recursive: true });
   await cp(
@@ -78,12 +77,11 @@ async function prepareRuntime() {
     }),
   );
   logger.info('✓ 浏览器 Rust 运行资源');
-  const nativeReady = await ensureRustAnalyzer();
-  logReady(nativeReady ? 'runtime · browser + rust-analyzer' : 'runtime · browser only', started);
+  logReady('browser runtime', started);
 }
 
 try {
-  await prepareRuntime();
+  await prepareBrowser();
 } catch (error) {
   logger.error(error instanceof Error ? (error.stack ?? error.message) : String(error));
   logReady('runtime', started, false);

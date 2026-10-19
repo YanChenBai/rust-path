@@ -1,6 +1,14 @@
 import type * as Monaco from 'monaco-editor/editor/editor.api.js';
 
-import { nativeRequest } from './native';
+import { nativeRequest, nativeServiceUrl } from './native';
+import { beginResourceLoading } from './resource-loading';
+
+interface AnalyzerStatus {
+  ready: boolean;
+  health: 'ok' | 'warning' | 'error';
+  message?: string;
+  tasks: { title?: string; message?: string; percentage?: number }[];
+}
 interface Position {
   line: number;
   character: number;
@@ -86,8 +94,8 @@ function completionItem(
   };
 }
 
-function closeSession(id: string) {
-  return nativeRequest('lsp/close', { id }).catch(() => {
+function closeSession(id: string, endpoint: string) {
+  return nativeRequest('lsp/close', { id }, endpoint).catch(() => {
     // 断连时由服务端会话过期清理回收资源。
   });
 }
@@ -96,33 +104,97 @@ export class NativeAnalyzer {
   id = '';
   version = 1;
   private generation = 0;
+  private loading?: ReturnType<typeof beginResourceLoading>;
+  private readonly endpoint = nativeServiceUrl.value;
+
+  private request<T>(path: string, body: unknown) {
+    return nativeRequest<T>(path, body, this.endpoint);
+  }
 
   async open(code: string, dependencies: string[]) {
     const generation = ++this.generation;
-    const result = await nativeRequest<{ id: string }>('lsp/open', { code, dependencies });
+    this.loading?.dispose();
+    const loading = beginResourceLoading('language', 'Starting language server');
+    this.loading = loading;
 
-    if (generation !== this.generation) {
-      await closeSession(result.id);
-      return;
+    try {
+      const result = await this.request<{ id: string }>('lsp/open', { code, dependencies });
+
+      if (generation !== this.generation) {
+        await closeSession(result.id, this.endpoint);
+        return;
+      }
+
+      const previous = this.id;
+      this.id = result.id;
+      this.version = 1;
+
+      if (previous) {
+        await closeSession(previous, this.endpoint);
+      }
+
+      await this.waitUntilReady(result.id, generation, loading);
+    } catch (error) {
+      if (generation === this.generation) {
+        loading.fail(error instanceof Error ? error.message : 'Language server failed to start');
+        const id = this.id;
+        this.id = '';
+
+        if (id) {
+          await closeSession(id, this.endpoint);
+        }
+      }
+
+      throw error;
     }
+  }
 
-    const previous = this.id;
-    this.id = result.id;
-    this.version = 1;
+  private async waitUntilReady(
+    id: string,
+    generation: number,
+    loading: ReturnType<typeof beginResourceLoading>,
+  ) {
+    const deadline = Date.now() + 180_000;
 
-    if (previous) {
-      await closeSession(previous);
+    while (generation === this.generation) {
+      const status = await this.request<AnalyzerStatus>('lsp/status', { id: id });
+
+      if (generation !== this.generation) {
+        return;
+      }
+
+      if (status.health === 'error') {
+        throw new Error(status.message || 'Language server failed to start');
+      }
+
+      if (status.ready) {
+        loading.ready('Language server ready');
+        return;
+      }
+
+      const task = status.tasks.at(-1);
+      loading.stage(task?.title || 'Loading workspace');
+
+      if (task?.percentage !== undefined) {
+        loading.progress(task.percentage, 100);
+      }
+
+      if (Date.now() >= deadline) {
+        throw new Error('Language server startup timed out');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 250));
     }
   }
 
   async update(code: string) {
-    await nativeRequest('lsp/change', { id: this.id, code });
+    await this.request('lsp/change', { id: this.id, code });
     this.version++;
     return { diagnostics: [] };
   }
 
   async diagnostics() {
-    const data = await nativeRequest<{ diagnostics: Diagnostic[] }>('lsp/diagnostics', {
+    const data = await this.request<{ diagnostics: Diagnostic[] }>('lsp/diagnostics', {
       id: this.id,
     });
 
@@ -136,7 +208,7 @@ export class NativeAnalyzer {
   }
 
   async completions(line: number, column: number): Promise<Monaco.languages.CompletionItem[]> {
-    const data = await nativeRequest<{ result: Completion[] | { items: Completion[] } | null }>(
+    const data = await this.request<{ result: Completion[] | { items: Completion[] } | null }>(
       'lsp/completion',
       { id: this.id, position: { line: line - 1, character: column - 1 } },
     );
@@ -146,7 +218,7 @@ export class NativeAnalyzer {
   }
 
   async hover(line: number, column: number): Promise<Monaco.languages.Hover | null> {
-    const data = await nativeRequest<{
+    const data = await this.request<{
       result: {
         contents: string | Documentation | Array<string | Documentation>;
         range?: Range;
@@ -169,11 +241,12 @@ export class NativeAnalyzer {
 
   close() {
     this.generation++;
+    this.loading?.dispose();
     const id = this.id;
     this.id = '';
 
     if (id) {
-      void closeSession(id);
+      void closeSession(id, this.endpoint);
     }
   }
 }

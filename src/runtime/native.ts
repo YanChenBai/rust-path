@@ -1,5 +1,7 @@
 import { ref } from 'vue';
 
+import { beginResourceLoading } from './resource-loading';
+
 export const nativeAvailable = ref(false);
 
 export const rustcVersion = ref<string | null>(null);
@@ -11,17 +13,83 @@ interface NativeCapabilities {
   cargo: string | null;
 }
 let probe: Promise<boolean> | undefined;
+const serviceKey = 'rust-path:native-service';
 
-export async function nativeRequest<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${import.meta.env.BASE_URL}api/${path}`, {
+function savedServiceUrl() {
+  try {
+    const value = localStorage.getItem(serviceKey);
+    return value ? normalizeServiceUrl(value) : '';
+  } catch {
+    return '';
+  }
+}
+
+function normalizeServiceUrl(value: string) {
+  if (!value.trim()) {
+    return '';
+  }
+
+  const url = new URL(value.trim());
+
+  if (
+    !['http:', 'https:'].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error('请输入不含账号、查询参数或片段的 HTTP / HTTPS 服务地址');
+  }
+
+  return url.href.replace(/\/+$/, '');
+}
+
+export const nativeServiceUrl = ref(savedServiceUrl());
+
+export const nativeConnectionStatus = ref<
+  'browser' | 'disconnected' | 'connecting' | 'connected' | 'error'
+>(nativeServiceUrl.value ? 'disconnected' : 'browser');
+
+export function configureNativeService(value: string) {
+  const url = normalizeServiceUrl(value);
+
+  // 先持久化；存储失败时不切换到无法保存的配置。
+  if (url) {
+    localStorage.setItem(serviceKey, url);
+  } else {
+    localStorage.removeItem(serviceKey);
+  }
+
+  nativeServiceUrl.value = url;
+  nativeConnectionStatus.value = url ? 'disconnected' : 'browser';
+  probe = undefined;
+  nativeAvailable.value = false;
+  rustcVersion.value = null;
+  cargoVersion.value = null;
+}
+
+function serviceApiUrl(path: string, endpoint: string) {
+  if (!endpoint) {
+    throw new Error('未配置本机增强服务，当前使用浏览器模式');
+  }
+
+  return `${endpoint}/api/${path}`;
+}
+
+export async function nativeRequest<T>(
+  path: string,
+  body: unknown,
+  endpoint = nativeServiceUrl.value,
+): Promise<T> {
+  const response = await fetch(serviceApiUrl(path, endpoint), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(130000),
+    signal: AbortSignal.timeout(path === 'capabilities' ? 2000 : 130000),
   });
 
   if (!response.headers.get('content-type')?.includes('application/json')) {
-    throw new Error('Nitro 服务尚未连接');
+    throw new Error('本机 Rust 服务未返回有效响应');
   }
 
   const data = await response.json();
@@ -34,24 +102,52 @@ export async function nativeRequest<T>(path: string, body: unknown): Promise<T> 
 }
 
 export function detectNative() {
-  probe ??= nativeRequest<NativeCapabilities>('capabilities', {})
+  const endpoint = nativeServiceUrl.value;
+
+  if (!endpoint) {
+    return Promise.resolve(false);
+  }
+
+  if (probe) {
+    return probe;
+  }
+
+  const loading = beginResourceLoading('runtime', '检测本机 Rust 服务');
+  nativeConnectionStatus.value = 'connecting';
+
+  const currentProbe = nativeRequest<NativeCapabilities>('capabilities', {}, endpoint)
     .then(data => {
+      if (probe !== currentProbe) {
+        return false;
+      }
+
       rustcVersion.value = data.rustc;
       cargoVersion.value = data.cargo;
       nativeAvailable.value = data.native;
+      nativeConnectionStatus.value = data.native ? 'connected' : 'error';
+      loading.dispose();
       return data.native;
     })
     .catch(() => {
+      if (probe !== currentProbe) {
+        return false;
+      }
+
       nativeAvailable.value = false;
+      nativeConnectionStatus.value = 'error';
       rustcVersion.value = null;
       cargoVersion.value = null;
       return false;
     })
     .finally(() => {
-      if (!nativeAvailable.value) {
+      loading.dispose();
+
+      if (probe === currentProbe && !nativeAvailable.value) {
         probe = undefined;
       }
     });
+
+  probe = currentProbe;
   return probe;
 }
 
@@ -70,7 +166,7 @@ export async function nativeRunStream(
   body: unknown,
   onOutput: (channel: 'stdout' | 'stderr', text: string) => void,
 ): Promise<{ success: boolean; stdout: string; stderr: string; elapsed: number }> {
-  const response = await fetch(`${import.meta.env.BASE_URL}api/run`, {
+  const response = await fetch(serviceApiUrl('run', nativeServiceUrl.value), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...(body as object), stream: true }),
