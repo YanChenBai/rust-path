@@ -1,12 +1,8 @@
+import documents from 'virtual:course-pages';
 import { computed, defineAsyncComponent } from 'vue';
 
-const documents = import.meta.glob('../docs/**/*.md');
-
 const components = Object.fromEntries(
-  Object.entries(documents).map(([path, load]) => [
-    path.replace('../docs/', ''),
-    defineAsyncComponent(load as Parameters<typeof defineAsyncComponent>[0]),
-  ]),
+  Object.entries(documents).map(([path, load]) => [path, defineAsyncComponent(load)]),
 );
 
 export function useCourseDocument(path: () => string) {

@@ -61,7 +61,7 @@ course/                         # 仓库根目录的独立 Cargo workspace
 
 `src/runtime` 只保留类型、解析器、运行时入口和学习记录迁移所需的历史快照。当前章节顺序由 `chapter.md` 的 `icon` 决定；深入课时通过 `advanced: true` 标记。新增章节时在 `course/NN-name/Cargo.toml` 声明本章依赖；根 workspace 自动发现章节包，Cargo 自动发现 `src/bin/*.rs`。
 
-正文通过 `unplugin-vue-markdown` 编译成 Vue 组件，按需加载。可以直接使用 Markdown 标题、段落、行内代码、列表、表格、链接和代码围栏。修改教程会更新目录与页面。
+正文通过 `unplugin-vue-markdown` 编译成 Vue 组件，并内联到所属页面的 HTML：课时包含正文与配套讲解，试卷包含本章全部题目，专项项目独立成组。不再为每篇 Markdown 或每个页面保留独立的内容 JS。站内切换会从目标 HTML 注册组件并缓存。可以直接使用 Markdown 标题、段落、行内代码、列表、表格、链接和代码围栏。修改教程会更新目录与页面。
 
 ## 知识点
 

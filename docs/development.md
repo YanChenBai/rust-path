@@ -39,7 +39,7 @@ vp dev
 
 界面使用 Vue、motion-v、Tailwind CSS 和 Monaco；本机服务使用 Rust、Axum 和 Tokio。前端依赖见 [package.json](../package.json)，服务依赖见 [crates/server/Cargo.toml](../crates/server/Cargo.toml)。根 Cargo workspace 管理服务，`course/` 保持独立的课程 workspace。
 
-教程按需编译加载，课程目录在构建时从同一份 Markdown 提取。Rust 源码通过虚拟模块接入网页，无需在教程中重复维护代码。编写约定见[教程编写](../src/docs/README.md)与[课程 Rust 源码](../course/README.md)。
+教程组件直接内联到所属页面的 HTML：课时包含正文与配套讲解，试卷包含本章全部题目，专项项目独立成组。构建结束后移除中间页面 JS，不再为 Markdown 输出独立懒加载文件。首屏直接注册 HTML 中的组件，站内切换读取目标 HTML 的内联模块并缓存，公共运行资源仍可共享。课程目录在构建时从同一份 Markdown 提取。Rust 源码通过虚拟模块接入网页，无需在教程中重复维护代码。编写约定见[教程编写](../src/docs/README.md)与[课程 Rust 源码](../course/README.md)。
 
 ## 验证修改
 

@@ -7,6 +7,7 @@ import type {} from 'vite-ssg';
 import { courseCatalog } from './plugins/course-catalog';
 import { courseMarkdown } from './plugins/markdown-plugin';
 import { staticNotFound } from './plugins/static-not-found';
+import { inlineCoursePages } from './scripts/inline-course-pages';
 import { projectVersion } from './scripts/release-version';
 
 const courseVerificationCache = {
@@ -58,6 +59,7 @@ export default defineConfig({
     // 旧进度模型仍是共享响应式对象，每条路由在渲染前重置并顺序生成。
     concurrency: 1,
     formatting: 'none',
+    onFinished: () => inlineCoursePages('dist'),
   },
   plugins: lazyPlugins(() => [
     {

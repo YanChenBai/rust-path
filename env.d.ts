@@ -1,4 +1,10 @@
 /// <reference types="vite/client" />
+declare module 'virtual:course-pages' {
+  import type { Component } from 'vue';
+  const documents: Record<string, () => Promise<Component>>;
+
+  export default documents;
+}
 declare module 'virtual:course-catalog' {
   import type { buildDocuments } from '@/runtime/course-documents';
   const documents: Omit<ReturnType<typeof buildDocuments>, 'assessmentDefinitions'>;
