@@ -46,7 +46,10 @@ test('一个编辑器完成或卸载不会隐藏其他编辑器的加载状态',
 test('失败显示异常原因，重新加载成功后隐藏', async () => {
   const editor = beginResourceLoading('editor', '语义引擎');
   editor.fail('语义引擎加载超时');
-  expect(await render()).toContain('语义引擎加载超时');
+  const failed = await render();
+  expect(failed).toContain('语义引擎加载超时');
+  expect(failed).not.toContain('resource-ring-graphic');
+  expect(failed).toContain('width="18"');
   editor.dispose();
   const retry = beginResourceLoading('editor', '重试语义引擎');
   retry.ready('语义引擎已就绪');

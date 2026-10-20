@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { brotliDecompressSync } from 'node:zlib';
 
 import { logger, logReady } from './logger';
+import { adaptRuntimeWorker } from './runtime-worker';
 
 const started = performance.now();
 const root = new URL('../', import.meta.url);
@@ -37,11 +38,13 @@ async function prepareBrowser() {
     },
   );
 
-  // 保留上游 worker，仅在 WASI 输出回调处增加流式消息，不修改编译器。
+  // 适配资源解压和流式输出，不修改编译器。
   let workerSource = await readFile(
     new URL('node_modules/@live-codes/rust-wasm/dist/worker.iife.debug.js', root),
     'utf8',
   );
+
+  workerSource = adaptRuntimeWorker(workerSource);
 
   for (const channel of ['stdout', 'stderr']) {
     const original = `new ConsoleStdout((d) => ${channel}Chunks.push(d))`;

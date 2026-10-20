@@ -169,6 +169,7 @@ export default defineConfig({
             'pnpm-lock.yaml',
             'tsconfig.node.json',
             'scripts/prepare-browser.ts',
+            'scripts/runtime-worker.ts',
             'scripts/logger.ts',
           ],
           output: ['public/runtime/**', 'public/analyzer/**'],

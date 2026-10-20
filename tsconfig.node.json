@@ -4,6 +4,7 @@
   "include": [
     "scripts/release*.ts",
     "scripts/prepare-browser.ts",
+    "scripts/runtime-worker*.ts",
     "scripts/logger.ts",
     "scripts/verify-course.ts",
     "scripts/course-verification/**/*.ts",

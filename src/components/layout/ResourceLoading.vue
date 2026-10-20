@@ -79,7 +79,12 @@ const resources = computed(() =>
           "
           :aria-valuetext="resource.description"
         >
-          <svg viewBox="0 0 28 28" aria-hidden="true">
+          <svg
+            v-if="resource.status !== 'error'"
+            class="resource-ring-graphic"
+            viewBox="0 0 28 28"
+            aria-hidden="true"
+          >
             <circle class="resource-ring-track" cx="14" cy="14" r="11" />
             <circle
               v-if="resource.status !== 'error'"
@@ -92,7 +97,7 @@ const resources = computed(() =>
               :stroke-dashoffset="resource.indeterminate ? 0 : 100 - resource.percent"
             />
           </svg>
-          <AlertCircle v-if="resource.status === 'error'" :size="13" aria-hidden="true" />
+          <AlertCircle v-if="resource.status === 'error'" :size="18" aria-hidden="true" />
           <Check v-else-if="resource.status === 'ready'" :size="12" aria-hidden="true" />
           <small v-else-if="!resource.indeterminate">{{ resource.percent }}</small>
         </span>
@@ -115,7 +120,7 @@ const resources = computed(() =>
   align-items: center;
   gap: 5px;
   color: #999;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
 }
 .resource-indicator.loading {
@@ -128,8 +133,8 @@ const resources = computed(() =>
   position: relative;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 .resource-stage {
@@ -138,11 +143,11 @@ const resources = computed(() =>
   text-overflow: ellipsis;
   color: #999;
 }
-.resource-ring > svg:first-child {
+.resource-ring > .resource-ring-graphic {
   position: absolute;
   inset: 0;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   transform: rotate(-90deg);
   fill: none;
   stroke-width: 1.7;
@@ -159,7 +164,7 @@ const resources = computed(() =>
   font-size: 8px;
   font-variant-numeric: tabular-nums;
 }
-.resource-ring.indeterminate > svg:first-child {
+.resource-ring.indeterminate > .resource-ring-graphic {
   animation: resource-spin 1.2s linear infinite;
 }
 @keyframes resource-spin {
@@ -168,7 +173,7 @@ const resources = computed(() =>
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .resource-ring.indeterminate > svg:first-child {
+  .resource-ring.indeterminate > .resource-ring-graphic {
     animation: none;
   }
   .resource-ring-value {
