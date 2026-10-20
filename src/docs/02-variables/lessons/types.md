@@ -22,12 +22,12 @@ order: 2
 
 ## 亲手试一试
 
-```rust playground id=types source=02-variables/src/bin/types.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 修改元组的姓名和数组内容，预测 .1、[1] 与 `len()` 各自得到什么。
 
 </CourseCallout>
+
+```rust playground id=types source=02-variables/src/bin/types.rs
+
+```

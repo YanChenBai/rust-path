@@ -22,12 +22,12 @@ Rust 程序从 `main` 函数开始执行。`fn` 用来定义函数，花括号�
 
 ## 亲手试一试
 
-```rust playground id=hello source=01-start/src/bin/hello.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把问候语改成你的名字，运行属于你的第一个 Rust 程序。
 
 </CourseCallout>
+
+```rust playground id=hello source=01-start/src/bin/hello.rs
+
+```

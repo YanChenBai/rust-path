@@ -24,12 +24,12 @@ order: 4
 
 ## 亲手试一试
 
-```rust playground id=syntax-paths-methods source=02-variables/src/bin/syntax-paths-methods.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 对照 `String::new()` 与 text.is_empty()，指出每一处左侧是类型还是值。
 
 </CourseCallout>
+
+```rust playground id=syntax-paths-methods source=02-variables/src/bin/syntax-paths-methods.rs
+
+```

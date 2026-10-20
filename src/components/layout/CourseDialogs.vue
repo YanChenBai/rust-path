@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { X, ArrowUpRight, BookOpen, Zap, Flag, ExternalLink, HardDrive } from 'lucide-vue-next';
 
+import { version } from '../../../package.json';
 import { useCourseSearch } from '../../composables/useCourseSearch';
 import { sources } from '../../runtime/course';
 const showSearch = defineModel<boolean>('searchOpen', { required: true });
@@ -27,10 +28,13 @@ function navigate(id: string) {
         class="dialog"
         role="dialog"
         aria-modal="true"
-        :aria-label="showSearch ? '搜索知识点' : '学习指南'"
+        :aria-label="showSearch ? '搜索知识点' : '关于 Rust Path'"
       >
         <div class="dialog-header">
-          <h2>{{ showSearch ? '你想探索什么？' : '欢迎来到 Rust Path' }}</h2>
+          <div class="dialog-heading">
+            <h2>{{ showSearch ? '你想探索什么？' : '欢迎来到 Rust Path' }}</h2>
+            <span v-if="!showSearch" class="help-version">v{{ version }}</span>
+          </div>
           <button
             class="icon-button"
             aria-label="关闭对话框"
@@ -120,6 +124,22 @@ function navigate(id: string) {
 </template>
 
 <style scoped>
+.dialog-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.help-version {
+  padding: 2px 7px;
+  border: 1px solid #3b3b3b;
+  border-radius: 4px;
+  background: #ffffff05;
+  color: #888;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
 .help-service p {
   margin-top: 10px;
   color: #aaa;

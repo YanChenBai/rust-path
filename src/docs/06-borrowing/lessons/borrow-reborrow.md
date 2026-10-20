@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=borrow-reborrow source=06-borrowing/src/bin/borrow-reborrow.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把只读引用放到修改之前，并在修改之后再次打印它，观察编译诊断。
 
 </CourseCallout>
+
+```rust playground id=borrow-reborrow source=06-borrowing/src/bin/borrow-reborrow.rs
+
+```

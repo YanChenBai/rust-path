@@ -24,12 +24,12 @@ Arc 的原子引用计数只管理有多少所有者，不会让里面的普通�
 
 ## 亲手试一试
 
-```rust playground id=shared-invariants source=26-shared/src/bin/shared-invariants.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把两个独立加锁操作改成一次加锁的完整更新，解释竞态窗口的区别。
 
 </CourseCallout>
+
+```rust playground id=shared-invariants source=26-shared/src/bin/shared-invariants.rs
+
+```

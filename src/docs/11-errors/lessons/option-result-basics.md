@@ -24,12 +24,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=option-result-basics source=11-errors/src/bin/option-result-basics.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把下标改为 0、1 和 2，预测每种输入会得到 `Some` 还是 `None`。
 
 </CourseCallout>
+
+```rust playground id=option-result-basics source=11-errors/src/bin/option-result-basics.rs
+
+```

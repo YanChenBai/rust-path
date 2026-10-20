@@ -22,12 +22,12 @@ vec[index] 越界会 panic，get(index) 则返回 `None`。根据数据是否可
 
 ## 亲手试一试
 
-```rust playground id=vec source=10-collections/src/bin/vec.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 再加入一条记录，统计总学习时间。
 
 </CourseCallout>
+
+```rust playground id=vec source=10-collections/src/bin/vec.rs
+
+```

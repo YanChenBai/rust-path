@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=sqlite-transactions source=32-database/src/bin/sqlite-transactions.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 在事务内第二次写入触发 CHECK，确认第一条写入也被回滚。
 
 </CourseCallout>
+
+```rust playground id=sqlite-transactions source=32-database/src/bin/sqlite-transactions.rs
+
+```

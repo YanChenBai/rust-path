@@ -26,12 +26,12 @@ write 允许只写出部分字节，write_all 才会尝试把整个切片写完�
 
 ## 亲手试一试
 
-```rust playground id=io-streams source=21-io/src/bin/io-streams.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加一个返回错误的自定义读取器，验证读取失败不会被当作空输入。
 
 </CourseCallout>
+
+```rust playground id=io-streams source=21-io/src/bin/io-streams.rs
+
+```

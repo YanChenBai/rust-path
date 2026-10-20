@@ -26,12 +26,12 @@ macro_rules! 在编译期间匹配 token 模式并展开代码，不是运行时
 
 ## 亲手试一试
 
-```rust playground id=macros-rules source=23-macros/src/bin/macros-rules.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 用带计数副作用的表达式调用宏，验证每个参数只执行一次，并验证空参数。
 
 </CourseCallout>
+
+```rust playground id=macros-rules source=23-macros/src/bin/macros-rules.rs
+
+```

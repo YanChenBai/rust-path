@@ -24,12 +24,12 @@ order: 3
 
 ## 亲手试一试
 
-```rust playground id=types-string-basics source=02-variables/src/bin/types-string-basics.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把 name 改为中文，用 push_str 和 push 各追加一次，并预测 `len` 的字节数。
 
 </CourseCallout>
+
+```rust playground id=types-string-basics source=02-variables/src/bin/types-string-basics.rs
+
+```

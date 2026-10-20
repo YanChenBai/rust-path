@@ -24,12 +24,12 @@ Rust 的值有负责清理它的所有者。把 `String` 按值赋给新绑定�
 
 ## 亲手试一试
 
-```rust playground id=ownership-copy source=05-ownership/src/bin/ownership-copy.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 移除 `clone` 并尝试再次打印 first，读懂 moved value 诊断。
 
 </CourseCallout>
+
+```rust playground id=ownership-copy source=05-ownership/src/bin/ownership-copy.rs
+
+```

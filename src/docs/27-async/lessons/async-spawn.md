@@ -28,12 +28,12 @@ advanced: true
 
 ## 亲手试一试
 
-```rust playground id=async-spawn source=27-async/src/bin/async-spawn.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把工作函数改成 `Result`，分别处理业务 `Err` 与 JoinError，不用双重 unwrap。
 
 </CourseCallout>
+
+```rust playground id=async-spawn source=27-async/src/bin/async-spawn.rs
+
+```

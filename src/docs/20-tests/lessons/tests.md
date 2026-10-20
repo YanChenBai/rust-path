@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=tests source=20-tests/src/bin/tests.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加一个断言，验证恰好 60 分钟时返回 1 小时。
 
 </CourseCallout>
+
+```rust playground id=tests source=20-tests/src/bin/tests.rs
+
+```

@@ -28,12 +28,12 @@ Tokio timeout 取消的是被包裹的 Future；若只包裹 JoinHandle，后台
 
 ## 亲手试一试
 
-```rust playground id=async-cancel source=28-shutdown/src/bin/async-cancel.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 为 select 增加取消信号，分别验证取消优先与正常完成；始终回收已启动任务。
 
 </CourseCallout>
+
+```rust playground id=async-cancel source=28-shutdown/src/bin/async-cancel.rs
+
+```

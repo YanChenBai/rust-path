@@ -25,12 +25,12 @@ advanced: true
 
 ## 亲手试一试
 
-```rust playground id=traits-generics source=13-generics/src/bin/traits-generics.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 用 `String` 切片调用 greatest，再解释为何无需 `Clone`；增加空切片断言。
 
 </CourseCallout>
+
+```rust playground id=traits-generics source=13-generics/src/bin/traits-generics.rs
+
+```

@@ -22,12 +22,12 @@ x + 1 是表达式，会产生值；x + 1; 是语句，不会作为尾表达式�
 
 ## 亲手试一试
 
-```rust playground id=functions source=03-functions/src/bin/functions.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 为函数增加一个 multiplier 参数，让不同难度获得不同积分。
 
 </CourseCallout>
+
+```rust playground id=functions source=03-functions/src/bin/functions.rs
+
+```

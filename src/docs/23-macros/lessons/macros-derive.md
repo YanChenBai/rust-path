@@ -26,12 +26,12 @@ derive 是属性语法，常用于根据结构体或枚举生成 `trait` 实现�
 
 ## 亲手试一试
 
-```rust playground id=macros-derive source=23-macros/src/bin/macros-derive.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 删去 PartialEq 观察断言错误；再手写一个等价实现，体会派生生成的边界。
 
 </CourseCallout>
+
+```rust playground id=macros-derive source=23-macros/src/bin/macros-derive.rs
+
+```

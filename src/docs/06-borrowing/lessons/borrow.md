@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=borrow source=06-borrowing/src/bin/borrow.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把名字改成中文，对比 `len()` 与 chars().count()。
 
 </CourseCallout>
+
+```rust playground id=borrow source=06-borrowing/src/bin/borrow.rs
+
+```

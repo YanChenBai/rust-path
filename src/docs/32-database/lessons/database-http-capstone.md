@@ -28,12 +28,12 @@ HTTP 已响应不等于数据库已提交；持久化验收要在连接关闭后
 
 ## 亲手试一试
 
-```rust playground id=database-http-capstone source=32-database/src/bin/database-http-capstone.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 在副本中把客户端 minutes 改为 0，预测 400 响应与零条持久化记录，再修改断言验证。
 
 </CourseCallout>
+
+```rust playground id=database-http-capstone source=32-database/src/bin/database-http-capstone.rs
+
+```

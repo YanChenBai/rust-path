@@ -22,12 +22,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=result source=11-errors/src/bin/result.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把输入改为 abc，观察错误如何被传递而不是让程序崩溃。
 
 </CourseCallout>
+
+```rust playground id=result source=11-errors/src/bin/result.rs
+
+```

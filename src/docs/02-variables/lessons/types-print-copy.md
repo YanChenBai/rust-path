@@ -34,12 +34,12 @@ order: 7
 
 ## 亲手试一试
 
-```rust playground id=types-print-copy source=02-variables/src/bin/types-print-copy.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 尝试用 {} 打印数组，修复为 {:?}；再把 `String` 的 `clone` 去掉并使用原绑定，观察移动错误。
 
 </CourseCallout>
+
+```rust playground id=types-print-copy source=02-variables/src/bin/types-print-copy.rs
+
+```

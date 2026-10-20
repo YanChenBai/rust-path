@@ -26,12 +26,12 @@ crate:: 指当前 crate 根；二进制 crate 与同 package 的库 crate 也不
 
 ## 亲手试一试
 
-```rust playground id=cargo-layout source=22-cargo/src/bin/cargo-layout.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 在独立练习目录拆出 lib.rs 和 `main.rs`，再用 `pub use` 维持调用路径。
 
 </CourseCallout>
+
+```rust playground id=cargo-layout source=22-cargo/src/bin/cargo-layout.rs
+
+```

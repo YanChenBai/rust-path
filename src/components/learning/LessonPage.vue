@@ -125,32 +125,14 @@ const notify = (message: string) => emit('reward', message);
           }}<ArrowRight :size="16" />
         </button>
       </div>
-      <div class="lesson-navigation">
-        <button :disabled="lessonIndex === 0" @click="navigate(allLessons[lessonIndex - 1]!.id)">
-          <ChevronLeft :size="14" />上一知识点</button
-        ><a
-          :href="
-            chapter.source.startsWith('https://')
-              ? chapter.source
-              : `https://doc.rust-lang.org/book/${chapter.source}`
-          "
-          target="_blank"
-          rel="noopener noreferrer"
-          >延伸阅读 · Rust 官方文档<ExternalLink :size="12" /></a
-        ><button
-          v-if="lessonIndex < allLessons.length - 1"
-          @click="navigate(allLessons[lessonIndex + 1]!.id)"
-        >
-          下一知识点<ChevronRight :size="14" />
-        </button>
-      </div>
     </template>
     <template v-else
       ><ChapterQuiz
         :key="`${chapter.id}-${section}`"
         :chapter="chapter"
         :project="section === 'project'"
-        @reward="notify" />
+        @reward="notify"
+      />
       <div class="quiz-navigation">
         <button class="secondary-button" @click="section = 'lesson'">
           <ChevronLeft :size="14" />回顾知识</button
@@ -170,8 +152,9 @@ const notify = (message: string) => emit('reward', message);
           @click="navigate(chapters[chapterIndex + 1]!.lessons[0]!.id)"
         >
           进入下一章<ArrowRight :size="15" />
-        </button></div
-    ></template>
+        </button>
+      </div>
+    </template>
   </motion.div>
   <StudyNotes
     :chapter="chapter"
@@ -179,4 +162,32 @@ const notify = (message: string) => emit('reward', message);
     :content="section === 'lesson' ? reading : undefined"
     @navigate="navigate"
   />
+  <nav v-if="section === 'lesson'" class="lesson-navigation" aria-label="知识点导航">
+    <a
+      :href="
+        chapter.source.startsWith('https://')
+          ? chapter.source
+          : `https://doc.rust-lang.org/book/${chapter.source}`
+      "
+      target="_blank"
+      rel="noopener noreferrer"
+      >延伸阅读 · Rust 官方文档<ExternalLink :size="12" />
+    </a>
+    <button
+      v-if="lessonIndex > 0"
+      class="lesson-navigation-card previous"
+      @click="navigate(allLessons[lessonIndex - 1]!.id)"
+    >
+      <span><ChevronLeft :size="14" />上一节</span>
+      <strong>{{ allLessons[lessonIndex - 1]!.title }}</strong>
+    </button>
+    <button
+      v-if="lessonIndex < allLessons.length - 1"
+      class="lesson-navigation-card next"
+      @click="navigate(allLessons[lessonIndex + 1]!.id)"
+    >
+      <span>下一节<ChevronRight :size="14" /></span>
+      <strong>{{ allLessons[lessonIndex + 1]!.title }}</strong>
+    </button>
+  </nav>
 </template>

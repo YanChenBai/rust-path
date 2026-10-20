@@ -25,12 +25,12 @@ split_whitespace 不移除标点；题目没有要求时不要擅自把 Rust! �
 
 ## 亲手试一试
 
-```rust playground id=stdlib-text source=10-collections/src/bin/stdlib-text.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 用 HashSet 去重后排序，并对空输入、重复中文和不同大小写编写断言。
 
 </CourseCallout>
+
+```rust playground id=stdlib-text source=10-collections/src/bin/stdlib-text.rs
+
+```

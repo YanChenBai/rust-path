@@ -26,12 +26,12 @@ profile 决定优化、调试信息、溢出检查等编译设置，--release �
 
 ## 亲手试一试
 
-```rust playground id=cargo-build source=22-cargo/src/bin/cargo-build.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 在临时工程依次执行 cargo check、cargo build、cargo test，记录它们生成和执行的内容。
 
 </CourseCallout>
+
+```rust playground id=cargo-build source=22-cargo/src/bin/cargo-build.rs
+
+```

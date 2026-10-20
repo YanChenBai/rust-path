@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=generic-structures source=13-generics/src/bin/generic-structures.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加一个接收 `&mut self` 的 replace 方法，返回旧值而不要求 `Clone`。
 
 </CourseCallout>
+
+```rust playground id=generic-structures source=13-generics/src/bin/generic-structures.rs
+
+```

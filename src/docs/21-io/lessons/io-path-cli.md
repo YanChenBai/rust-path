@@ -26,12 +26,12 @@ Path 是路径的借用视图，PathBuf 拥有可修改的路径。路径可能�
 
 ## 亲手试一试
 
-```rust playground id=io-path-cli source=21-io/src/bin/io-path-cli.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 在副本程序中从 args_os 接收路径，缺少参数时返回明确错误而不是 unwrap。
 
 </CourseCallout>
+
+```rust playground id=io-path-cli source=21-io/src/bin/io-path-cli.rs
+
+```

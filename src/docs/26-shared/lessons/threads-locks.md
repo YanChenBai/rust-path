@@ -26,12 +26,12 @@ Send 表示类型值可以安全地转移到另一线程，Sync 表示其共享�
 
 ## 亲手试一试
 
-```rust playground id=threads-locks source=26-shared/src/bin/threads-locks.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 缩短写守卫作用域，再在另一个线程读取快照，解释 join 提供的完成关系。
 
 </CourseCallout>
+
+```rust playground id=threads-locks source=26-shared/src/bin/threads-locks.rs
+
+```

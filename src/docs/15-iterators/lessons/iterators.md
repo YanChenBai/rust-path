@@ -22,12 +22,12 @@ iter() 借用集合元素，into_iter() 消耗集合，iter_mut() 提供可变�
 
 ## 亲手试一试
 
-```rust playground id=iterators source=15-iterators/src/bin/iterators.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把筛选条件改为至少 20 分钟，再把结果转换为双倍积分。
 
 </CourseCallout>
+
+```rust playground id=iterators source=15-iterators/src/bin/iterators.rs
+
+```

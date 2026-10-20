@@ -26,12 +26,12 @@ HTTP 传输成功与 2xx 状态不同；客户端要明确是否把 4xx、5xx �
 
 ## 亲手试一试
 
-```rust playground id=network-http source=31-http/src/bin/network-http.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把响应正文换成你好，确认 Content-Length 为 6；重复运行观察端口变化。
 
 </CourseCallout>
+
+```rust playground id=network-http source=31-http/src/bin/network-http.rs
+
+```

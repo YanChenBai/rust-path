@@ -71,8 +71,8 @@ const {
         >
           <ChartNoAxesCombined :size="18" /><span class="sr-only">学习足迹</span>
         </button>
-        <button @click="emit('help')" title="学习指南" aria-label="学习指南">
-          <CircleHelp :size="18" /><span class="sr-only">学习指南</span>
+        <button @click="emit('help')" title="关于 Rust Path" aria-label="关于 Rust Path">
+          <CircleHelp :size="18" /><span class="sr-only">关于 Rust Path</span>
         </button>
       </nav>
     </div>

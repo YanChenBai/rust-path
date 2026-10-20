@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=if source=04-control/src/bin/if.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 试着把 score 改成 59、60 和 90，观察边界条件会发生什么。
 
 </CourseCallout>
+
+```rust playground id=if source=04-control/src/bin/if.rs
+
+```

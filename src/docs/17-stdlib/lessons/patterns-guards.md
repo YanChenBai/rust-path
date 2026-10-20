@@ -24,12 +24,12 @@ _ 不绑定，_name 仍是绑定；忽略的写法会影响所有权。
 
 ## 亲手试一试
 
-```rust playground id=patterns-guards source=17-stdlib/src/bin/patterns-guards.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把范围守卫改为范围模式，再尝试给守卫增加运行时阈值。
 
 </CourseCallout>
+
+```rust playground id=patterns-guards source=17-stdlib/src/bin/patterns-guards.rs
+
+```

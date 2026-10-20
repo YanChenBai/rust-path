@@ -24,12 +24,12 @@ trim 不原地清理，to_uppercase 不原地大写；push_str 才会改变可�
 
 ## 亲手试一试
 
-```rust playground id=types-methods source=02-variables/src/bin/types-methods.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 删掉保存 trim 返回值的那行，观察原文本是否改变；再对数字调用 `len`，读诊断。
 
 </CourseCallout>
+
+```rust playground id=types-methods source=02-variables/src/bin/types-methods.rs
+
+```

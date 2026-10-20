@@ -24,12 +24,12 @@ self、&self、`&mut self` 分别表达消费、共享读取和独占修改。
 
 ## 亲手试一试
 
-```rust playground id=struct-methods source=08-models/src/bin/struct-methods.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加 `reset(&mut self)`，并确认调用后仍能通过 get 读取。
 
 </CourseCallout>
+
+```rust playground id=struct-methods source=08-models/src/bin/struct-methods.rs
+
+```

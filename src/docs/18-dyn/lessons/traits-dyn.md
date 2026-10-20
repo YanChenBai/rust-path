@@ -25,12 +25,12 @@ advanced: true
 
 ## 亲手试一试
 
-```rust playground id=traits-dyn source=18-dyn/src/bin/traits-dyn.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加第三个 Label 实现，分别使用 &dyn Label 和 Box&lt;dyn Label&gt; 组成集合。
 
 </CourseCallout>
+
+```rust playground id=traits-dyn source=18-dyn/src/bin/traits-dyn.rs
+
+```

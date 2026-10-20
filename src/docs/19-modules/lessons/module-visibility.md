@@ -24,12 +24,12 @@ package 是 Cargo 管理的项目单位，crate 是编译单位，module 是 cra
 
 ## 亲手试一试
 
-```rust playground id=module-visibility source=19-modules/src/bin/module-visibility.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 移除 new 的 `pub`，观察 `main` 无法访问；再把字段改为 `pub`，讨论会绕过什么校验。
 
 </CourseCallout>
+
+```rust playground id=module-visibility source=19-modules/src/bin/module-visibility.rs
+
+```

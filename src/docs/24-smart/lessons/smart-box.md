@@ -25,12 +25,12 @@ Drop 的执行时机取决于拥有值的作用域；借用不会获得清理责
 
 ## 亲手试一试
 
-```rust playground id=smart-box source=24-smart/src/bin/smart-box.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把显式 drop 移除，比较日志顺序；用 Box 为递归枚举增加结束节点。
 
 </CourseCallout>
+
+```rust playground id=smart-box source=24-smart/src/bin/smart-box.rs
+
+```

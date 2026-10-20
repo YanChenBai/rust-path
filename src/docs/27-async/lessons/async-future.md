@@ -28,12 +28,12 @@ Tokio 提供调度器、计时器和异步 I/O 驱动等运行设施。普通同
 
 ## 亲手试一试
 
-```rust playground id=async-future source=27-async/src/bin/async-future.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 创建 Future 后先不 `await`，用 Cell 记录函数体何时真正开始执行。
 
 </CourseCallout>
+
+```rust playground id=async-future source=27-async/src/bin/async-future.rs
+
+```

@@ -26,12 +26,12 @@ TCP 提供可靠、有序的字节流，不保留应用 write 的调用边界。
 
 ## 亲手试一试
 
-```rust playground id=network-tcp source=30-network/src/bin/network-tcp.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把 payload 改成 UTF-8 字节，增加长度前缀；对超长输入先返回 InvalidInput。
 
 </CourseCallout>
+
+```rust playground id=network-tcp source=30-network/src/bin/network-tcp.rs
+
+```

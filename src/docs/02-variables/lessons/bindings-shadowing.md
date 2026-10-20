@@ -24,12 +24,12 @@ order: 6
 
 ## 亲手试一试
 
-```rust playground id=bindings-shadowing source=02-variables/src/bin/bindings-shadowing.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把第二个 `let` 改成普通赋值，观察类型和可变性错误；再比较内层作用域退出后的值。
 
 </CourseCallout>
+
+```rust playground id=bindings-shadowing source=02-variables/src/bin/bindings-shadowing.rs
+
+```

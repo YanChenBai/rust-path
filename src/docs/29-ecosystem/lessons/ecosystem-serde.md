@@ -29,12 +29,12 @@ JSON 数字与 Rust 整数范围不同；反序列化为 `u32` 可以拒绝负�
 
 ## 亲手试一试
 
-```rust playground id=ecosystem-serde source=29-ecosystem/src/bin/ecosystem-serde.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加未知字段和缺失字段输入，再根据协议目标决定是否保留 deny_unknown_fields。
 
 </CourseCallout>
+
+```rust playground id=ecosystem-serde source=29-ecosystem/src/bin/ecosystem-serde.rs
+
+```

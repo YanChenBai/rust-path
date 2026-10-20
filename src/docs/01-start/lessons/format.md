@@ -22,12 +22,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=format source=01-start/src/bin/format.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 修改学习目标，再添加一行注释解释你的目标。
 
 </CourseCallout>
+
+```rust playground id=format source=01-start/src/bin/format.rs
+
+```

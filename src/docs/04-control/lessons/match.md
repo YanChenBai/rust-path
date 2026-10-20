@@ -22,12 +22,12 @@ order: 2
 
 ## 亲手试一试
 
-```rust playground id=match source=04-control/src/bin/match.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 给 7 添加一个专属分支，再尝试输入 0 和 10。
 
 </CourseCallout>
+
+```rust playground id=match source=04-control/src/bin/match.rs
+
+```

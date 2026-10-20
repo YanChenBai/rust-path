@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=enum source=09-enums/src/bin/enum.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 将 next 改为 `None`，设计一个友好的完成提示。
 
 </CourseCallout>
+
+```rust playground id=enum source=09-enums/src/bin/enum.rs
+
+```

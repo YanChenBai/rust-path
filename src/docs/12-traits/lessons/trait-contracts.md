@@ -24,12 +24,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=trait-contracts source=12-traits/src/bin/trait-contracts.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 为另一个结构体实现 Minutes，比较调用接口相同而内部数据不同的情况。
 
 </CourseCallout>
+
+```rust playground id=trait-contracts source=12-traits/src/bin/trait-contracts.rs
+
+```

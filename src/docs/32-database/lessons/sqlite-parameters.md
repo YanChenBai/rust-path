@@ -24,12 +24,12 @@ rusqlite 是同步接口。异步应用不能在运行时工作线程上无约�
 
 ## 亲手试一试
 
-```rust playground id=sqlite-parameters source=32-database/src/bin/sqlite-parameters.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 插入包含单引号的名称，确认使用绑定参数后仍能原样读取。
 
 </CourseCallout>
+
+```rust playground id=sqlite-parameters source=32-database/src/bin/sqlite-parameters.rs
+
+```

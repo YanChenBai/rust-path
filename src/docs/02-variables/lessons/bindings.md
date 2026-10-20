@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=bindings source=02-variables/src/bin/bindings.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 去掉 `mut` 并编译，读一读错误；然后修复它并把步数增加到 3。
 
 </CourseCallout>
+
+```rust playground id=bindings source=02-variables/src/bin/bindings.rs
+
+```

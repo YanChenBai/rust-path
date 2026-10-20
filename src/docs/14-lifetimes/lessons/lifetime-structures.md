@@ -24,12 +24,12 @@ T: 'static 表示 T 不包含更短的借用，不表示值永不释放。拥有
 
 ## 亲手试一试
 
-```rust playground id=lifetime-structures source=14-lifetimes/src/bin/lifetime-structures.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把 source 放入内部作用域，试图在作用域外使用 Excerpt，解释编译器拒绝的位置。
 
 </CourseCallout>
+
+```rust playground id=lifetime-structures source=14-lifetimes/src/bin/lifetime-structures.rs
+
+```

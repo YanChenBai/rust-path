@@ -25,12 +25,12 @@ Rc&lt;RefCell&lt;T&gt;&gt; 是单线程可变图结构中的常见组合：Rc �
 
 ## 亲手试一试
 
-```rust playground id=smart-cells source=24-smart/src/bin/smart-cells.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 持有共享守卫时尝试修改，再显式 drop 守卫重试；确认失败时原值不变。
 
 </CourseCallout>
+
+```rust playground id=smart-cells source=24-smart/src/bin/smart-cells.rs
+
+```

@@ -24,12 +24,12 @@ select! 取消的是未选中的等待分支，具体操作是否取消安全仍
 
 ## 亲手试一试
 
-```rust playground id=async-backpressure source=28-shutdown/src/bin/async-backpressure.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把容量改为 1，给消费者增加短暂延迟，观察 send 的等待位置。
 
 </CourseCallout>
+
+```rust playground id=async-backpressure source=28-shutdown/src/bin/async-backpressure.rs
+
+```

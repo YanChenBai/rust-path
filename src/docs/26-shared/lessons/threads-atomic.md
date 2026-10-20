@@ -26,12 +26,12 @@ Release 写入与读取到对应发布的 Acquire 读取，可以为此前写入
 
 ## 亲手试一试
 
-```rust playground id=threads-atomic source=26-shared/src/bin/threads-atomic.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把任务数改成零、一个和多个，验证结果；解释为什么这里不用自旋等待。
 
 </CourseCallout>
+
+```rust playground id=threads-atomic source=26-shared/src/bin/threads-atomic.rs
+
+```

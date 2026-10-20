@@ -22,12 +22,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=loops source=04-control/src/bin/loops.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把范围改为 1..=10，只累加其中的偶数。
 
 </CourseCallout>
+
+```rust playground id=loops source=04-control/src/bin/loops.rs
+
+```

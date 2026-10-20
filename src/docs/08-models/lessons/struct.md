@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=struct source=08-models/src/bin/struct.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 新增 `completed: bool` 字段，并添加一个完成学习的方法。
 
 </CourseCallout>
+
+```rust playground id=struct source=08-models/src/bin/struct.rs
+
+```

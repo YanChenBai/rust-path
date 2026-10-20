@@ -112,14 +112,14 @@ function save() {
   modal.value = false;
 }
 
-function removeAnnotation() {
-  if (!active.value || !confirm('删除这条文字注释？')) {
+function removeAnnotation(annotation: TextAnnotation, lessonId: string) {
+  if (!confirm('删除这条文字注释？')) {
     return;
   }
 
-  progress.annotations[activeLessonId.value] = (
-    progress.annotations[activeLessonId.value] ?? []
-  ).filter(item => item.id !== active.value!.id);
+  progress.annotations[lessonId] = (progress.annotations[lessonId] ?? []).filter(
+    item => item.id !== annotation.id,
+  );
   selectedId.value = undefined;
   modal.value = false;
 }
@@ -251,15 +251,26 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="chapter-notes" aria-label="章节笔记">
+  <section
+    class="chapter-notes"
+    :class="{ 'chapter-notes-empty': !chapterEditing && !chapterNote.trim() }"
+    aria-label="章节笔记"
+  >
     <header>
       <div>
-        <h2><NotebookPen :size="19" />章节笔记</h2>
-        <p>{{ chapter.title }} · 本章各节共用</p>
+        <h2><NotebookPen :size="17" />章节笔记</h2>
+        <p v-if="chapterEditing || chapterNote.trim()">{{ chapter.title }}</p>
       </div>
-      <button v-if="!chapterEditing" class="secondary-button" @click="editChapter">
-        <SquarePen :size="15" />{{ chapterNote.trim() ? '修改笔记' : '写笔记' }}
-      </button>
+      <div class="chapter-note-tools">
+        <span v-if="chapterEditing || chapterNote.trim()">Markdown</span>
+        <button
+          v-if="!chapterEditing && chapterNote.trim()"
+          class="chapter-note-edit"
+          @click="editChapter"
+        >
+          <SquarePen :size="14" />编辑
+        </button>
+      </div>
     </header>
     <Transition
       name="note-swap"
@@ -292,9 +303,9 @@ onBeforeUnmount(() => {
         class="chapter-note-card"
         :text="chapterNote"
       />
-      <p v-else key="empty" class="notes-empty">
-        把这一章的理解留在这里。支持 Markdown，编辑后点击「保存笔记」。
-      </p>
+      <button v-else key="empty" class="chapter-note-empty" @click="editChapter">
+        <SquarePen :size="15" />写笔记
+      </button>
     </Transition>
   </section>
   <Teleport v-for="marker in markers" :key="marker.annotation.id" :to="marker.element">
@@ -308,6 +319,7 @@ onBeforeUnmount(() => {
         }
       "
       @edit="editAnnotation(marker.annotation, lessonId)"
+      @remove="removeAnnotation(marker.annotation, lessonId)"
     />
   </Teleport>
   <Teleport to="body">
@@ -325,13 +337,15 @@ onBeforeUnmount(() => {
     <div ref="floating" class="study-notes-floating">
       <button
         class="study-notes-trigger"
-        aria-label="本章注释列表"
+        aria-label="注释列表"
         :aria-expanded="menuOpen"
         aria-controls="chapter-annotations"
         @keydown.esc="menuOpen = false"
         @click="menuOpen = !menuOpen"
       >
-        <MessageSquareText :size="19" /><span>本章注释</span><b>{{ chapterAnnotations.length }}</b>
+        <MessageSquareText :size="17" />
+        <span class="study-notes-trigger-details">注释</span>
+        <b>{{ chapterAnnotations.length }}</b>
       </button>
     </div>
     <Transition name="annotation-popover">
@@ -341,11 +355,11 @@ onBeforeUnmount(() => {
         ref="menu"
         class="study-annotations-menu"
         :style="menuStyle"
-        aria-label="本章注释"
+        aria-label="注释"
         @keydown="menuKeydown"
       >
         <header>
-          <strong>本章注释 · {{ chapterAnnotations.length }}</strong
+          <strong>注释 · {{ chapterAnnotations.length }}</strong
           ><button class="icon-button" aria-label="关闭注释列表" @click="menuOpen = false">
             <X :size="16" />
           </button>
@@ -362,17 +376,11 @@ onBeforeUnmount(() => {
           <button
             role="menuitem"
             class="annotation-list-item"
+            title="跳转原文"
             @click="jump(entry.annotation, entry.lesson.id)"
           >
-            <small>{{ entry.lesson.title }} · 跳转原文</small>
             <blockquote>{{ entry.annotation.quote }}</blockquote>
-            <span>{{ entry.annotation.body.slice(0, 100) }}</span>
-          </button>
-          <button
-            class="annotation-edit"
-            @click="editAnnotation(entry.annotation, entry.lesson.id)"
-          >
-            <SquarePen :size="14" />修改
+            <MarkdownNote class="annotation-list-preview" :text="entry.annotation.body" inert />
           </button>
         </article>
       </nav>
@@ -415,7 +423,11 @@ onBeforeUnmount(() => {
             />
           </div>
           <footer class="notes-editor-footer">
-            <button v-if="active?.body" class="annotation-edit" @click="removeAnnotation">
+            <button
+              v-if="active?.body"
+              class="annotation-edit annotation-delete"
+              @click="removeAnnotation(active, activeLessonId)"
+            >
               <Trash2 :size="15" />删除注释</button
             ><span>Ctrl / ⌘ + Enter 保存</span
             ><button class="secondary-button" @click="close">取消</button

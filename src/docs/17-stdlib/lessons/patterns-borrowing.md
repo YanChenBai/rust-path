@@ -24,12 +24,12 @@ Rust Edition 会影响部分匹配绑定的语法细节，因此先使用与当�
 
 ## 亲手试一试
 
-```rust playground id=patterns-borrowing source=17-stdlib/src/bin/patterns-borrowing.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加空 `Option` 测试，确认 take 返回 `None` 且不会 panic。
 
 </CourseCallout>
+
+```rust playground id=patterns-borrowing source=17-stdlib/src/bin/patterns-borrowing.rs
+
+```

@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=types-scalars source=02-variables/src/bin/types-scalars.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把 `u32` 的值改为 -1，读报错；再比较整数除法和浮点除法的结果。
 
 </CourseCallout>
+
+```rust playground id=types-scalars source=02-variables/src/bin/types-scalars.rs
+
+```

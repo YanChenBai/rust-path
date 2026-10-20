@@ -31,12 +31,12 @@ tracing 提供事件与 span，字段应描述重要操作和上下文，避免�
 
 ## 亲手试一试
 
-```rust playground id=ecosystem-errors-cli source=29-ecosystem/src/bin/ecosystem-errors-cli.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 传入 --minutes 0 和未知参数，区分 clap 语法错误与业务枚举错误。
 
 </CourseCallout>
+
+```rust playground id=ecosystem-errors-cli source=29-ecosystem/src/bin/ecosystem-errors-cli.rs
+
+```

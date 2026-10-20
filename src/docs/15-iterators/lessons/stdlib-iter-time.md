@@ -25,12 +25,12 @@ Instant 不能直接持久化为日历时间；需要时间戳时使用 SystemTi
 
 ## 亲手试一试
 
-```rust playground id=stdlib-iter-time source=15-iterators/src/bin/stdlib-iter-time.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把求和改为 try_fold 并使用 checked_add，说明错误为何不能用 filter_map 丢弃。
 
 </CourseCallout>
+
+```rust playground id=stdlib-iter-time source=15-iterators/src/bin/stdlib-iter-time.rs
+
+```

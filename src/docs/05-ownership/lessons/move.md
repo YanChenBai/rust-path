@@ -22,12 +22,12 @@ order: 0
 
 ## 亲手试一试
 
-```rust playground id=move source=05-ownership/src/bin/move.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把 `clone` 去掉，尝试同时输出两个名字，观察编译器如何解释移动。
 
 </CourseCallout>
+
+```rust playground id=move source=05-ownership/src/bin/move.rs
+
+```

@@ -24,12 +24,12 @@ FnOnce 允许调用时消费闭包，所有闭包至少可以作为 FnOnce 调�
 
 ## 亲手试一试
 
-```rust playground id=closure-traits source=15-iterators/src/bin/closure-traits.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把累计闭包保存为变量并调用两次，再比较移出 `String` 的闭包为何只能调用一次。
 
 </CourseCallout>
+
+```rust playground id=closure-traits source=15-iterators/src/bin/closure-traits.rs
+
+```

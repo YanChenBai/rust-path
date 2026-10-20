@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=error-design source=16-combinators/src/bin/error-design.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 为解析结果增加范围校验，并保持缺失仍为 `Ok(None)`。
 
 </CourseCallout>
+
+```rust playground id=error-design source=16-combinators/src/bin/error-design.rs
+
+```

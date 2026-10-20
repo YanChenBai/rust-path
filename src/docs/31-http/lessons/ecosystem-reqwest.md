@@ -32,12 +32,12 @@ reqwest 的异步 Client 可以复用连接池，并把请求发送、状态处�
 
 ## 亲手试一试
 
-```rust playground id=ecosystem-reqwest source=31-http/src/bin/ecosystem-reqwest.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把状态改成 500，观察 error_for_status；恢复后用字段类型不匹配验证 JSON 错误。
 
 </CourseCallout>
+
+```rust playground id=ecosystem-reqwest source=31-http/src/bin/ecosystem-reqwest.rs
+
+```

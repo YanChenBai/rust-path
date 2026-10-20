@@ -24,12 +24,12 @@ Cargo.toml 描述包名、Edition 与依赖，`src/main.rs` 是常见二进制�
 
 ## 亲手试一试
 
-```rust playground id=cargo-first-run source=01-start/src/bin/cargo-first-run.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 先使用检查代码，再运行程序；把宏名故意拼错，观察没有执行时出现的诊断。
 
 </CourseCallout>
+
+```rust playground id=cargo-first-run source=01-start/src/bin/cargo-first-run.rs
+
+```

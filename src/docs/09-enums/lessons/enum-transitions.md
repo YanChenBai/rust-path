@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=enum-transitions source=09-enums/src/bin/enum-transitions.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 给状态增加 `Failed(String)`，更新显示函数并确认原对象仍可使用。
 
 </CourseCallout>
+
+```rust playground id=enum-transitions source=09-enums/src/bin/enum-transitions.rs
+
+```

@@ -24,12 +24,12 @@ Content-Length 按字节计算，中文响应不能用字符数代替。
 
 ## 亲手试一试
 
-```rust playground id=http-service-boundary source=31-http/src/bin/http-service-boundary.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 为路由函数增加不支持方法的 405 分支，并写对应测试。
 
 </CourseCallout>
+
+```rust playground id=http-service-boundary source=31-http/src/bin/http-service-boundary.rs
+
+```

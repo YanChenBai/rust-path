@@ -24,12 +24,12 @@ split_whitespace 将连续空白视为分隔符，适合按词读取简单文本
 
 ## 亲手试一试
 
-```rust playground id=text-processing source=07-strings/src/bin/text-processing.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 修改报告为每词一行，并覆盖空输入、中文和连续空白。
 
 </CourseCallout>
+
+```rust playground id=text-processing source=07-strings/src/bin/text-processing.rs
+
+```

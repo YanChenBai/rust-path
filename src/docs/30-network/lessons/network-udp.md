@@ -26,12 +26,12 @@ UDP 以数据报为单位通信，recv_from 同时返回收到的长度与来源
 
 ## 亲手试一试
 
-```rust playground id=network-udp source=30-network/src/bin/network-udp.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把四字节内容替换成中文，确认比较的是字节；增加来源地址断言。
 
 </CourseCallout>
+
+```rust playground id=network-udp source=30-network/src/bin/network-udp.rs
+
+```

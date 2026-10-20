@@ -24,12 +24,12 @@ and_then 连接返回 `Option` 的步骤；map 不会自动替你展开嵌套。
 
 ## 亲手试一试
 
-```rust playground id=option-composition source=16-combinators/src/bin/option-composition.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 用 map 改写 and_then，查看返回类型多出的一层 `Option`。
 
 </CourseCallout>
+
+```rust playground id=option-composition source=16-combinators/src/bin/option-composition.rs
+
+```

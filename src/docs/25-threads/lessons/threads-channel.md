@@ -26,12 +26,12 @@ mpsc 是多发送者、单接收者通道，发送通常转移值的所有权。
 
 ## 亲手试一试
 
-```rust playground id=threads-channel source=25-threads/src/bin/threads-channel.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加两个发送线程，丢弃根 sender 后收集并排序，避免依赖消息到达顺序。
 
 </CourseCallout>
+
+```rust playground id=threads-channel source=25-threads/src/bin/threads-channel.rs
+
+```

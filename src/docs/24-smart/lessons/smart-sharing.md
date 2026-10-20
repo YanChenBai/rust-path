@@ -25,12 +25,12 @@ Rc&lt;T&gt; 为单线程数据提供引用计数共享所有权。`Rc::clone` �
 
 ## 亲手试一试
 
-```rust playground id=smart-sharing source=24-smart/src/bin/smart-sharing.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 保留一个 Weak，依次释放两个强引用，检查每次 upgrade 的结果。
 
 </CourseCallout>
+
+```rust playground id=smart-sharing source=24-smart/src/bin/smart-sharing.rs
+
+```

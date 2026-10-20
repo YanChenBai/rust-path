@@ -22,12 +22,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=blocks source=03-functions/src/bin/blocks.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 给 boosted 增加一个上限，最高返回 100。
 
 </CourseCallout>
+
+```rust playground id=blocks source=03-functions/src/bin/blocks.rs
+
+```

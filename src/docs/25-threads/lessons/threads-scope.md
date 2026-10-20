@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=threads-scope source=25-threads/src/bin/threads-scope.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把每段求和改为返回 `Result`，练习区分 join 失败与业务失败。
 
 </CourseCallout>
+
+```rust playground id=threads-scope source=25-threads/src/bin/threads-scope.rs
+
+```

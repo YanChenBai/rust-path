@@ -24,12 +24,12 @@ str 是 UTF-8 编码的字符串内容，`&str` 借用它，`String` 拥有可�
 
 ## 亲手试一试
 
-```rust playground id=text-slices source=07-strings/src/bin/text-slices.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把文本换为包含 emoji 的字符串，比较 `len`、chars 和切片结果。
 
 </CourseCallout>
+
+```rust playground id=text-slices source=07-strings/src/bin/text-slices.rs
+
+```

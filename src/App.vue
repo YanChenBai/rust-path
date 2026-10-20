@@ -10,6 +10,7 @@ import {
   Search,
   HardDrive,
 } from 'lucide-vue-next';
+import { onBeforeUnmount, onMounted } from 'vue';
 
 import CodeEditor from './components/CodeEditor.vue';
 import CourseDialogs from './components/layout/CourseDialogs.vue';
@@ -24,6 +25,15 @@ import { useLearningWorkspace } from './composables/useLearningWorkspace';
 import { progress, streak, storage, exportProgress } from './progress';
 import { nativeServiceUrl } from './runtime/native';
 const workspace = useLearningWorkspace();
+
+function preventBrowserSave(event: KeyboardEvent) {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {
+    event.preventDefault();
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', preventBrowserSave, true));
+onBeforeUnmount(() => window.removeEventListener('keydown', preventBrowserSave, true));
 
 const {
   playgroundCode,

@@ -25,12 +25,12 @@ advanced: true
 
 ## 亲手试一试
 
-```rust playground id=traits-lifetimes source=14-lifetimes/src/bin/traits-lifetimes.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把其中一个输入放到内部作用域，观察返回值在外部使用为何会失败。
 
 </CourseCallout>
+
+```rust playground id=traits-lifetimes source=14-lifetimes/src/bin/traits-lifetimes.rs
+
+```

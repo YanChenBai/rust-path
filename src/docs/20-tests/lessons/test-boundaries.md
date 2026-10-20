@@ -24,12 +24,12 @@ order: 1
 
 ## 亲手试一试
 
-```rust playground id=test-boundaries source=20-tests/src/bin/test-boundaries.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把 fee 的 &gt;= 错改为 &gt;，观察恰好边界的测试如何发现问题。
 
 </CourseCallout>
+
+```rust playground id=test-boundaries source=20-tests/src/bin/test-boundaries.rs
+
+```

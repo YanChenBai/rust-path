@@ -24,12 +24,12 @@ Box&lt;dyn Trait&gt; 在常见类型位置默认有 'static 对象生命周期�
 
 ## 亲手试一试
 
-```rust playground id=dyn-ownership source=18-dyn/src/bin/dyn-ownership.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 增加一个固定前缀实现，放入同一个对象集合。
 
 </CourseCallout>
+
+```rust playground id=dyn-ownership source=18-dyn/src/bin/dyn-ownership.rs
+
+```

@@ -24,12 +24,12 @@ AsRef 适合廉价获得某种借用视图，不承担通用解析或校验。�
 
 ## 亲手试一试
 
-```rust playground id=trait-conversions source=12-traits/src/bin/trait-conversions.rs
-
-```
-
 <CourseCallout title="给自己一个小挑战">
 
 把允许范围改为 1..=180，为 0、180、181 写断言。
 
 </CourseCallout>
+
+```rust playground id=trait-conversions source=12-traits/src/bin/trait-conversions.rs
+
+```

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MessageSquareText, SquarePen, X } from 'lucide-vue-next';
+import { MessageSquareText, SquarePen, Trash2, X } from 'lucide-vue-next';
 import { computed, watch } from 'vue';
 
 import { useFloatingMenu } from '../../composables/useFloatingMenu';
@@ -7,7 +7,7 @@ import type { TextAnnotation } from '../../runtime/text-annotations';
 import MarkdownNote from './MarkdownNote.vue';
 
 const props = defineProps<{ annotation: TextAnnotation; expanded: boolean }>();
-const emit = defineEmits<{ edit: []; 'update:expanded': [value: boolean] }>();
+const emit = defineEmits<{ edit: []; remove: []; 'update:expanded': [value: boolean] }>();
 const { open, anchor, menu, style, close } = useFloatingMenu({ align: 'start', offset: 36 });
 
 const preview = computed(() =>
@@ -53,21 +53,31 @@ watch(open, value => emit('update:expanded', value));
         @keydown.esc.stop="close(true)"
       >
         <header>
-          <strong>文字注释</strong
-          ><button class="icon-button" aria-label="收起注释" @click="close(true)">
+          <strong>文章注释</strong>
+          <button
+            class="icon-button annotation-delete"
+            aria-label="删除注释"
+            title="删除注释"
+            @click="emit('remove')"
+          >
+            <Trash2 :size="16" />
+          </button>
+          <button
+            class="icon-button"
+            aria-label="修改注释"
+            title="修改注释"
+            @click="
+              emit('edit');
+              close();
+            "
+          >
+            <SquarePen :size="16" />
+          </button>
+          <button class="icon-button" aria-label="收起注释" @click="close(true)">
             <X :size="16" />
           </button>
         </header>
         <MarkdownNote :text="annotation.body" />
-        <button
-          class="annotation-edit"
-          @click="
-            emit('edit');
-            close();
-          "
-        >
-          <SquarePen :size="14" />修改注释
-        </button>
       </aside>
     </Transition>
   </Teleport>
