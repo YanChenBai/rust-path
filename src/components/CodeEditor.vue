@@ -462,6 +462,7 @@ onMounted(async () => {
         imported,
       ),
       import('monaco-editor/editor/contrib/gotoError/browser/gotoError.js').then(imported),
+      import('monaco-editor/editor/contrib/comment/browser/comment.js').then(imported),
     ]);
 
     // 先等 Rust 分词器就绪，再应用保存的注释视图，避免刷新后漏掉首次隐藏。
