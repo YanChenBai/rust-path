@@ -10,6 +10,7 @@
     "@live-codes/rust-wasm": "^0.3.0",
     "@live-codes/wasm-rustc": "0.1.0",
     "@scalar/rust-fmt": "^0.3.0",
+    "@unhead/vue": "^2.1.17",
     "ansi-to-html": "^0.7.2",
     "lucide-vue-next": "^1.0.0",
     "markdown-it": "^15.0.3",
@@ -38,6 +39,7 @@
     "vite": "catalog:",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vite-plus": "catalog:",
+    "vite-ssg": "^28.3.0",
     "vue-tsc": "^3.3.11"
   },
   "devEngines": {

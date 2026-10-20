@@ -10,12 +10,13 @@ import {
   totalSteps,
 } from '../../progress';
 import { chapters, allLessons, sources } from '../../runtime/course';
+import { lessonPath } from '../../runtime/course-routes';
+import { pageAnimationsReady } from '../../runtime/page-animation';
 const emit = defineEmits<{ navigate: [id: string]; resume: [] }>();
-const navigate = (id: string) => emit('navigate', id);
 const page = () => emit('resume');
 </script>
 <template>
-  <motion.div :initial="{ opacity: 0 }" :animate="{ opacity: 1 }"
+  <motion.div :initial="pageAnimationsReady ? { opacity: 0 } : false" :animate="{ opacity: 1 }"
     ><div class="overview-eyebrow"><Compass :size="16" />THE LEARNING PATH</div>
     <h1>每一小步，走向更大的可能。</h1>
     <p class="page-subtitle">
@@ -56,12 +57,12 @@ const page = () => emit('resume');
       </div>
     </div>
     <div class="path-grid">
-      <button
+      <RouterLink
         v-for="(c, i) in chapters"
+        :to="lessonPath(c.lessons[0]!.id)"
         :key="c.id"
         class="path-card"
         :class="{ 'chapter-completed': chapterPercent(c.id) === 100 }"
-        @click="navigate(c.lessons[0]!.id)"
       >
         <div class="path-card-top">
           <span class="path-number">{{ c.icon }}</span
@@ -83,7 +84,7 @@ const page = () => emit('resume');
         <div class="progress-track">
           <div :style="{ width: `${chapterPercent(c.id)}%` }" />
         </div>
-      </button>
+      </RouterLink>
     </div>
     <div class="source-section">
       <span class="eyebrow">STAND ON THE SHOULDERS OF GIANTS</span>

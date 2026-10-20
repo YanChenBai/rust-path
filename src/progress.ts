@@ -70,6 +70,10 @@ const initial = (): Progress => ({
 });
 
 function previousSaveTime() {
+  if (typeof localStorage === 'undefined') {
+    return '';
+  }
+
   try {
     return localStorage.getItem(`${key}:saved-at`) ?? '';
   } catch {
@@ -352,6 +356,10 @@ function migrate(data: Partial<Progress>): Progress {
 }
 
 function load(): Progress {
+  if (typeof localStorage === 'undefined') {
+    return initial();
+  }
+
   try {
     const raw = localStorage.getItem(key);
 
@@ -374,9 +382,29 @@ function load(): Progress {
 }
 
 export const progress = reactive(load());
+let persistProgress = typeof localStorage !== 'undefined';
+
+export function prepareProgressHydration() {
+  persistProgress = false;
+  Object.assign(progress, initial());
+  storage.error = '';
+  storage.savedAt = '';
+}
+
+export function restoreProgress() {
+  const saved = load();
+  Object.assign(progress, saved);
+  storage.savedAt = previousSaveTime();
+  persistProgress = true;
+}
+
 watch(
   progress,
   () => {
+    if (!persistProgress) {
+      return;
+    }
+
     try {
       localStorage.setItem(key, JSON.stringify(progress));
       storage.error = '';

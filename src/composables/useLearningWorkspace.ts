@@ -1,10 +1,47 @@
-import { computed, ref, onBeforeUnmount } from 'vue';
+import { computed, ref, onBeforeUnmount, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-import { progress, recordActivity, importProgress } from '../progress';
+import { progress, recordActivity, importProgress, restoreProgress } from '../progress';
 import type { chapters } from '../runtime/course';
+import { applyWorkspaceRoute, workspacePath } from '../runtime/course-routes';
+import { pageAnimationsReady } from '../runtime/page-animation';
 import { useCurrentLesson } from './useCurrentLesson';
 
 export function useLearningWorkspace() {
+  const router = useRouter();
+
+  onMounted(() => {
+    const route = router.currentRoute.value;
+    restoreProgress();
+
+    // 根地址延续上次学习位置；明确的课程 URL 优先于本地导航记录。
+    if (route.path !== '/' && !route.meta.notFound) {
+      applyWorkspaceRoute(route, progress);
+    }
+
+    if (!route.meta.notFound) {
+      void router.replace(workspacePath(progress));
+    }
+
+    pageAnimationsReady.value = true;
+  });
+
+  watch(
+    () => [progress.page, progress.lesson, progress.tab],
+    () => {
+      if (!pageAnimationsReady.value || router.currentRoute.value.meta.notFound) {
+        return;
+      }
+
+      const path = workspacePath(progress);
+
+      if (path !== router.currentRoute.value.path) {
+        void router.push(path);
+      }
+    },
+    { flush: 'post' },
+  );
+
   const playgroundCode = `fn main() {
     let possibilities = ["一个新想法", "一次小实验", "一个新发现"];
     for (i, idea) in possibilities.iter().enumerate() {

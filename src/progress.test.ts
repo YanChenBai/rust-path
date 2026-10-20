@@ -65,6 +65,22 @@ afterEach(() => {
 });
 
 describe('学习进度', () => {
+  it('预渲染与 hydration 不覆盖本地草稿、成绩和上次学习位置', async () => {
+    memory.setItem(storageKey, JSON.stringify(legacyRecord()));
+    const saved = memory.getItem(storageKey);
+    const { progress, prepareProgressHydration, restoreProgress } = await import('./progress');
+    prepareProgressHydration();
+    progress.lesson = 'bindings';
+    expect(memory.getItem(storageKey)).toBe(saved);
+    expect(progress.drafts).toEqual({});
+    restoreProgress();
+    expect(progress.lesson).toBe('hello');
+    expect(progress.drafts.hello).toContain('保留草稿');
+    expect(progress.passed).toContain('start-choice');
+    expect(memory.getItem(storageKey)).toBe(saved);
+    progress.lesson = 'bindings';
+    expect(JSON.parse(memory.getItem(storageKey)!).lesson).toBe('bindings');
+  });
   it('首次加载使用空记录，完成度与 XP 为零', async () => {
     const { progress, xp, completedSteps, percentage } = await import('./progress');
     expect(progress.drafts).toEqual({});

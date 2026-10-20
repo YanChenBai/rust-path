@@ -292,7 +292,7 @@ pre {
   border-left: 1px solid #303030;
   padding: 1px 0 1px 14px;
 }
-.lesson-tree button {
+.lesson-tree :is(button, a) {
   position: relative;
   display: flex;
   align-items: center;
@@ -304,10 +304,10 @@ pre {
   font-size: 13px;
   color: #747474;
 }
-.lesson-tree button:hover {
+.lesson-tree :is(button, a):hover {
   color: #c1c1c1;
 }
-.lesson-tree button.selected {
+.lesson-tree :is(button, a).selected {
   color: var(--accent);
   background: #1f1f1f;
 }
@@ -2497,7 +2497,7 @@ body {
   font-size: 13px;
   padding: 12px;
 }
-.lesson-tree button {
+.lesson-tree :is(button, a) {
   font-size: 13px;
   padding: 10px 7px;
 }
@@ -3900,13 +3900,13 @@ h1 {
   padding-left: 15px;
   border-color: #383838;
 }
-.lesson-tree button {
+.lesson-tree :is(button, a) {
   font-size: 13px;
   line-height: 1.6;
   padding: 9px 7px;
   color: #999;
 }
-.lesson-tree button.selected {
+.lesson-tree :is(button, a).selected {
   background: #292929;
   color: #eee;
 }
@@ -5575,7 +5575,7 @@ h1 {
   height: 13px;
   stroke-width: 2;
 }
-.lesson-tree button:focus-visible {
+.lesson-tree :is(button, a):focus-visible {
   outline: 1px solid #aaa;
   outline-offset: 2px;
   border-radius: 4px;

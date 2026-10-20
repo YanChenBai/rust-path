@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useHead } from '@unhead/vue';
 import {
   PanelLeftClose,
   PanelLeftOpen,
@@ -10,8 +11,10 @@ import {
   Search,
   HardDrive,
 } from 'lucide-vue-next';
-import { onBeforeUnmount, onMounted } from 'vue';
+import { onBeforeUnmount, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 
+import BrowserOnly from './components/BrowserOnly.vue';
 import CodeEditor from './components/CodeEditor.vue';
 import CourseDialogs from './components/layout/CourseDialogs.vue';
 import CourseSidebar from './components/layout/CourseSidebar.vue';
@@ -21,10 +24,13 @@ import LearningPath from './components/learning/LearningPath.vue';
 import LearningProgress from './components/learning/LearningProgress.vue';
 import LessonPage from './components/learning/LessonPage.vue';
 import LessonRail from './components/learning/LessonRail.vue';
+import NotFoundPage from './components/NotFoundPage.vue';
 import { useLearningWorkspace } from './composables/useLearningWorkspace';
 import { progress, streak, storage, exportProgress } from './progress';
 import { nativeServiceUrl } from './runtime/native';
 const workspace = useLearningWorkspace();
+const route = useRoute();
+const notFound = computed(() => Boolean(route.meta.notFound));
 
 function preventBrowserSave(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 's') {
@@ -51,6 +57,37 @@ const {
   finish,
   onImport,
 } = workspace;
+
+const pageTitle = computed(() => {
+  if (notFound.value) {
+    return '页面不存在';
+  }
+
+  if (progress.page !== 'learn') {
+    return { path: '学习路线', playground: '代码实验室', progress: '学习足迹' }[progress.page];
+  }
+
+  if (section.value === 'lesson') {
+    return lesson.value.title;
+  }
+
+  return `${chapter.value.title} · ${section.value === 'quiz' ? '章节挑战' : '专项实操'}`;
+});
+
+useHead(
+  computed(() => ({
+    title: `${pageTitle.value} · Rust Path`,
+    meta: [
+      {
+        name: 'description',
+        content:
+          progress.page === 'learn'
+            ? lesson.value.subtitle
+            : '循序渐进学习 Rust，通过交互式练习巩固理解。',
+      },
+    ],
+  })),
+);
 </script>
 <template>
   <div
@@ -92,12 +129,13 @@ const {
             >
               <Menu :size="20" /></button
             ><span class="desktop-breadcrumb">学习空间</span><ChevronRight :size="13" /><span
-              v-if="progress.page === 'learn'"
-              >{{ chapter.title }}</span
+              v-if="notFound"
+              >页面不存在</span
+            ><span v-else-if="progress.page === 'learn'">{{ chapter.title }}</span
             ><span v-else>{{
               { path: '学习路线', playground: '代码实验室', progress: '学习足迹' }[progress.page]
             }}</span
-            ><template v-if="progress.page === 'learn'"
+            ><template v-if="!notFound && progress.page === 'learn'"
               ><ChevronRight :size="13" /><strong>{{
                 section === 'lesson' ? lesson.title : section === 'quiz' ? '章节挑战' : '专项实操'
               }}</strong></template
@@ -106,7 +144,7 @@ const {
         </div>
         <div class="topbar-right">
           <ResourceLoading />
-          <NativeServiceSettings />
+          <BrowserOnly><NativeServiceSettings /></BrowserOnly>
           <button
             class="icon-button"
             aria-label="搜索知识点"
@@ -126,10 +164,11 @@ const {
       <div v-if="storage.error" class="storage-warning" role="alert">
         {{ storage.error }}<button @click="exportProgress">导出备份</button>
       </div>
-      <div class="content-layout" :class="{ 'full-width': progress.page !== 'learn' }">
+      <div class="content-layout" :class="{ 'full-width': notFound || progress.page !== 'learn' }">
         <main id="main-content" :key="nativeServiceUrl" class="main-content">
+          <NotFoundPage v-if="notFound" />
           <LessonPage
-            v-if="progress.page === 'learn'"
+            v-else-if="progress.page === 'learn'"
             @navigate="navigate"
             @finish="finish"
             @reward="notify"
@@ -140,13 +179,16 @@ const {
             @resume="page('learn')"
           />
           <div v-else-if="progress.page === 'playground'" class="playground-workspace">
-            <CodeEditor
-              editor-id="playground"
-              @search="showSearch = true"
-              @navigation="sidebar = !sidebar"
-              :initial-code="playgroundCode"
-              :dependencies="progress.dependencies"
-            />
+            <BrowserOnly>
+              <CodeEditor
+                editor-id="playground"
+                @search="showSearch = true"
+                @navigation="sidebar = !sidebar"
+                :initial-code="playgroundCode"
+                :dependencies="progress.dependencies"
+              />
+              <template #fallback><p>代码编辑器将在浏览器中加载。</p></template>
+            </BrowserOnly>
           </div>
           <LearningProgress v-else @navigate="navigate" @import="onImport" />
           <footer class="page-footer">
@@ -154,7 +196,7 @@ const {
             ><span>Made for the curious. <span class="footer-spark">✳</span></span>
           </footer>
         </main>
-        <LessonRail v-if="progress.page === 'learn'" @navigate="navigate" />
+        <LessonRail v-if="!notFound && progress.page === 'learn'" @navigate="navigate" />
       </div>
     </div>
     <Transition name="toast"

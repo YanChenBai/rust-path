@@ -15,6 +15,7 @@ import { progress, recordActivity } from '../progress';
 import { checkProgram } from '../runtime/assessment';
 import type { Chapter, Question } from '../runtime/course';
 import { terminalHtml } from '../runtime/terminal';
+import BrowserOnly from './BrowserOnly.vue';
 import CodeEditor from './CodeEditor.vue';
 import CodeSnippet from './CodeSnippet.vue';
 import ContentDocument from './docs/ContentDocument.vue';
@@ -270,15 +271,17 @@ onMounted(() => {
             :disabled="busy || progress.passed.includes(q.id)"
             placeholder="写下你的答案…"
         /></label>
-        <CodeEditor
-          v-else
-          :ref="value => storeEditor(q.id, value)"
-          :editor-id="q.id"
-          :initial-code="q.starter!"
-          :dependencies="chapter.dependencies"
-          :native-required="chapter.nativeRequired"
-          compact
-        />
+        <BrowserOnly v-else>
+          <CodeEditor
+            :ref="value => storeEditor(q.id, value)"
+            :editor-id="q.id"
+            :initial-code="q.starter!"
+            :dependencies="chapter.dependencies"
+            :native-required="chapter.nativeRequired"
+            compact
+          />
+          <template #fallback><CodeSnippet :code="q.starter!" /></template>
+        </BrowserOnly>
         <div
           v-if="progress.feedback[q.id]"
           class="feedback"

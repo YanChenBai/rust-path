@@ -75,11 +75,17 @@ vp run build
 vp preview
 ```
 
-`vp run build` 先执行类型检查，再构建静态网站到 `dist/`；`vp preview` 预览已有产物。前端构建不包含本机服务，也不会清理后端产物。
+`vp run build` 先执行类型检查，再由 Vite SSG 构建静态网站到 `dist/`；`vp preview` 预览已有产物。前端构建不包含本机服务，也不会清理后端产物。
+
+课程使用 `/learn/<lesson-id>`，章节挑战和实操使用 `/chapters/<chapter-id>/quiz` 与 `/chapters/<chapter-id>/project`。学习路线、代码实验室和学习足迹分别使用 `/path`、`/playground` 和 `/progress`。打开根地址会在浏览器挂载后恢复上次学习位置；独立课程地址优先于保存的导航位置。
+
+教材正文与初始代码在构建时生成，编辑器、笔记和本机服务设置在浏览器挂载后加载。hydration 完成前不写入学习记录，页面切换保留原有 Motion 动画；静态首屏不使用隐藏内容的入场样式。当前进度模型仍使用共享响应式对象，因此 SSG 以 `concurrency: 1` 顺序渲染并在每条路由前重置默认状态。
 
 纯静态托管仅具备浏览器回退能力，完整执行与语言服务需要本机服务。
 
-部署 `dist/` 时应设置 SPA 路由回退，并为页面配置下方列出的跨源隔离响应头，以支持浏览器语义引擎。
+Cloudflare Pages 继续部署 `dist/`，现有 CI 和 `pages deploy dist` 无需改动。生成的 `.html` 文件由 Pages 的无扩展名路由规则提供；根目录 `404.html` 提供未知地址的错误页，不再依赖 SPA 回退。保留 `public/_headers` 中下方列出的跨源隔离响应头，以支持浏览器语义引擎。普通静态服务器需支持 `/learn/foo` 对应 `/learn/foo.html`；`vp preview` 具有这一行为。
+
+`vp preview` 对未知地址仍使用 Vite 默认的首页回退，与 Pages 的 404 行为不同；本地检查错误页可直接访问 `/404`，完整托管规则需在 Pages 预览部署中复测。
 
 ### 独立本机服务与 Windows exe
 

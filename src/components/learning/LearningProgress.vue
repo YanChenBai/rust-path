@@ -26,13 +26,14 @@ import {
   exportProgress,
 } from '../../progress';
 import { chapters, allLessons } from '../../runtime/course';
+import { pageAnimationsReady } from '../../runtime/page-animation';
 const { achievements, lessonCount, questionCount, chapterPercent } = useLearningStats();
 const importInput = ref<HTMLInputElement>();
 const emit = defineEmits<{ navigate: [id: string]; import: [event: Event] }>();
 const navigate = (id: string) => emit('navigate', id);
 </script>
 <template>
-  <motion.div :initial="{ opacity: 0 }" :animate="{ opacity: 1 }"
+  <motion.div :initial="pageAnimationsReady ? { opacity: 0 } : false" :animate="{ opacity: 1 }"
     ><div class="overview-eyebrow"><ChartNoAxesCombined :size="16" />YOUR JOURNEY, SO FAR</div>
     <div class="progress-title">
       <div>

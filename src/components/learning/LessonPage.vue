@@ -17,6 +17,9 @@ import { computed, ref } from 'vue';
 import { useCurrentLesson } from '../../composables/useCurrentLesson';
 import { progress } from '../../progress';
 import { chapters, allLessons } from '../../runtime/course';
+import { lessonPath } from '../../runtime/course-routes';
+import { pageAnimationsReady } from '../../runtime/page-animation';
+import BrowserOnly from '../BrowserOnly.vue';
 import ChapterQuiz from '../ChapterQuiz.vue';
 import ContentDocument from '../docs/ContentDocument.vue';
 import StudyNotes from './StudyNotes.vue';
@@ -41,7 +44,7 @@ const notify = (message: string) => emit('reward', message);
 <template>
   <motion.div
     :key="`${lesson.id}-${section}`"
-    :initial="{ opacity: 0, y: reducedMotion ? 0 : 10 }"
+    :initial="pageAnimationsReady ? { opacity: 0, y: reducedMotion ? 0 : 10 } : false"
     :animate="{ opacity: 1, y: 0 }"
     :transition="{ duration: 0.25 }"
   >
@@ -156,12 +159,14 @@ const notify = (message: string) => emit('reward', message);
       </div>
     </template>
   </motion.div>
-  <StudyNotes
-    :chapter="chapter"
-    :lesson-id="lesson.id"
-    :content="section === 'lesson' ? reading : undefined"
-    @navigate="navigate"
-  />
+  <BrowserOnly>
+    <StudyNotes
+      :chapter="chapter"
+      :lesson-id="lesson.id"
+      :content="section === 'lesson' ? reading : undefined"
+      @navigate="navigate"
+    />
+  </BrowserOnly>
   <nav v-if="section === 'lesson'" class="lesson-navigation" aria-label="知识点导航">
     <a
       :href="
@@ -173,21 +178,21 @@ const notify = (message: string) => emit('reward', message);
       rel="noopener noreferrer"
       >延伸阅读 · Rust 官方文档<ExternalLink :size="12" />
     </a>
-    <button
+    <RouterLink
       v-if="lessonIndex > 0"
+      :to="lessonPath(allLessons[lessonIndex - 1]!.id)"
       class="lesson-navigation-card previous"
-      @click="navigate(allLessons[lessonIndex - 1]!.id)"
     >
       <span><ChevronLeft :size="14" />上一节</span>
       <strong>{{ allLessons[lessonIndex - 1]!.title }}</strong>
-    </button>
-    <button
+    </RouterLink>
+    <RouterLink
       v-if="lessonIndex < allLessons.length - 1"
+      :to="lessonPath(allLessons[lessonIndex + 1]!.id)"
       class="lesson-navigation-card next"
-      @click="navigate(allLessons[lessonIndex + 1]!.id)"
     >
       <span>下一节<ChevronRight :size="14" /></span>
       <strong>{{ allLessons[lessonIndex + 1]!.title }}</strong>
-    </button>
+    </RouterLink>
   </nav>
 </template>

@@ -14,6 +14,7 @@ import {
 import { useCourseSidebar } from '../../composables/useCourseSidebar';
 import { progress, percentage, completedSteps, totalSteps } from '../../progress';
 import { chapters, type Chapter } from '../../runtime/course';
+import { lessonPath } from '../../runtime/course-routes';
 defineProps<{ open: boolean; currentChapterId: string }>();
 
 const emit = defineEmits<{
@@ -22,6 +23,15 @@ const emit = defineEmits<{
   help: [];
   section: [chapter: Chapter, section: 'quiz' | 'project'];
 }>();
+
+function followLesson(event: MouseEvent, id: string) {
+  if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+    return;
+  }
+
+  event.preventDefault();
+  emit('navigate', id);
+}
 
 const {
   sidebarScroller,
@@ -115,8 +125,9 @@ const {
             >
               <div class="chapter-clip">
                 <div class="lesson-tree">
-                  <button
+                  <a
                     v-for="l in c.lessons"
+                    :href="lessonPath(l.id)"
                     :key="l.id"
                     :class="{
                       selected:
@@ -125,11 +136,11 @@ const {
                         progress.tab === 'lesson',
                       complete: progress.completed.includes(l.id),
                     }"
-                    @click="emit('navigate', l.id)"
+                    @click="followLesson($event, l.id)"
                   >
                     <span class="tree-dot"
                       ><Check v-if="progress.completed.includes(l.id)" :size="9" /></span
-                    >{{ l.title }}</button
+                    >{{ l.title }}</a
                   ><button
                     :class="{
                       selected:

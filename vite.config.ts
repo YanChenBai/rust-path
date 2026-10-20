@@ -2,6 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import vueDevTools from 'vite-plugin-vue-devtools';
 import { defineConfig, lazyPlugins } from 'vite-plus';
+import type {} from 'vite-ssg';
 
 import { courseCatalog } from './plugins/course-catalog';
 import { courseMarkdown } from './plugins/markdown-plugin';
@@ -52,6 +53,11 @@ const courseVerificationCache = {
 
 // https://vite.dev/config/
 export default defineConfig({
+  ssgOptions: {
+    // 旧进度模型仍是共享响应式对象，每条路由在渲染前重置并顺序生成。
+    concurrency: 1,
+    formatting: 'none',
+  },
   plugins: lazyPlugins(() => [
     {
       name: 'release-version',
@@ -132,7 +138,7 @@ export default defineConfig({
         cache: false,
       },
       build: {
-        command: 'vp build',
+        command: 'vite-ssg build',
         cache: {
           input: [
             { auto: true },

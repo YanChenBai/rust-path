@@ -3,6 +3,7 @@ import { ref } from 'vue';
 
 import { progress } from '../../progress';
 import { chapters } from '../../runtime/course';
+import BrowserOnly from '../BrowserOnly.vue';
 import CodeEditor from '../CodeEditor.vue';
 import CodeSnippet from '../CodeSnippet.vue';
 
@@ -20,16 +21,18 @@ const lesson = owner?.lessons.find(
 );
 </script>
 <template>
-  <CodeEditor
-    v-if="editorId && (mode === 'playground' || editing)"
-    :key="editorId"
-    :editor-id="editorId"
-    :initial-code="code"
-    :returnable="mode !== 'playground'"
-    :dependencies="lesson?.dependencies ?? owner?.dependencies"
-    :native-required="lesson?.nativeRequired ?? owner?.nativeRequired"
-    @back="editing = false"
-  />
+  <BrowserOnly v-if="editorId && (mode === 'playground' || editing)">
+    <CodeEditor
+      :key="editorId"
+      :editor-id="editorId"
+      :initial-code="code"
+      :returnable="mode !== 'playground'"
+      :dependencies="lesson?.dependencies ?? owner?.dependencies"
+      :native-required="lesson?.nativeRequired ?? owner?.nativeRequired"
+      @back="editing = false"
+    />
+    <template #fallback><CodeSnippet :code="code" :language="language" /></template>
+  </BrowserOnly>
   <CodeSnippet
     v-else
     :code="(editorId && progress.drafts[editorId]) || code"
