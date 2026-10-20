@@ -25,7 +25,7 @@ function validateDocumentPath(metadata: Record<string, unknown>, document: strin
   };
 
   if (!match || paths[String(metadata.type)] !== match[2]) {
-    throw new Error(`${document} 不符合固定教材目录结构`);
+    throw new Error(`${document} 不符合固定教程目录结构`);
   }
 
   const chapterId = metadata.type === 'chapter' ? metadata.id : metadata.chapterId;
@@ -39,7 +39,7 @@ export function parseDocument(source: string, sources: Record<string, string> = 
   const match = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(source.replace(/\r\n?/g, '\n'));
 
   if (!match) {
-    throw new Error('教材缺少 YAML frontmatter');
+    throw new Error('教程缺少 YAML frontmatter');
   }
 
   const metadata = parse(match[1]!) as Record<string, unknown>;
@@ -50,7 +50,7 @@ export function parseDocument(source: string, sources: Record<string, string> = 
     Array.isArray(metadata) ||
     typeof metadata.type !== 'string'
   ) {
-    throw new Error('教材 frontmatter 必须包含 type');
+    throw new Error('教程 frontmatter 必须包含 type');
   }
 
   const references: (string | undefined)[] = [];
@@ -214,7 +214,7 @@ export function buildDocuments(
       }
 
       default: {
-        throw new Error(`${document} 的教材类型无效`);
+        throw new Error(`${document} 的教程类型无效`);
       }
     }
   }

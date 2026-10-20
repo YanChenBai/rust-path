@@ -1,4 +1,4 @@
-# 教材编写
+# 教程编写
 
 [返回项目首页](../../README.md) · [开发指南](../../docs/development.md) · [课程 Rust 源码](../../course/README.md)
 
@@ -25,7 +25,7 @@
 
 ### 预览与验收
 
-在仓库根目录运行 `vp dev`，检查新增内容的导航、排版、代码编辑和答题反馈。目录与页面会随教材修改更新，无需修改集中课程表。
+在仓库根目录运行 `vp dev`，检查新增内容的导航、排版、代码编辑和答题反馈。目录与页面会随教程修改更新，无需修改集中课程表。
 
 ```sh
 vpr verify:course:structure
@@ -61,7 +61,7 @@ course/                         # 仓库根目录的独立 Cargo workspace
 
 `src/runtime` 只保留类型、解析器、运行时入口和学习记录迁移所需的历史快照。当前章节顺序由 `chapter.md` 的 `icon` 决定；深入课时通过 `advanced: true` 标记。新增章节时在 `course/NN-name/Cargo.toml` 声明本章依赖；根 workspace 自动发现章节包，Cargo 自动发现 `src/bin/*.rs`。
 
-正文通过 `unplugin-vue-markdown` 编译成 Vue 组件，按需加载。可以直接使用 Markdown 标题、段落、行内代码、列表、表格、链接和代码围栏。修改教材会更新目录与页面。
+正文通过 `unplugin-vue-markdown` 编译成 Vue 组件，按需加载。可以直接使用 Markdown 标题、段落、行内代码、列表、表格、链接和代码围栏。修改教程会更新目录与页面。
 
 ## 知识点
 
@@ -132,7 +132,7 @@ Markdown 支持 `<script setup>`，可以导入自定义 Vue 组件后直接在�
 
 运行 `vp check`、`vp test`、`vp run build`。课程验收由 TypeScript 脚本通过 `oxnode` 执行：
 
-- `vp run verify:course:structure`：检查教材结构、字段及判题映射，不执行判题函数或 Rust。
+- `vp run verify:course:structure`：检查教程结构、字段及判题映射，不执行判题函数或 Rust。
 - `vp run verify:course:answers`：执行选择题、填空题的答案判定检查，不运行 Rust。
 - `vp run verify:course:execution`：实际编译并运行 Rust 示例、编程题及项目参考实现，需要本机 Rust 工具链。
 - `vp run verify:course`：依次运行以上三个能力。
@@ -141,4 +141,4 @@ Markdown 支持 `<script setup>`，可以导入自定义 Vue 组件后直接在�
 
 `--skip-advanced-lessons` 仅跳过深入课程的课时示例，`--previous-report PATH` 将历史执行统计附在报告中，不计作本次执行。JSON 报告保存在仓库根目录 `.rust-path/reports/<验收范围>-<运行编号>/report.json`，该目录不提交 Git。
 
-验收默认只打印每项的完成结果，失败和重试仍有诊断；单独执行一个能力时省去阶段的 RUN/PASS，只保留汇总和完成摘要。`prepare:browser` 与四个 `verify:course` 任务均启用 Vite+ 缓存，记录脚本、教材、Rust 源码、锁文件及相关配置输入。命中缓存时恢复生成资源或报告，并回放上次日志，不会重新生成浏览器资源或运行 Rust。浏览器资源准备不安装或检查本机工具链。需要重新准备资源或重新执行断言时，使用 `vp run --no-cache prepare:browser`、`vp run --no-cache verify:course`。
+验收默认只打印每项的完成结果，失败和重试仍有诊断；单独执行一个能力时省去阶段的 RUN/PASS，只保留汇总和完成摘要。`prepare:browser` 与四个 `verify:course` 任务均启用 Vite+ 缓存，记录脚本、教程、Rust 源码、锁文件及相关配置输入。命中缓存时恢复生成资源或报告，并回放上次日志，不会重新生成浏览器资源或运行 Rust。浏览器资源准备不安装或检查本机工具链。需要重新准备资源或重新执行断言时，使用 `vp run --no-cache prepare:browser`、`vp run --no-cache verify:course`。

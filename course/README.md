@@ -6,7 +6,7 @@
 - `starters/*.rs`：练习初始代码，可能含 `todo!()`，不参与验收构建。
 - `snippets/*.rs`：题干或正文片段，可能故意无法编译，不参与验收构建。
 
-Markdown 通过 `source=01-start/src/bin/hello.rs` 引用唯一源码。插件提供 `virtual:course-code/<相对路径>`；`?region=answer`、`?region=tests` 可导出同一文件的标记区段。题目答案、解析与匹配方式归属于对应 Markdown 的 `assessment` 元信息。详细约定见 [教材编写](../src/docs/README.md)。
+Markdown 通过 `source=01-start/src/bin/hello.rs` 引用唯一源码。插件提供 `virtual:course-code/<相对路径>`；`?region=answer`、`?region=tests` 可导出同一文件的标记区段。题目答案、解析与匹配方式归属于对应 Markdown 的 `assessment` 元信息。详细约定见 [教程编写](../src/docs/README.md)。
 
 从仓库根运行：
 

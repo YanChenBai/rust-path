@@ -7,5 +7,5 @@ const document = useCourseDocument(() => props.path);
 
 <template>
   <component :is="document" v-if="document" class="markdown-document" />
-  <p v-else role="alert">教材暂时无法加载：{{ path }}</p>
+  <p v-else role="alert">教程暂时无法加载：{{ path }}</p>
 </template>

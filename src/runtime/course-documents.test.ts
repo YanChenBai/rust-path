@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vite-plus/test';
 import { chapters } from '../runtime/course';
 import { buildDocuments, parseDocument } from './course-documents';
 
-describe('Markdown 教材', () => {
+describe('Markdown 教程', () => {
   it('正文和验收读取同一份外部 Rust 源码，缺失引用会报错', () => {
     const source = '01-demo/src/bin/demo.rs';
     const code = 'fn main() { println!("demo"); }';
@@ -23,7 +23,7 @@ describe('Markdown 教材', () => {
 
     expect(document.blocks).toEqual([{ info: 'rust starter', code: 'fn main() {}' }]);
   });
-  it('拒绝缺少或无效的教材元信息', () => {
+  it('拒绝缺少或无效的教程元信息', () => {
     expect(() => parseDocument('# 普通文档')).toThrow('frontmatter');
     expect(() => parseDocument('---\nnull\n---\n正文')).toThrow('type');
     expect(() => parseDocument('---\n- lesson\n---\n正文')).toThrow('type');

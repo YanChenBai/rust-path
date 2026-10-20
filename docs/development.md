@@ -1,6 +1,6 @@
 # 开发指南
 
-[返回项目首页](../README.md) · [学习指南](learning.md) · [教材编写](../src/docs/README.md)
+[返回项目首页](../README.md) · [学习指南](learning.md) · [教程编写](../src/docs/README.md)
 
 ## 基础依赖
 
@@ -16,7 +16,7 @@ vp run prepare:browser
 vp dev
 ```
 
-`vp dev` 只启动前端，保留 Vue 和教材的热更新。`vp install` 的 prepare 阶段会执行浏览器资源准备；需要单独恢复资源时运行 `vp run prepare:browser`。前端不加载 Nitro 插件，也不会自动连接本机接口。
+`vp dev` 只启动前端，保留 Vue 和教程的热更新。`vp install` 的 prepare 阶段会执行浏览器资源准备；需要单独恢复资源时运行 `vp run prepare:browser`。前端不加载 Nitro 插件，也不会自动连接本机接口。
 
 需要完整 Cargo 与语言服务时，在另一个终端执行 `vp run dev:server -- --origin http://localhost:5173`，将来源替换为前端实际地址；再在网页页头的插头设置中填写 `http://127.0.0.1:3000`。Rust 源码修改后需要重启该服务。
 
@@ -26,9 +26,9 @@ vp dev
 
 | 目录                       | 职责                                          |
 | -------------------------- | --------------------------------------------- |
-| `src/docs/`                | 按章节组织的 Markdown 教材、题目、答案与解析  |
+| `src/docs/`                | 按章节组织的 Markdown 教程、题目、答案与解析  |
 | `course/`                  | 独立的 Cargo workspace，存放课程 Rust 源码    |
-| `src/components/docs/`     | 教材中的文档交互组件                          |
+| `src/components/docs/`     | 教程中的文档交互组件                          |
 | `src/components/learning/` | 学习页面、练习与代码实验室组件                |
 | `src/components/layout/`   | 页面布局、导航与对话框                        |
 | `src/composables/`         | 导航、搜索、统计、笔记与编辑器分栏等状态逻辑  |
@@ -39,7 +39,7 @@ vp dev
 
 界面使用 Vue、motion-v、Tailwind CSS 和 Monaco；本机服务使用 Rust、Axum 和 Tokio。前端依赖见 [package.json](../package.json)，服务依赖见 [crates/server/Cargo.toml](../crates/server/Cargo.toml)。根 Cargo workspace 管理服务，`course/` 保持独立的课程 workspace。
 
-教材按需编译加载，课程目录在构建时从同一份 Markdown 提取。Rust 源码通过虚拟模块接入网页，无需在教材中重复维护代码。编写约定见[教材编写](../src/docs/README.md)与[课程 Rust 源码](../course/README.md)。
+教程按需编译加载，课程目录在构建时从同一份 Markdown 提取。Rust 源码通过虚拟模块接入网页，无需在教程中重复维护代码。编写约定见[教程编写](../src/docs/README.md)与[课程 Rust 源码](../course/README.md)。
 
 ## 验证修改
 
@@ -56,7 +56,7 @@ vp run test:server
 
 | 命令                             | 检查内容                                 | 需要本机 Rust |
 | -------------------------------- | ---------------------------------------- | ------------- |
-| `vp run verify:course:structure` | 教材结构、字段与判题映射                 | 否            |
+| `vp run verify:course:structure` | 教程结构、字段与判题映射                 | 否            |
 | `vp run verify:course:answers`   | 选择题、填空题的答案判定                 | 否            |
 | `vp run verify:course:execution` | 编译运行 Rust 示例、编程题及项目参考实现 | 是            |
 
@@ -79,7 +79,7 @@ vp preview
 
 课程使用 `/learn/<lesson-id>`，章节挑战和实操使用 `/chapters/<chapter-id>/quiz` 与 `/chapters/<chapter-id>/project`。学习路线、代码实验室和学习足迹分别使用 `/path`、`/playground` 和 `/progress`。打开根地址会在浏览器挂载后恢复上次学习位置；独立课程地址优先于保存的导航位置。
 
-教材正文与初始代码在构建时生成，编辑器、笔记和本机服务设置在浏览器挂载后加载。hydration 完成前不写入学习记录，页面切换保留原有 Motion 动画；静态首屏不使用隐藏内容的入场样式。当前进度模型仍使用共享响应式对象，因此 SSG 以 `concurrency: 1` 顺序渲染并在每条路由前重置默认状态。
+教程正文与初始代码在构建时生成，编辑器、笔记和本机服务设置在浏览器挂载后加载。hydration 完成前不写入学习记录，页面切换保留原有 Motion 动画；静态首屏不使用隐藏内容的入场样式。当前进度模型仍使用共享响应式对象，因此 SSG 以 `concurrency: 1` 顺序渲染并在每条路由前重置默认状态。
 
 纯静态托管仅具备浏览器回退能力，完整执行与语言服务需要本机服务。
 
