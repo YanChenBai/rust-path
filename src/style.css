@@ -6404,8 +6404,76 @@ h1 {
   font-size: 14px;
   color: #eee;
 }
+.study-annotations-menu {
+  width: min(344px, calc(100vw - 24px));
+  padding: 0;
+  background: #1b1b1d;
+  border-color: #ffffff14;
+  border-radius: 8px;
+  box-shadow:
+    0 16px 56px #0007,
+    0 2px 8px #0004;
+}
 .study-annotations-menu > header {
-  margin-bottom: 0;
+  top: 0;
+  margin: 0;
+  padding: 12px 12px 12px 18px;
+  background: #1b1b1d;
+  border-color: #ffffff0a;
+  border-radius: 7px 7px 0 0;
+}
+.study-annotations-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #919196;
+}
+.study-annotations-heading > strong {
+  color: #c7c7cc;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.study-annotations-count {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: #ffffff08;
+  color: #99999f;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.study-annotations-menu > header > button {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  border-radius: 7px;
+  color: #85858b;
+}
+.study-annotations-empty {
+  display: grid;
+  gap: 8px;
+  padding: 30px 16px 32px;
+  text-align: center;
+}
+.study-annotations-empty p {
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.7;
+}
+.study-annotations-empty .study-annotations-empty-title {
+  color: #d6d6da;
+  font-size: 13px;
+}
+.study-annotations-empty .study-annotations-empty-description {
+  color: #83838b;
+  font-size: 12px;
+}
+.study-annotations-menu > .chapter-annotation-entry {
+  margin: 0 18px;
+}
+.study-annotations-menu > .notes-empty {
+  margin: 0;
+  padding: 16px 18px;
 }
 .annotation-dropdown > header {
   justify-content: flex-end;

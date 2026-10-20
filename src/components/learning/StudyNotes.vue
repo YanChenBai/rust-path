@@ -359,14 +359,20 @@ onBeforeUnmount(() => {
         @keydown="menuKeydown"
       >
         <header>
-          <strong>注释 · {{ chapterAnnotations.length }}</strong
-          ><button class="icon-button" aria-label="关闭注释列表" @click="menuOpen = false">
+          <div class="study-annotations-heading">
+            <strong>正文注释</strong>
+            <span v-if="chapterAnnotations.length" class="study-annotations-count">{{
+              chapterAnnotations.length
+            }}</span>
+          </div>
+          <button class="icon-button" aria-label="关闭注释列表" @click="menuOpen = false">
             <X :size="16" />
           </button>
         </header>
-        <p v-if="!chapterAnnotations.length" class="notes-empty">
-          选中正文文字，点击「添加注释」。保存后可从这里跳回原文。
-        </p>
+        <div v-if="!chapterAnnotations.length" class="study-annotations-empty">
+          <p class="study-annotations-empty-title">选中正文，添加你的第一条注释</p>
+          <p class="study-annotations-empty-description">保存后，可随时从这里跳回原文</p>
+        </div>
         <p v-if="jumpMessage" role="status" class="notes-empty">{{ jumpMessage }}</p>
         <article
           v-for="entry in chapterAnnotations"
