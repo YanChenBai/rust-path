@@ -10,6 +10,11 @@ import {
 } from './course-routes';
 
 describe('静态课程路由', () => {
+  it('错误地址不覆盖侧边栏保存的学习位置', () => {
+    const state = { page: 'learn' as const, lesson: 'bindings', tab: 'quiz' as const };
+    applyWorkspaceRoute({ meta: { notFound: true } }, state);
+    expect(state).toEqual({ page: 'learn', lesson: 'bindings', tab: 'quiz' });
+  });
   it('切换辅助页面保留继续学习的位置，课程链接覆盖该位置', () => {
     const state = { page: 'learn' as const, lesson: 'bindings', tab: 'quiz' as const };
     applyWorkspaceRoute({ meta: { page: 'path' } }, state);

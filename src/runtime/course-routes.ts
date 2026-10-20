@@ -55,6 +55,10 @@ export function applyWorkspaceRoute(
   route: Pick<RouteLocationNormalizedLoaded, 'meta'>,
   state: Pick<Progress, 'page' | 'lesson' | 'tab'>,
 ) {
+  if (route.meta.notFound) {
+    return;
+  }
+
   const next = routeState(route);
 
   if (next.page === 'learn') {

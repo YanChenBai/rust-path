@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 
 import { progress, recordActivity, importProgress, restoreProgress } from '../progress';
 import type { chapters } from '../runtime/course';
-import { applyWorkspaceRoute, workspacePath } from '../runtime/course-routes';
+import { applyWorkspaceRoute, lessonPath, workspacePath } from '../runtime/course-routes';
 import { pageAnimationsReady } from '../runtime/page-animation';
 import { useCurrentLesson } from './useCurrentLesson';
 
@@ -51,12 +51,7 @@ export function useLearningWorkspace() {
 }`;
 
   function openChapterSection(c: (typeof chapters)[number], tab: 'quiz' | 'project') {
-    if (!c.lessons.some(l => l.id === progress.lesson)) {
-      navigate(c.lessons[0]!.id);
-    }
-
-    progress.page = 'learn';
-    section.value = tab;
+    void router.push(workspacePath({ page: 'learn', lesson: c.lessons[0]!.id, tab }));
     sidebar.value = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
@@ -89,16 +84,14 @@ export function useLearningWorkspace() {
   }
 
   function navigate(id: string) {
-    progress.lesson = id;
-    progress.page = 'learn';
-    section.value = 'lesson';
+    void router.push(lessonPath(id));
     sidebar.value = false;
     showSearch.value = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   function page(value: typeof progress.page) {
-    progress.page = value;
+    void router.push(workspacePath({ ...progress, page: value }));
     sidebar.value = false;
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
