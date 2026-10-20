@@ -6,6 +6,7 @@ import type {} from 'vite-ssg';
 
 import { courseCatalog } from './plugins/course-catalog';
 import { courseMarkdown } from './plugins/markdown-plugin';
+import { staticNotFound } from './plugins/static-not-found';
 import { projectVersion } from './scripts/release-version';
 
 const courseVerificationCache = {
@@ -73,6 +74,7 @@ export default defineConfig({
     vue({ include: [/\.vue$/, /\.md$/] }),
     courseCatalog(),
     courseMarkdown(),
+    staticNotFound(),
     vueDevTools(),
     tailwindcss(),
   ]),

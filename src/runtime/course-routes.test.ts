@@ -10,6 +10,15 @@ import {
 } from './course-routes';
 
 describe('静态课程路由', () => {
+  it('落地页保留学习位置，进入课程时可以继续学习', () => {
+    const state = { page: 'learn' as const, lesson: 'bindings', tab: 'quiz' as const };
+    const landing = routes.find(route => route.path === '/')!;
+
+    expect(landing.meta?.landing).toBe(true);
+    applyWorkspaceRoute({ meta: landing.meta! }, state);
+    expect(state).toEqual({ page: 'learn', lesson: 'bindings', tab: 'quiz' });
+    expect(workspacePath(state)).toBe('/chapters/variables/quiz');
+  });
   it('错误地址不覆盖侧边栏保存的学习位置', () => {
     const state = { page: 'learn' as const, lesson: 'bindings', tab: 'quiz' as const };
     applyWorkspaceRoute({ meta: { notFound: true } }, state);

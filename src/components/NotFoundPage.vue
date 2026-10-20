@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { useHead } from '@unhead/vue';
+import { computed, onMounted, ref } from 'vue';
 
-import { progress } from '../progress';
+import { progress, restoreProgress } from '../progress';
 import { lessonPath } from '../runtime/course-routes';
 
-const resumePath = computed(() => lessonPath(progress.lesson));
+const isRestored = ref(false);
+const resumePath = computed(() => lessonPath(isRestored.value ? progress.lesson : 'hello'));
+
+onMounted(() => {
+  restoreProgress();
+  isRestored.value = true;
+});
+
+useHead({
+  title: '页面不存在 · Rust Path',
+  meta: [{ name: 'robots', content: 'noindex' }],
+});
 </script>
 
 <template>
-  <section class="not-found-page" aria-label="页面不存在">
+  <main id="main-content" class="not-found-page" aria-label="页面不存在">
     <h1 class="not-found-code">404</h1>
     <div class="not-found-actions">
       <RouterLink :to="resumePath" class="not-found-primary">返回学习空间</RouterLink>
       <RouterLink to="/path" class="not-found-secondary">查看学习路线</RouterLink>
     </div>
-  </section>
+  </main>
 </template>
 
 <style scoped>
@@ -23,7 +35,7 @@ const resumePath = computed(() => lessonPath(progress.lesson));
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100svh - 220px);
+  min-height: 100svh;
   padding: 64px 20px;
   text-align: center;
 }
@@ -71,7 +83,6 @@ const resumePath = computed(() => lessonPath(progress.lesson));
 }
 @media (max-width: 560px) {
   .not-found-page {
-    min-height: calc(100svh - 160px);
     padding: 44px 12px;
   }
 }

@@ -77,7 +77,9 @@ vp preview
 
 `vp run build` 先执行类型检查，再由 Vite SSG 构建静态网站到 `dist/`；`vp preview` 预览已有产物。前端构建不包含本机服务，也不会清理后端产物。
 
-课程使用 `/learn/<lesson-id>`，章节挑战和实操使用 `/chapters/<chapter-id>/quiz` 与 `/chapters/<chapter-id>/project`。学习路线、代码实验室和学习足迹分别使用 `/path`、`/playground` 和 `/progress`。打开根地址会在浏览器挂载后恢复上次学习位置；独立课程地址优先于保存的导航位置。
+根地址 `/` 是独立的落地页，点击「开始学习」继续上次课程。课程使用 `/learn/<lesson-id>`，章节挑战和实操使用 `/chapters/<chapter-id>/quiz` 与 `/chapters/<chapter-id>/project`。学习路线、代码实验室和学习足迹分别使用 `/path`、`/playground` 和 `/progress`。独立课程地址优先于保存的导航位置。
+
+落地页背景优先使用 WebGPU 绘制透明的黑白点阵波面，设备不可用时回退到 Canvas。动画在后台标签页暂停，并遵循系统的减少动态效果设置；页面离开时释放 GPU 资源。
 
 教程正文与初始代码在构建时生成，编辑器、笔记和本机服务设置在浏览器挂载后加载。hydration 完成前不写入学习记录，页面切换保留原有 Motion 动画；静态首屏不使用隐藏内容的入场样式。当前进度模型仍使用共享响应式对象，因此 SSG 以 `concurrency: 1` 顺序渲染并在每条路由前重置默认状态。
 

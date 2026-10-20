@@ -14,12 +14,12 @@ export function useLearningWorkspace() {
     const route = router.currentRoute.value;
     restoreProgress();
 
-    // 根地址延续上次学习位置；明确的课程 URL 优先于本地导航记录。
-    if (route.path !== '/' && !route.meta.notFound) {
+    // 明确的课程 URL 优先于本地导航记录。
+    if (!route.meta.notFound && !route.meta.landing) {
       applyWorkspaceRoute(route, progress);
     }
 
-    if (!route.meta.notFound) {
+    if (!route.meta.notFound && !route.meta.landing) {
       void router.replace(workspacePath(progress));
     }
 
@@ -29,7 +29,11 @@ export function useLearningWorkspace() {
   watch(
     () => [progress.page, progress.lesson, progress.tab],
     () => {
-      if (!pageAnimationsReady.value || router.currentRoute.value.meta.notFound) {
+      if (
+        !pageAnimationsReady.value ||
+        router.currentRoute.value.meta.notFound ||
+        router.currentRoute.value.meta.landing
+      ) {
         return;
       }
 

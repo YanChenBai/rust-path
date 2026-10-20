@@ -8,7 +8,7 @@ const RoutePage = { render: () => null };
 export const lessonPath = (id: string) => `/learn/${id}`;
 
 export const routes: RouteRecordRaw[] = [
-  { path: '/', component: RoutePage, meta: { page: 'learn', lesson: 'hello', tab: 'lesson' } },
+  { path: '/', component: RoutePage, meta: { landing: true } },
   ...allLessons.map(lesson => ({
     path: lessonPath(lesson.id),
     component: RoutePage,
@@ -55,7 +55,7 @@ export function applyWorkspaceRoute(
   route: Pick<RouteLocationNormalizedLoaded, 'meta'>,
   state: Pick<Progress, 'page' | 'lesson' | 'tab'>,
 ) {
-  if (route.meta.notFound) {
+  if (route.meta.notFound || route.meta.landing) {
     return;
   }
 
