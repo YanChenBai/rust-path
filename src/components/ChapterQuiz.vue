@@ -14,6 +14,7 @@ import { computed, ref, onMounted, type ComponentPublicInstance } from 'vue';
 import { progress, recordActivity } from '../progress';
 import { checkProgram } from '../runtime/assessment';
 import type { Chapter, Question } from '../runtime/course';
+import { terminalHtml } from '../runtime/terminal';
 import CodeEditor from './CodeEditor.vue';
 import CodeSnippet from './CodeSnippet.vue';
 import ContentDocument from './docs/ContentDocument.vue';
@@ -288,7 +289,7 @@ onMounted(() => {
             v-else
             :size="18"
           />
-          <pre>{{ progress.feedback[q.id]?.message }}</pre>
+          <pre v-html="terminalHtml(progress.feedback[q.id]?.message ?? '')" />
         </div>
         <div v-if="!progress.passed.includes(q.id)" class="question-attempts">
           <span>独立尝试 {{ attempts(q.id) }} 次</span
