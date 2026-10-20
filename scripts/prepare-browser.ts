@@ -1,6 +1,7 @@
 import { cp, mkdir, writeFile, access, readFile, rm, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { brotliDecompressSync } from 'node:zlib';
 
 import { logger, logReady } from './logger';
 
@@ -13,6 +14,12 @@ async function prepareBrowser() {
   await rm(new URL('public/runtime/bin', root), { recursive: true, force: true });
   await rm(new URL('public/runtime/lib', root), { recursive: true, force: true });
   await mkdir(new URL('public/runtime', root), { recursive: true });
+  const formatterArtifact = await readFile(new URL(import.meta.resolve('@scalar/rust-fmt/wasm')));
+
+  await writeFile(
+    new URL('public/runtime/rustfmt.wasm', root),
+    brotliDecompressSync(formatterArtifact),
+  );
   await cp(
     new URL('node_modules/@live-codes/wasm-rustc/bin', root),
     new URL('public/runtime/bin', root),

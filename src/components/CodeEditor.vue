@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Search,
   Menu,
+  Braces,
 } from 'lucide-vue-next';
 import type * as Monaco from 'monaco-editor/editor/editor.api.js';
 import { onMounted, onBeforeUnmount, nextTick, ref, watch, computed } from 'vue';
@@ -30,6 +31,7 @@ import { detectNative, nativeAvailable } from '../runtime/native';
 import { NativeAnalyzer } from '../runtime/native-analyzer';
 import { beginResourceLoading } from '../runtime/resource-loading';
 import { runRust, runtimeStatus, stopRust, type RunResult } from '../runtime/rust';
+import { formatRust } from '../runtime/rust-formatter';
 import NativeServiceSettings from './layout/NativeServiceSettings.vue';
 import ResourceLoading from './layout/ResourceLoading.vue';
 import TerminalView from './TerminalView.vue';
@@ -139,6 +141,7 @@ const loading = ref(true);
 let editorLoading: ReturnType<typeof beginResourceLoading> | undefined;
 let analyzerLoading: ReturnType<typeof beginResourceLoading> | undefined;
 const busy = ref(false);
+const formatting = ref(false);
 
 const analyzer = ref('语义引擎加载中');
 const result = ref<RunResult | undefined>(progress.outputs[props.editorId]);
@@ -553,6 +556,14 @@ onMounted(async () => {
     );
     updateContentHeight(editor.getContentHeight());
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => void run());
+    subscriptions.push(
+      editor.addAction({
+        id: 'rust-path.format',
+        label: '格式化 Rust 代码',
+        keybindings: [monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF],
+        run: () => formatCode(),
+      }),
+    );
     updateCommentView();
     loading.value = false;
     editorLoading.ready('代码编辑器已就绪');
@@ -615,6 +626,45 @@ async function run() {
 function reset() {
   if (confirm('恢复初始示例？当前编辑器的修改将被替换。')) {
     model?.setValue(props.initialCode);
+  }
+}
+
+async function formatCode() {
+  const target = model;
+
+  if (!editor || !target || activeFile.value !== 'rust' || formatting.value) {
+    return;
+  }
+
+  formatting.value = true;
+  error.value = '';
+  const version = target.getVersionId();
+
+  try {
+    const code = await formatRust(target.getValue());
+
+    if (disposed || target.isDisposed()) {
+      return;
+    }
+
+    if (target.getVersionId() !== version) {
+      error.value = '代码已修改，请重新格式化。';
+      return;
+    }
+
+    if (editor.getModel() !== target) {
+      return;
+    }
+
+    editor.pushUndoStop();
+    editor.executeEdits('rust-path.format', [{ range: target.getFullModelRange(), text: code }]);
+    editor.pushUndoStop();
+  } catch (err) {
+    if (!disposed) {
+      error.value = err instanceof Error ? err.message : 'Rust 格式化失败';
+    }
+  } finally {
+    formatting.value = false;
   }
 }
 
@@ -827,6 +877,16 @@ onBeforeUnmount(() => {
                   : '已本地保存'
             }}</span
           >
+          <button
+            class="icon-button"
+            :disabled="activeFile !== 'rust' || loading || formatting"
+            title="格式化代码（Shift + Alt + F）"
+            aria-label="格式化 Rust 代码"
+            @click="formatCode"
+          >
+            <LoaderCircle v-if="formatting" :size="16" class="spin" />
+            <Braces v-else :size="16" />
+          </button>
           <button
             class="icon-button"
             :class="{ 'comments-hidden': hideComments }"

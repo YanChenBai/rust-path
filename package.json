@@ -9,6 +9,7 @@
   "dependencies": {
     "@live-codes/rust-wasm": "^0.3.0",
     "@live-codes/wasm-rustc": "0.1.0",
+    "@scalar/rust-fmt": "^0.3.0",
     "ansi-to-html": "^0.7.2",
     "lucide-vue-next": "^1.0.0",
     "markdown-it": "^15.0.3",
