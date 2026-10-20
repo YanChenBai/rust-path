@@ -1,9 +1,9 @@
 <h1 align="center">Rust Path</h1>
 
-<p align="center">以实践为中心的渐进式 Rust 教程</p>
+<p align="center">一份可交互的 Rust 学习教程</p>
 
 <p align="center">
-  从阅读一个概念，到修改一段代码，再到完成一个小项目。
+  由 GPT-6.1 Sol 参考 Rust 教程与官方文档生成，在浏览器中阅读、运行代码和完成练习。
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
 
 ---
 
-学习 Rust 时，读懂示例只是开始。Rust Path 把教材、代码编辑器、章节练习和专项项目放在同一个学习空间里，让你读完就能动手，用运行结果检查自己的理解。
+学习 Rust 时，读懂示例只是开始。Rust Path 把教程、代码编辑器、章节练习和专项项目放在同一个学习空间里，让你读完就能动手，用运行结果检查自己的理解。
 
 目前包含 **32 章、76 个知识点、256 道章节题和 32 个专项项目**，从第一行 Rust 代码，逐步走到异步、网络与数据库。
 
@@ -43,7 +43,7 @@
 
 > 网页默认使用浏览器模式。需要完整代码补全、悬浮说明、实时诊断或本机 Cargo 执行时，请前往[发布页](https://github.com/YanChenBai/rust-path/releases)下载适合当前系统的增强服务，按[学习指南](docs/learning.md#连接本机语言服务)启动并连接。本机需安装 Rust 工具链及 rust-analyzer、rust-src 组件。
 
-### 把自己的理解留在教材旁边
+### 把自己的理解留在教程旁边
 
 每章都有共用的 Markdown 笔记，方便把不同课时的理解整理到一起。
 
@@ -72,13 +72,13 @@ Unsafe / FFI、过程宏编写、性能分析与 WebAssembly 尚未列入当前�
 
 ## ✍️ 添加课程
 
-可以补充现有课时，也可以添加完整章节。教材使用 Markdown 编写，Rust 示例独立维护，新增内容会自动进入课程目录。
+可以补充现有课时，也可以添加完整章节。教程使用 Markdown 编写，Rust 示例独立维护，新增内容会自动进入课程目录。
 
 1. 在 `src/docs/NN-name/` 编写章节、知识点、深入讲解、题目和专项项目。
 2. 在 `course/NN-name/` 放置对应 Rust 示例、练习骨架与参考实现，在 Markdown 中引用源码。
-3. 使用 `vp dev` 预览修改，完成后执行 `vpr verify:course` 验证教材和代码。
+3. 使用 `vp dev` 预览修改，完成后执行 `vpr verify:course` 验证教程和代码。
 
-新增章节需要至少一个知识点、8 道章节题和一个专项项目。具体步骤、目录约定和示例见[教材编写指南](src/docs/README.md#添加内容的步骤)。
+新增章节需要至少一个知识点、8 道章节题和一个专项项目。具体步骤、目录约定和示例见[教程编写指南](src/docs/README.md#添加内容的步骤)。
 
 ## 📚 继续了解
 
@@ -86,11 +86,11 @@ Unsafe / FFI、过程宏编写、性能分析与 WebAssembly 尚未列入当前�
 | ---------------------------------- | -------------------------------------------------- |
 | [学习指南](docs/learning.md)       | 答题规则、笔记与注释、学习记录、运行模式及当前限制 |
 | [开发指南](docs/development.md)    | 本地开发、项目结构、验证、构建与运行               |
-| [教材编写](src/docs/README.md)     | 新增章节、课时、题目和项目                         |
+| [教程编写](src/docs/README.md)     | 新增章节、课时、题目和项目                         |
 | [课程 Rust 源码](course/README.md) | 示例、练习骨架与参考实现的组织和验收               |
 
 ## 🤝 参考与致谢
 
-课程内容参考 [The Rust Programming Language](https://doc.rust-lang.org/book/)、[Rust by Example](https://doc.rust-lang.org/rust-by-example/)、Rust 标准库与依赖官方文档。本项目为独立学习教程，并非 Rust 官方课程。
+教程由 GPT-6.1 Sol 参考 [The Rust Programming Language](https://doc.rust-lang.org/book/)、[Rust by Example](https://doc.rust-lang.org/rust-by-example/)、Rust 标准库与依赖官方文档生成，包含知识点讲解、示例代码、章节练习和专项项目。本项目为独立学习教程，并非 Rust 官方课程。
 
 编辑与学习体验基于 Vue、Monaco Editor、Rust 本机服务和 Rust 工具链构建。浏览器运行资源的来源与许可见[第三方说明](THIRD_PARTY_NOTICES.md)。
