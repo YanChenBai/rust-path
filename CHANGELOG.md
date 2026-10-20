@@ -1,5 +1,11 @@
 # rust-study
 
+## 0.2.2
+
+### Patch Changes
+
+- 优化 Rust Service 设置：提供浏览器模式与 Rust 增强服务切换、平台启动命令复制和最新版本下载入口，改善连接状态、版本信息布局与动画，并阻止重复连接同一地址。Rust 服务默认允许 https://rust-path.pages.dev 访问。
+
 ## 0.2.1
 
 ### Patch Changes

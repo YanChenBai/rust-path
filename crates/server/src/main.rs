@@ -31,7 +31,12 @@ use url::Url;
 struct Options {
     #[arg(long, env = "PORT", default_value_t = 3000)]
     port: u16,
-    #[arg(long = "origin", env = "ALLOWED_ORIGINS", value_delimiter = ',')]
+    #[arg(
+        long = "origin",
+        env = "ALLOWED_ORIGINS",
+        value_delimiter = ',',
+        default_value = "https://rust-path.pages.dev"
+    )]
     origins: Vec<String>,
     #[arg(long)]
     check: bool,

@@ -20,7 +20,7 @@ vp dev
 
 需要完整 Cargo 与语言服务时，在另一个终端执行 `vp run dev:server -- --origin http://localhost:5173`，将来源替换为前端实际地址；再在网页页头的插头设置中填写 `http://127.0.0.1:3000`。Rust 源码修改后需要重启该服务。
 
-项目面向本机学习。增强服务只监听 `127.0.0.1`，跨域网页需通过 `--origin` 明确授权，不适合作为公共代码执行服务部署。
+项目面向本机学习。增强服务只监听 `127.0.0.1`，默认允许 `https://rust-path.pages.dev`，其他跨域网页需通过 `--origin` 明确授权，不适合作为公共代码执行服务部署。
 
 ## 项目结构
 
@@ -105,7 +105,7 @@ rustup component add rust-analyzer rust-src
 .\target\release\rust-path-server.exe --origin http://localhost:5173
 ```
 
-默认监听 `http://127.0.0.1:3000`。根路径返回服务状态 JSON，`/api/capabilities` 返回工具链能力；该端口不托管课程页面。启动时检查 `rustc`、`cargo`、`rust-analyzer` 和标准库源码，失败会给出安装指引并退出，不会自动安装。使用 `--check` 可只检查工具链。
+默认监听 `http://127.0.0.1:3000`，允许网页来源 `https://rust-path.pages.dev`；访问该站点时直接启动服务即可，无需传入 `--origin`。根路径返回服务状态 JSON，`/api/capabilities` 返回工具链能力；该端口不托管课程页面。启动时检查 `rustc`、`cargo`、`rust-analyzer` 和标准库源码，失败会给出安装指引并退出，不会自动安装。使用 `--check` 可只检查工具链。
 
 | 选项                             | 用途                         |
 | -------------------------------- | ---------------------------- |
@@ -114,7 +114,7 @@ rustup component add rust-analyzer rust-src
 | `ALLOWED_ORIGINS`                | 以逗号分隔的网页来源白名单   |
 | `--check`                        | 检查工具链后退出             |
 
-来源必须包含协议、主机和端口，不包含路径或末尾斜杠；`http://localhost:5173` 与 `http://127.0.0.1:5173` 不相同。浏览器可能要求授权网页访问本地网络。
+`--origin` 或 `ALLOWED_ORIGINS` 会覆盖默认来源；需要允许多个来源时，请完整列出。来源必须包含协议、主机和端口，不包含路径或末尾斜杠；`http://localhost:5173` 与 `http://127.0.0.1:5173` 不相同。浏览器可能要求授权网页访问本地网络。
 
 网页默认使用浏览器模式，不自动探测同源 `/api`。在页头插头设置中填写服务基础地址并保存连接；选择「浏览器模式」或清空地址即可关闭连接。地址保存在当前浏览器中。具体连接与排查步骤见[学习指南](learning.md#连接本机语言服务)。
 

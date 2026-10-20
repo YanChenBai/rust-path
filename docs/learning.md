@@ -63,11 +63,13 @@
 ### 第一次连接
 
 1. 通过 rustup 安装 Rust stable，并执行 `rustup component add rust-analyzer rust-src`。确保 `rustc`、`cargo` 和 `rust-analyzer` 可在终端运行。
-2. 前往[发布页](https://github.com/YanChenBai/rust-path/releases)下载适合当前系统的增强服务。Windows 用户启动 `rust-path-server.exe`，通过 `--origin` 允许当前学习网页的来源。例如网页地址为 `http://localhost:5173`：
+2. 前往[发布页](https://github.com/YanChenBai/rust-path/releases)下载适合当前系统的增强服务。默认允许 `https://rust-path.pages.dev`，Windows 用户直接启动即可：
 
    ```powershell
-   .\rust-path-server.exe --origin http://localhost:5173
+   .\rust-path-server.exe
    ```
+
+   使用其他网页来源时，通过 `--origin` 指定，例如 `.\rust-path-server.exe --origin http://localhost:5173`；该选项会覆盖默认来源。
 
 3. 保持服务进程运行。点击网页页头的插头按钮，在「Rust Service」中填写 `http://127.0.0.1:3000`，点击「保存并连接」。地址只保存在当前浏览器。
 4. 等待 `Rust Analyzer` 的索引进度结束，再使用完整补全和悬浮说明。
