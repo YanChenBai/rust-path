@@ -7,10 +7,13 @@ export const nativeAvailable = ref(false);
 export const rustcVersion = ref<string | null>(null);
 
 export const cargoVersion = ref<string | null>(null);
+
+export const analyzerVersion = ref<string | null>(null);
 interface NativeCapabilities {
   native: boolean;
-  rustc: string | null;
-  cargo: string | null;
+  analyzer?: string | null;
+  rustc?: string | null;
+  cargo?: string | null;
 }
 let probe: Promise<boolean> | undefined;
 const serviceKey = 'rust-path:native-service';
@@ -66,6 +69,11 @@ export function configureNativeService(value: string) {
   nativeAvailable.value = false;
   rustcVersion.value = null;
   cargoVersion.value = null;
+  analyzerVersion.value = null;
+}
+
+function toolchainVersion(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value : null;
 }
 
 function serviceApiUrl(path: string, endpoint: string) {
@@ -121,8 +129,9 @@ export function detectNative() {
         return false;
       }
 
-      rustcVersion.value = data.rustc;
-      cargoVersion.value = data.cargo;
+      rustcVersion.value = data.native ? toolchainVersion(data.rustc) : null;
+      cargoVersion.value = data.native ? toolchainVersion(data.cargo) : null;
+      analyzerVersion.value = data.native ? toolchainVersion(data.analyzer) : null;
       nativeAvailable.value = data.native;
       nativeConnectionStatus.value = data.native ? 'connected' : 'error';
       loading.dispose();
@@ -137,6 +146,7 @@ export function detectNative() {
       nativeConnectionStatus.value = 'error';
       rustcVersion.value = null;
       cargoVersion.value = null;
+      analyzerVersion.value = null;
       return false;
     })
     .finally(() => {

@@ -5,10 +5,13 @@ import { computed, ref, watch } from 'vue';
 
 import { useFloatingMenu } from '../../composables/useFloatingMenu';
 import {
+  analyzerVersion,
+  cargoVersion,
   configureNativeService,
   detectNative,
   nativeConnectionStatus,
   nativeServiceUrl,
+  rustcVersion,
 } from '../../runtime/native';
 
 const { open, anchor, menu, style, close } = useFloatingMenu();
@@ -18,6 +21,18 @@ const message = ref('');
 const origin = location.origin;
 const showInstructions = ref(false);
 const reducedMotion = useReducedMotion();
+
+const toolchainVersions = computed(() => {
+  if (!nativeServiceUrl.value || nativeConnectionStatus.value !== 'connected') {
+    return [];
+  }
+
+  return [
+    { name: 'rust-analyzer', version: analyzerVersion.value },
+    { name: 'Cargo', version: cargoVersion.value },
+    { name: 'rustc', version: rustcVersion.value },
+  ].filter(entry => entry.version);
+});
 
 const statusLabel = computed(
   () =>
@@ -124,6 +139,23 @@ async function browserMode() {
           </div>
         </form>
         <p v-if="message" class="service-message" role="status">{{ message }}</p>
+        <AnimatePresence>
+          <motion.div
+            v-if="toolchainVersions.length"
+            class="service-versions"
+            :initial="reducedMotion ? false : { height: 0, opacity: 0 }"
+            :animate="{ height: 'auto', opacity: 1 }"
+            :exit="{ height: 0, opacity: 0 }"
+            :transition="{ duration: reducedMotion ? 0 : 0.1, ease: 'easeOut' }"
+          >
+            <dl class="service-versions-content" aria-label="工具链版本">
+              <div v-for="entry in toolchainVersions" :key="entry.name">
+                <dt class="sr-only">{{ entry.name }}</dt>
+                <dd>{{ entry.version }}</dd>
+              </div>
+            </dl>
+          </motion.div>
+        </AnimatePresence>
         <div class="service-instructions">
           <button
             type="button"
@@ -206,6 +238,28 @@ async function browserMode() {
   color: #969696;
   font-size: 12px;
   line-height: 1.7;
+}
+.service-versions {
+  overflow: hidden;
+}
+.service-versions-content {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #303030;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.service-versions-content div {
+  min-width: 0;
+}
+.service-versions-content dd {
+  margin: 0;
+  color: #ddd;
+  font-family: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 .native-service-settings form {
   display: grid;
