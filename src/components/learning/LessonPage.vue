@@ -169,6 +169,7 @@ const notify = (message: string) => emit('reward', message);
   </BrowserOnly>
   <nav v-if="section === 'lesson'" class="lesson-navigation" aria-label="知识点导航">
     <a
+      class="lesson-reference-link"
       :href="
         chapter.source.startsWith('https://')
           ? chapter.source
