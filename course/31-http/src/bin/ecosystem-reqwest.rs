@@ -32,7 +32,8 @@ fn main() -> anyhow::Result<()> {
                     anyhow::ensure!(header.len() < 4096, "请求头过大");
 
                     // 每次读取一个字节来定位头部结束标记，不假定一次 read 取得完整请求。
-                    let mut byte = [0]; stream.read_exact(&mut byte).await?;
+                    let mut byte = [0];
+                    stream.read_exact(&mut byte).await?;
                     header.push(byte[0]);
                 }
 

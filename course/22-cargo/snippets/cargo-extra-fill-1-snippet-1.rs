@@ -1,1 +1,3 @@
-fn main() { println!("{}", config::port()); }
+fn main() {
+    println!("{}", config::port());
+}

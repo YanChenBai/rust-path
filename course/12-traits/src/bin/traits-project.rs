@@ -19,8 +19,10 @@ impl From<Minutes> for u32 {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(Minutes::try_from(0),Err(String::from("range")));assert_eq!(Minutes::try_from(181),Err(String::from("range")));assert_eq!(u32::from(Minutes::try_from(180).unwrap()),180);
-// endregion:tests
+    // region:tests
+    assert_eq!(Minutes::try_from(0), Err(String::from("range")));
+    assert_eq!(Minutes::try_from(181), Err(String::from("range")));
+    assert_eq!(u32::from(Minutes::try_from(180).unwrap()), 180);
+    // endregion:tests
     println!("__PASS__");
 }

@@ -29,8 +29,12 @@ fn advance(task: Task, minutes: u32) -> Task {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(advance(Task::Pending,0),Task::Pending);assert_eq!(advance(Task::Pending,20),Task::Running(20));assert_eq!(advance(Task::Pending,60),Task::Done(60));assert_eq!(advance(Task::Running(40),20),Task::Done(60));assert_eq!(advance(Task::Done(60),99),Task::Done(60));
-// endregion:tests
+    // region:tests
+    assert_eq!(advance(Task::Pending, 0), Task::Pending);
+    assert_eq!(advance(Task::Pending, 20), Task::Running(20));
+    assert_eq!(advance(Task::Pending, 60), Task::Done(60));
+    assert_eq!(advance(Task::Running(40), 20), Task::Done(60));
+    assert_eq!(advance(Task::Done(60), 99), Task::Done(60));
+    // endregion:tests
     println!("__PASS__");
 }

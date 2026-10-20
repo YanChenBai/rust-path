@@ -12,13 +12,21 @@ fn top_minutes(input: &str, limit: usize) -> Vec<u32> {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(top_minutes("20
+    // region:tests
+    assert_eq!(
+        top_minutes(
+            "20
 invalid
 0
  30
 30
--1",3),vec![30,30,20]);assert!(top_minutes("1",0).is_empty());assert!(top_minutes("",5).is_empty());
-// endregion:tests
+-1",
+            3
+        ),
+        vec![30, 30, 20]
+    );
+    assert!(top_minutes("1", 0).is_empty());
+    assert!(top_minutes("", 5).is_empty());
+    // endregion:tests
     println!("__PASS__");
 }

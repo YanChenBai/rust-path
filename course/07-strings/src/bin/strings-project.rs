@@ -10,12 +10,30 @@ fn summarize(input: &str, limit: usize) -> Vec<String> {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(summarize("  你好世界 
+    // region:tests
+    assert_eq!(
+        summarize(
+            "  你好世界 
 
- 🦀Rust ",2),vec!["你好","🦀R"]);assert!(summarize(" 
-",3).is_empty());assert_eq!(summarize("a
-b",0),vec!["",""]);
-// endregion:tests
+ 🦀Rust ",
+            2
+        ),
+        vec!["你好", "🦀R"]
+    );
+    assert!(
+        summarize(
+            " 
+", 3
+        )
+        .is_empty()
+    );
+    assert_eq!(
+        summarize(
+            "a
+b", 0
+        ),
+        vec!["", ""]
+    );
+    // endregion:tests
     println!("__PASS__");
 }

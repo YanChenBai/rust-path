@@ -25,3 +25,5 @@ edit.push_str("B");
 ```rust source=24-smart/snippets/smart-extra-choice-2-snippet-2.rs
 
 ```
+
+会怎样？

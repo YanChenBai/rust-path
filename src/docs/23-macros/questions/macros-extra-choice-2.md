@@ -21,3 +21,5 @@ macro_rules! twice { ($value:expr) =&gt; { ($value, $value) }; }
 ```rust source=23-macros/snippets/macros-extra-choice-2-snippet-1.rs
 
 ```
+
+输出什么？

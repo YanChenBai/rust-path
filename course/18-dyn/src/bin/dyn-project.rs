@@ -23,9 +23,13 @@ fn report(items: &[&dyn Render]) -> String {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(report(&[&Text(String::from("你好")),&Count(7)]),"你好
-7");assert_eq!(report(&[]),"");
-// endregion:tests
+    // region:tests
+    assert_eq!(
+        report(&[&Text(String::from("你好")), &Count(7)]),
+        "你好
+7"
+    );
+    assert_eq!(report(&[]), "");
+    // endregion:tests
     println!("__PASS__");
 }

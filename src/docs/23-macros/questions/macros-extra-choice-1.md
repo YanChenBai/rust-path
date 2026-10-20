@@ -21,3 +21,5 @@ assessment:
 ```rust source=23-macros/snippets/macros-extra-choice-1-snippet-1.rs
 
 ```
+
+输出什么？

@@ -19,3 +19,5 @@ assessment:
 ```rust source=29-ecosystem/snippets/ecosystem-extra-choice-2-snippet-1.rs
 
 ```
+
+输出什么？

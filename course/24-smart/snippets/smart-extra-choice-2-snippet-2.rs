@@ -1,1 +1,1 @@
-println!("{view}"); 会怎样？
+println!("{view}");

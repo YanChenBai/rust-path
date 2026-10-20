@@ -25,3 +25,5 @@ drop(job);
 ```rust source=27-async/snippets/async-extra-choice-1-snippet-2.rs
 
 ```
+
+输出什么？

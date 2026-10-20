@@ -19,3 +19,5 @@ assessment:
 ```rust source=30-network/snippets/network-extra-choice-1-snippet-1.rs
 
 ```
+
+输出什么？

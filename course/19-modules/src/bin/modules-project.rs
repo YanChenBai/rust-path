@@ -20,8 +20,12 @@ mod domain {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(domain::parse(" 25 ").unwrap().get(),25);assert!(domain::parse("0").is_none());assert!(domain::parse("181").is_none());assert!(domain::parse("bad").is_none());assert!(domain::Minutes::new(0).is_none());
-// endregion:tests
+    // region:tests
+    assert_eq!(domain::parse(" 25 ").unwrap().get(), 25);
+    assert!(domain::parse("0").is_none());
+    assert!(domain::parse("181").is_none());
+    assert!(domain::parse("bad").is_none());
+    assert!(domain::Minutes::new(0).is_none());
+    // endregion:tests
     println!("__PASS__");
 }

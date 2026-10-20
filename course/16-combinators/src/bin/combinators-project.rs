@@ -14,14 +14,26 @@ fn parse_rows(input: &str) -> Result<Vec<u32>, String> {
 // endregion:answer
 
 fn main() {
-// region:tests
-assert_eq!(parse_rows("1
+    // region:tests
+    assert_eq!(
+        parse_rows(
+            "1
 
  0
-2"),Ok(vec![1,0,2]));assert_eq!(parse_rows("
+2"
+        ),
+        Ok(vec![1, 0, 2])
+    );
+    assert_eq!(
+        parse_rows(
+            "
 1
 x
-y"),Err(String::from("line:3")));assert_eq!(parse_rows(""),Ok(vec![]));
-// endregion:tests
+y"
+        ),
+        Err(String::from("line:3"))
+    );
+    assert_eq!(parse_rows(""), Ok(vec![]));
+    // endregion:tests
     println!("__PASS__");
 }

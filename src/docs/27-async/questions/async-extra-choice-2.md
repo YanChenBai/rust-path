@@ -21,3 +21,5 @@ assessment:
 ```rust source=27-async/snippets/async-extra-choice-2-snippet-1.rs
 
 ```
+
+输出什么？

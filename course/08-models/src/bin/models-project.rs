@@ -17,8 +17,13 @@ impl Session {
 // endregion:answer
 
 fn main() {
-// region:tests
-let mut s=Session::new(String::from("小林"));assert_eq!(s.summary(),"小林:0");s.add(25);assert_eq!(s.summary(),"小林:25");s.add(u32::MAX);assert_eq!(s.summary(),format!("小林:{}",u32::MAX));
-// endregion:tests
+    // region:tests
+    let mut s = Session::new(String::from("小林"));
+    assert_eq!(s.summary(), "小林:0");
+    s.add(25);
+    assert_eq!(s.summary(), "小林:25");
+    s.add(u32::MAX);
+    assert_eq!(s.summary(), format!("小林:{}", u32::MAX));
+    // endregion:tests
     println!("__PASS__");
 }

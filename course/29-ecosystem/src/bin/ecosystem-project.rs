@@ -1,18 +1,30 @@
 // region:answer
 use clap::Parser;
 #[derive(Parser)]
-struct Args { #[arg(long)] json: String }
+struct Args {
+    #[arg(long)]
+    json: String,
+}
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Record { name: String, minutes: u32 }
+struct Record {
+    name: String,
+    minutes: u32,
+}
 #[derive(Debug, thiserror::Error)]
 enum RecordError {
-    #[error("名字不能为空")] EmptyName,
-    #[error("分钟必须为 1..=180")] InvalidMinutes,
+    #[error("名字不能为空")]
+    EmptyName,
+    #[error("分钟必须为 1..=180")]
+    InvalidMinutes,
 }
 fn validate(record: &Record) -> Result<(), RecordError> {
-    if record.name.trim().is_empty() { return Err(RecordError::EmptyName); }
-    if !(1..=180).contains(&record.minutes) { return Err(RecordError::InvalidMinutes); }
+    if record.name.trim().is_empty() {
+        return Err(RecordError::EmptyName);
+    }
+    if !(1..=180).contains(&record.minutes) {
+        return Err(RecordError::InvalidMinutes);
+    }
     Ok(())
 }
 fn execute(args: &[&str]) -> anyhow::Result<String> {
@@ -28,15 +40,20 @@ fn execute(args: &[&str]) -> anyhow::Result<String> {
 // endregion:answer
 
 fn main() {
-// region:tests
-let result = execute(&["study", "--json", r#"{"name":"甲","minutes":25}"#]).unwrap();
-let value: serde_json::Value = serde_json::from_str(&result).unwrap();
-assert_eq!(value["name"], "甲"); assert_eq!(value["minutes"], 25);
-assert!(execute(&["study"]).is_err()); assert!(execute(&["study", "--unknown"]).is_err());
-assert!(execute(&["study", "--json", "{}"]).is_err());
-let error = execute(&["study", "--json", r#"{"name":"a","minutes":0}"#]).unwrap_err();
-assert!(matches!(error.downcast_ref::<RecordError>(), Some(RecordError::InvalidMinutes)));
-assert!(execute(&["study", "--json", r#"{"name":" ","minutes":1}"#]).is_err());
-// endregion:tests
+    // region:tests
+    let result = execute(&["study", "--json", r#"{"name":"甲","minutes":25}"#]).unwrap();
+    let value: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(value["name"], "甲");
+    assert_eq!(value["minutes"], 25);
+    assert!(execute(&["study"]).is_err());
+    assert!(execute(&["study", "--unknown"]).is_err());
+    assert!(execute(&["study", "--json", "{}"]).is_err());
+    let error = execute(&["study", "--json", r#"{"name":"a","minutes":0}"#]).unwrap_err();
+    assert!(matches!(
+        error.downcast_ref::<RecordError>(),
+        Some(RecordError::InvalidMinutes)
+    ));
+    assert!(execute(&["study", "--json", r#"{"name":" ","minutes":1}"#]).is_err());
+    // endregion:tests
     println!("__PASS__");
 }

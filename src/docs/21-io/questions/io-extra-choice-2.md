@@ -26,3 +26,5 @@ assessment:
 ```rust source=21-io/snippets/io-extra-choice-2-snippet-2.rs
 
 ```
+
+输出什么？

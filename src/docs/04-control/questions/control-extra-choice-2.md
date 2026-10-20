@@ -19,3 +19,5 @@ assessment:
 ```rust source=04-control/snippets/control-extra-choice-2-snippet-1.rs
 
 ```
+
+输出什么？

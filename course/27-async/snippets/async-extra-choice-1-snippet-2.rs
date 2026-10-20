@@ -1,1 +1,1 @@
-println!("{}", count.get()); 输出什么？
+println!("{}", count.get());

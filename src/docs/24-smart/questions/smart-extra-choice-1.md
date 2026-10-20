@@ -25,3 +25,5 @@ assessment:
 ```rust source=24-smart/snippets/smart-extra-choice-1-snippet-2.rs
 
 ```
+
+输出什么？
