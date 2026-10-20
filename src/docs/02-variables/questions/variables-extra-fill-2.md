@@ -16,9 +16,3 @@ assessment:
 ```rust source=02-variables/snippets/variables-extra-fill-2-snippet-1.rs
 
 ```
-
-minutes += 5;
-
-```rust source=02-variables/snippets/variables-extra-fill-2-snippet-2.rs
-
-```
