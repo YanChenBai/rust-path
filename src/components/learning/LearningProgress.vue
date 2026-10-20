@@ -40,10 +40,22 @@ const navigate = (id: string) => emit('navigate', id);
         <h1>那些小小的进步，都在这里。</h1>
         <p class="page-subtitle">不和别人比较。今天的你，又比昨天多懂了一点。</p>
       </div>
-      <button class="secondary-button" @click="exportProgress">
-        <Download :size="15" />导出记录
-      </button>
+      <div class="progress-backup-actions">
+        <button class="secondary-button" @click="importInput?.click()">
+          <Upload :size="15" />导入记录
+        </button>
+        <button class="secondary-button" @click="exportProgress">
+          <Download :size="15" />导出记录
+        </button>
+      </div>
     </div>
+    <input
+      ref="importInput"
+      type="file"
+      accept="application/json"
+      hidden
+      @change="emit('import', $event)"
+    />
     <div class="stats-grid">
       <div class="stat-card">
         <span><Compass :size="17" />整体进度</span><strong>{{ percentage }}<small>%</small></strong>
@@ -122,14 +134,15 @@ const navigate = (id: string) => emit('navigate', id);
         <strong>学习记录，由你保管。</strong>
         <p>所有数据仅保存在当前浏览器。清除站点数据会删除记录，可导出备份或在另一浏览器导入。</p>
       </div>
-      <button class="secondary-button" @click="importInput?.click()">
-        <Upload :size="14" />导入记录</button
-      ><input
-        ref="importInput"
-        type="file"
-        accept="application/json"
-        hidden
-        @change="emit('import', $event)"
-      /></div
-  ></motion.div>
+    </div></motion.div
+  >
 </template>
+
+<style scoped>
+.progress-backup-actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+</style>
